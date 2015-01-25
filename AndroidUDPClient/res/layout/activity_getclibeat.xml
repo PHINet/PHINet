@@ -17,6 +17,26 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#000000" />
 
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="273dp"
+        android:id="@+id/patientListView"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:id="@+id/addNewPatientBtn"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:text="@string/addNewPatientBtnText"
+        android:layout_gravity="center|bottom" />
+
+    <Button
+        android:id="@+id/requestPatientDataBtn"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:text="@string/requestPatientDataBtnText"
+        android:layout_gravity="center|bottom" />
+
     <Button
         android:id="@+id/getCliBeatBackBtn"
         android:layout_width="180dp"
