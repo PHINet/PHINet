@@ -1,16 +1,27 @@
 package com.example.androidudpclient;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 public class ConfigNetLinksActivity extends Activity {
+
+    Button backBtn;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	
-	    // TODO Auto-generated method stub
-	}
+        setContentView(R.layout.activity_confignetlink);
 
+        /** Returns to MainActivity **/
+        backBtn = (Button) findViewById(R.id.configNetBackBtn);
+        backBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                finish();
+            }
+        });
+	}
 }

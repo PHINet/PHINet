@@ -45,12 +45,6 @@ import java.net.UnknownHostException;
 
 import android.os.AsyncTask;
 
-
-
-
-
-
-
 //import android.R;
 import android.app.Activity;
 import android.content.Intent;
@@ -62,6 +56,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.androidudpclient.UDPSocket;
 
 public class MainActivity extends Activity {
     private static final String host = null;
@@ -101,8 +97,9 @@ public class MainActivity extends Activity {
         /*
          * Creates Tables
          */
-        datasource = new DBDataSource(this);
-        datasource.open();
+         // TODO - problem cause crash
+         //      datasource = new DBDataSource(this);
+         //        datasource.open();
         
         /*
          * TODO UDP Sockets Creation
@@ -117,7 +114,7 @@ public class MainActivity extends Activity {
         selfBeatBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
         		
-        	//	Intent intent = new Intent(this, RetrieveHeartbeatActivity.class);
+        	startActivity(new Intent(MainActivity.this, RetrieveHeartbeatActivity.class));
         		
         	}
         });
@@ -125,21 +122,21 @@ public class MainActivity extends Activity {
         netLinkBtn = (Button) findViewById(R.id.netLinkBtn);
         netLinkBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-        		// TODO Add Intent
+        	    startActivity(new Intent(MainActivity.this, ConfigNetLinksActivity.class));
         	}
         });
         
         getAvgBtn = (Button) findViewById(R.id.getAvgBtn);
         getAvgBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-        		// TODO Add Intent
+                startActivity(new Intent(MainActivity.this, GetAvgBeatActivity.class));
         	}
         });
         
         cliBeatBtn = (Button) findViewById(R.id.cliBeatBtn);
         cliBeatBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-        		// TODO Add Intent
+        		startActivity(new Intent(MainActivity.this, GetCliBeatActivity.class));
         	}
         });
         
@@ -205,73 +202,75 @@ public class MainActivity extends Activity {
       
 }
 
-class UDPSocket extends AsyncTask<Void, Void, Void>{
+class UDPSocket extends AsyncTask<Void, Void, Void> {
 
-	String destAddr;
-	int destPort;
-	String message = "";
-	
-	UDPSocket(int port, String addr){
-		destPort = port;
-		destAddr = addr;
-	}
+    String destAddr;
+    int destPort;
+    String message = "";
 
-	//public static void client
-	
-	@Override
-	protected Void doInBackground(Void... arg0) {
-		DatagramSocket client_socket = null;
-		
-		try{
-			client_socket = new DatagramSocket(destPort);
-			byte[] send_data = new byte[1024];
-			
-			InetAddress IPAddress = InetAddress.getByName(destAddr);
-			
-	        DatagramPacket send_packet = new DatagramPacket(send_data,message.length(), IPAddress, 1635);
-	        client_socket.send(send_packet);
-		} catch(UnknownHostException e){
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally{
-			if(client_socket != null){
-				client_socket.close();
-			}
-		}
-		return null;
-	}
-	
-	protected void onPostExecute(Void result){
-		//textResponse.setText(response);
-		//super.onPostExecute(result);
-	}
+    UDPSocket(int port, String addr){
+        destPort = port;
+        destAddr = addr;
+    }
+
+    //public static void client
+
+    @Override
+    protected Void doInBackground(Void... arg0) {
+        DatagramSocket client_socket = null;
+
+        try{
+            client_socket = new DatagramSocket(destPort);
+            byte[] send_data = new byte[1024];
+
+            InetAddress IPAddress = InetAddress.getByName(destAddr);
+
+            DatagramPacket send_packet = new DatagramPacket(send_data,message.length(), IPAddress, 1635);
+            client_socket.send(send_packet);
+        } catch(UnknownHostException e){
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally{
+            if(client_socket != null){
+                client_socket.close();
+            }
+        }
+        return null;
+    }
+
+    protected void onPostExecute(Void result){
+        //textResponse.setText(response);
+        //super.onPostExecute(result);
+    }
 }
 
-    
+
 
 
 //public static void client(int portnum, String IPaddr, String message) throws IOException{
 //
 //	byte[] send_data = new byte[1024];
-//	
+//
 //	DatagramSocket client_socket = new DatagramSocket(portnum);
-//  InetAddress IPAddress =  InetAddress.getByName(IPaddr); 
+//  InetAddress IPAddress =  InetAddress.getByName(IPaddr);
 //
 //  send_data = message.getBytes();
-// 	       	             	
+//
 //  DatagramPacket send_packet = new DatagramPacket(send_data,message.length(), IPAddress, 1635);
-//  client_socket.send(send_packet);                      
+//  client_socket.send(send_packet);
 //
 //		//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 //		//client_socket.receive(receivePacket);
 //		//modifiedSentence = new String(receivePacket.getData());
 //
 //	//if(modifiedSentence.charAt(2)=='%')
-//	//	 txt5.setText(modifiedSentence.substring(0, 3)); 
+//	//	 txt5.setText(modifiedSentence.substring(0, 3));
 //		//else
 //		//	txt1.setText(modifiedSentence);
 //		//modifiedSentence=null;
 //		client_socket.close();
-//	 		      
+//
 //  }
+
+

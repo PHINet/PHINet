@@ -1,4 +1,4 @@
-package com.jwetherell.heart_rate_monitor;
+package com.example.androidudpclient;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -23,7 +23,7 @@ import android.widget.TextView;
  * 
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
-public class HeartRateMonitor extends Activity {
+public class HeartRateMonitorActivity extends Activity {
 
     private static final String TAG = "HeartRateMonitor";
     private static final AtomicBoolean processing = new AtomicBoolean(false);
@@ -62,7 +62,7 @@ public class HeartRateMonitor extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_heartrate);
 
         preview = (SurfaceView) findViewById(R.id.preview);
         previewHolder = preview.getHolder();

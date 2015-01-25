@@ -1,4 +1,4 @@
-package com.jwetherell.heart_rate_monitor;
+package com.example.androidudpclient;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -60,7 +60,7 @@ public class HeartbeatView extends View {
         if (canvas == null) throw new NullPointerException();
 
         Bitmap bitmap = null;
-        if (HeartRateMonitor.getCurrent() == HeartRateMonitor.TYPE.GREEN) bitmap = greenBitmap;
+        if (HeartRateMonitorActivity.getCurrent() == HeartRateMonitorActivity.TYPE.GREEN) bitmap = greenBitmap;
         else bitmap = redBitmap;
 
         int bitmapX = bitmap.getWidth() / 2;

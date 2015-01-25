@@ -1,4 +1,4 @@
-package com.jwetherell.heart_rate_monitor;
+package com.example.androidudpclient;
 
 /**
  * This abstract class is used to process images.
