@@ -1,13 +1,13 @@
 package com.example.androidudpclient;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+
+import java.util.ArrayList;
+import java.util.List;
 //import android.support.v4.widget.SearchViewCompatIcs.MySearchView;
 
 
@@ -75,11 +75,11 @@ public class DBDataSource {
 	   * 
 	   * Delete Method for PIT
 	   */
-	//Domainname 			text:  “ndn”
+	//Domainname 			text:  ï¿½ndnï¿½
 	//userid PK/CK: 		text firstname+lastname+dob
-	//sensorID PK/CK 		text: “heartbeat”
-	//timestring PK/CK 		text: time OR string:time_start+”-“+time_end
-	//processed PK/CK 		text:	  “average” OR string: “instance”
+	//sensorID PK/CK 		text: ï¿½heartbeatï¿½
+	//timestring PK/CK 		text: time OR string:time_start+ï¿½-ï¿½+time_end
+	//processed PK/CK 		text:	  ï¿½averageï¿½ OR string: ï¿½instanceï¿½
 	//data real: 			real number value for heartbeat or average
 
 	  public void deleteInterest(Data interest) {

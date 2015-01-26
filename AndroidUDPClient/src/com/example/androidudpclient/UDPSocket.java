@@ -31,19 +31,13 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
 
             sendData = message[0].getBytes();
 
-            System.out.println("DEST ADDR: " + destAddr);
-            System.out.println("DEST PORT: " + destPort);
-            System.out.println("MESSAGE 0: " + message[0]);
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
-            System.out.println("SENT");
 
             clientSocket.close();
         } catch (Exception e) {
-            System.out.println("EXCEPTION ENCOUNTERED");
             System.out.println(e.toString());
         } finally {
-            System.out.println("FINALLY");
             if (clientSocket != null) {
                 clientSocket.close();
             }

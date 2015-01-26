@@ -1,7 +1,5 @@
 package com.example.androidudpclient;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -15,6 +13,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**

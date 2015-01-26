@@ -22,61 +22,36 @@
 *****************************************************************************/
 package com.example.androidudpclient;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import android.os.AsyncTask;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 
 public class MainActivity extends Activity {
-    /*
-    private static final String host = null;
-	private int port = 1635;
-	private String IPAddr = "10.0.2.15";
-	String message = null;
-	TextView txt5,txt1;
-	//Buffers for UDP Sockets
-	byte[] send_data = new byte[1024];
-	byte[] receiveData = new byte[1024];
-	*/
-	// /** Called when the activity is first created. */
-
-	String modifiedSentence;
 
 	Button netLinkBtn;
 	Button selfBeatBtn;
 	Button getAvgBtn;
 	Button cliBeatBtn;
 	
-	EditText edittext;
+	Thread receiverThread;
+    boolean continueReceiverExecution = true;
 
-	private DBDataSource datasource;
+    /** used to notify sender of this device's address **/
+    static final int devicePort = 50056; // chosen arbitrarily
+    String deviceIP;
+    WifiManager wm;
+    /** used to notify sender of this device's address **/
+
+    private DBDataSource datasource;
 
 	/*
 	 * Run Upon Initial Installation of Applciation
@@ -91,18 +66,17 @@ public class MainActivity extends Activity {
         /*
          * Creates Tables
          */
-         // TODO - problem cause crash
-         //      datasource = new DBDataSource(this);
-         //        datasource.open();
+        // TODO - resolve error
+        //datasource = new DBDataSource(this);
+        //datasource.open();
         
-        /*
-         * TODO UDP Sockets Creation
-         */
+        receiverThread = initializeReceiver();
+        receiverThread.start(); // begin listening for interest packets
 
         selfBeatBtn = (Button) findViewById(R.id.selfBeatBtn);
         selfBeatBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-        	startActivity(new Intent(MainActivity.this, RetrieveHeartbeatActivity.class));
+            	startActivity(new Intent(MainActivity.this, RetrieveHeartbeatActivity.class));
         	}
         });
         
@@ -128,18 +102,66 @@ public class MainActivity extends Activity {
         });
     }
 
-   /* public void setText(){
-    	Button myButton = (Button)findViewById(R.id.selfBeatBtn);
-    	//edittext = (EditText)findViewById(R.id.search);
-    	myButton.setOnClickListener(new View.OnClickListener(){
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        continueReceiverExecution = false;  // notify receiver to terminate
+    }
 
-			@Override
-			public void onClick(View v) {
-				message = edittext.getText().toString();
-				UDPSocket mySocket = new UDPSocket(port, IPAddr);
-				Toast.makeText(getApplicationContext(), "Running 'client'",Toast.LENGTH_LONG).show();
-				//txt1.setText(modifiedSentence);
-			}
-    	});
-    }*/
+    /** create and return receiver thread **/
+    Thread initializeReceiver()
+    {
+        // get the device's ip
+        wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());;
+
+        // create thread to receive all incoming packets expected after request to patient
+        Thread thread = new Thread(new Runnable(){
+            DatagramSocket clientSocket = null;
+            @Override
+            public void run() {
+                try {
+                    clientSocket = new DatagramSocket(null);
+                    InetSocketAddress address = new InetSocketAddress(deviceIP, devicePort);
+
+                    clientSocket.bind(address); // give receiver static address
+
+                    // set timeout so to force thread to check whether its execution is valid
+                    clientSocket.setSoTimeout(1000);
+
+                    byte[] receiveData = new byte[1024];
+                    while (continueReceiverExecution) { // loop for packets
+                        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+                        try {
+                            clientSocket.receive(receivePacket);
+                            String modifiedSentence = new String(receivePacket.getData());
+
+                            // remove "null" unicode character
+                            modifiedSentence = modifiedSentence.replaceAll("\u0000", "");
+
+                            // NOTE: output for debugging only
+                            System.out.println("FROM SERVER:" + modifiedSentence);
+
+                            if (modifiedSentence == "INTEREST") {
+                                // TODO - respond to interest
+                                // TODO - make compliant with NDN
+                            }
+
+                        } catch (SocketTimeoutException e) {
+                            continue;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (clientSocket != null) {
+                        clientSocket.close();
+                    }
+                }
+            }
+        });
+        return thread;
+    }
 }
