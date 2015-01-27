@@ -33,7 +33,9 @@ import android.widget.Button;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -50,6 +52,10 @@ public class MainActivity extends Activity {
     String deviceIP;
     WifiManager wm;
     /** used to notify sender of this device's address **/
+
+    // NOTE: this is only temporary, data will be stored in cache eventually
+    static ArrayList<Patient> patients;
+
 
     private DBDataSource datasource;
 
@@ -136,18 +142,53 @@ public class MainActivity extends Activity {
 
                         try {
                             clientSocket.receive(receivePacket);
-                            String modifiedSentence = new String(receivePacket.getData());
 
-                            // remove "null" unicode character
-                            modifiedSentence = modifiedSentence.replaceAll("\u0000", "");
+                            // convert sender IP to string and remove '/' which appears
+                            String senderIP = receivePacket.getAddress().toString().replaceAll("/","");
+                            String packetData = new String(receivePacket.getData());
+                            String [] packetDataArray;
 
-                            // NOTE: output for debugging only
-                            System.out.println("FROM SERVER:" + modifiedSentence);
+                            // remove "null" unicode characters
+                            packetData = packetData.replaceAll("\u0000", "");
 
-                            if (modifiedSentence == "INTEREST") {
-                                // TODO - respond to interest
-                                // TODO - make compliant with NDN
+                            // TODO - this formast is temporary, rework
+                            packetDataArray = packetData.split("::");
+
+                            packetDataArray[0] = packetDataArray[0].trim();
+                            packetDataArray[1] = packetDataArray[1].trim();
+
+                            // TODO - respond to interest
+                            // TODO - make compliant with NDN
+
+                            // TODO - think from perspective of either doctor or patient when
+                            //          accepting data
+
+                            // TODO - validate data from sender
+
+                            // search for matching IP
+                            // TODO - rework this approach later, NDN compliant
+
+                            Patient senderPatient = null;
+
+                            for (Patient p : patients) {
+                                if (p.getIP().equals(senderIP)) {
+                                    senderPatient = p;
+                                }
                             }
+
+                            if (packetDataArray[0].equals("INTEREST")) {
+                                if (senderPatient != null) {
+                                    // TODO - process
+                                }
+
+                            } else if (packetDataArray[0].equals("DATA")) {
+                                if (senderPatient != null) {
+                                    // TODO - process
+                                }
+                            } else {
+                                // throw away, packet is neither INTEREST nor DATA
+                            }
+                        }
 
                         } catch (SocketTimeoutException e) {
                             continue;

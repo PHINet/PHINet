@@ -23,7 +23,6 @@ public class GetCliBeatActivity extends ListActivity {
     Button editPatientDataBtn;
     Button addNewPatientBtn;
     private String[] patientInputString;
-    ArrayList<Patient> patients;
 
     /** Called when the activity is first created. */
 	@Override
@@ -31,13 +30,14 @@ public class GetCliBeatActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
 
-        patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
+        MainActivity.patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
 
         // NOTE: two fake patients to test functionality
-        patients.add(new Patient("10.170.20.10","Test Patient 1"));
-        patients.add(new Patient("10.170.21.9", "Test Patient 2"));
+        MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
+        MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
+        MainActivity.patients.add(new Patient("10.170.20.31", "My Computer"));
 
-        PatientAdapter adapter = new PatientAdapter(patients, this);
+        PatientAdapter adapter = new PatientAdapter(this);
         setListAdapter(adapter);
 
         /** Returns to MainActivity **/
@@ -90,7 +90,7 @@ public class GetCliBeatActivity extends ListActivity {
                         // NOTE: name-length contraints were chosen somewhat arbitrarily
                         if (validIP && patientInputString[1].length() >= 3
                                 && patientInputString[1].length() <= 10) {
-                            patients.add(new Patient(patientInputString[0], patientInputString[1]));
+                            MainActivity.patients.add(new Patient(patientInputString[0], patientInputString[1]));
                         } else {
                             Toast toast = Toast.makeText(c,
                                     "Invalid IP or name length (3-10 characters).", Toast.LENGTH_LONG);
@@ -114,9 +114,9 @@ public class GetCliBeatActivity extends ListActivity {
 
         Activity activity = null;
 
-        public PatientAdapter(ArrayList<Patient> patients, ListActivity li)
+        public PatientAdapter(ListActivity li)
         {
-            super(li, 0, patients);
+            super(li, 0, MainActivity.patients);
             activity = (Activity)li;
         }
 
@@ -128,7 +128,7 @@ public class GetCliBeatActivity extends ListActivity {
                         .inflate(R.layout.list_item_patient, null);
             }
 
-            final Patient p = patients.get(position);
+            final Patient p = MainActivity.patients.get(position);
             final Context c = this.activity;
 
             Button patientButton = (Button)convertView.findViewById(R.id.list_patientButton);
@@ -141,11 +141,12 @@ public class GetCliBeatActivity extends ListActivity {
                     // dialog allows doctor to contact patient and retrieve data
 
                     final AlertDialog.Builder builder = new AlertDialog.Builder(c);
-                    final EditText editText = new EditText(c);
-                    editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                   // final EditText editText = new EditText(c);
+                    //editText.setInputType(InputType.TYPE_CLASS_NUMBER);
 
-                    builder.setTitle("Request patient data? Nearest selected interval will be returned.");
-                    builder.setView(editText);
+                    builder.setTitle("Request patient data?");// Nearest selected interval will be returned.");
+
+                    //builder.setView(editText);
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
