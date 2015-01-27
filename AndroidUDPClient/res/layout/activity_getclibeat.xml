@@ -5,7 +5,8 @@
     android:layout_height="fill_parent"
     android:background="@color/background"
     android:baselineAligned="false"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:weightSum="1">
 
     <TextView
         android:id="@+id/titleBar"
@@ -22,8 +23,9 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:id="@+id/patientListView"
-        android:layout_gravity="center_horizontal" />
+        android:id="@android:id/list"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.93" />
 
     <Button
         android:id="@+id/addNewPatientBtn"
@@ -36,10 +38,10 @@
         android:textSize="20sp" />
 
     <Button
-        android:id="@+id/requestPatientDataBtn"
+        android:id="@+id/editPatientDataBtn"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:text="@string/requestPatientDataBtnText"
+        android:text="@string/editPatientDataBtnText"
         android:background="@drawable/black_button"
         style="@style/button_text"
         android:layout_gravity="center|bottom"

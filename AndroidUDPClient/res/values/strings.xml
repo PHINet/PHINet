@@ -9,7 +9,7 @@
     <string name="cliBeatText">Get Patient Heartbeat</string>
     <string name="netLinksText">Configure Network Links</string>
     <string name="welcomeText">NDN HealthSensorNet</string>
-    <string name="requestPatientDataBtnText">Request Patient Data</string>
+    <string name="editPatientDataBtnText">Edit Patient Data</string>
     <string name="addNewPatientBtnText">Add New Patient</string>
     <string name="default_text">--</string>
 
