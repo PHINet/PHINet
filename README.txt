@@ -1,6 +1,6 @@
 This is a testbed for an IoT-NDN-WBAN project.
 
-Projects remains a work in progress.
+Project remains a work in progress.
 
 Website: 
 
