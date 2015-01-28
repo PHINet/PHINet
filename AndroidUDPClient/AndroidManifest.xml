@@ -53,6 +53,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.anroidudpclient.MainActivity"/>
         </activity>
+        <activity android:name="PatientDataActivity"
+            android:screenOrientation="portrait"
+            android:parentActivityName="com.example.androidudpclient.GetCliBeatActivity">
+        </activity>
         <activity android:name="GetCliBeatActivity"
             android:screenOrientation="portrait"
             	android:parentActivityName="com.example.androidudpclient.MainActivity">

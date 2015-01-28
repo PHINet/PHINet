@@ -33,7 +33,6 @@ import android.widget.Button;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
@@ -53,9 +52,7 @@ public class MainActivity extends Activity {
     WifiManager wm;
     /** used to notify sender of this device's address **/
 
-    // NOTE: this is only temporary, data will be stored in cache eventually
-    static ArrayList<Patient> patients;
-
+    static ArrayList<Patient> patients; // NOTE: this is only temporary, data will be stored in cache eventually
 
     private DBDataSource datasource;
 
@@ -168,28 +165,29 @@ public class MainActivity extends Activity {
                             // search for matching IP
                             // TODO - rework this approach later, NDN compliant
 
-                            Patient senderPatient = null;
+                            int senderPatientIndex = -1;
 
-                            for (Patient p : patients) {
-                                if (p.getIP().equals(senderIP)) {
-                                    senderPatient = p;
+                            for (int i = 0; i < patients.size(); i++) {
+                                if (patients.get(i).getIP().equals(senderIP)) {
+                                    senderPatientIndex = i;
                                 }
                             }
 
                             if (packetDataArray[0].equals("INTEREST")) {
-                                if (senderPatient != null) {
+                                if (senderPatientIndex != -1) {
                                     // TODO - process
                                 }
 
                             } else if (packetDataArray[0].equals("DATA")) {
-                                if (senderPatient != null) {
-                                    // TODO - process
+                                if (senderPatientIndex != -1) {
+
+                                    // TODO - rework adding actuall data later
+
+                                    MainActivity.patients.get(senderPatientIndex).addData(9);
                                 }
                             } else {
                                 // throw away, packet is neither INTEREST nor DATA
                             }
-                        }
-
                         } catch (SocketTimeoutException e) {
                             continue;
                         }

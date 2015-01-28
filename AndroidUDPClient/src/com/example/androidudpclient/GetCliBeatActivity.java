@@ -5,8 +5,8 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -24,18 +24,29 @@ public class GetCliBeatActivity extends ListActivity {
     Button addNewPatientBtn;
     private String[] patientInputString;
 
+    final static String PATIENT_ID_STRING = "PATIENT_ID"; // used to idenfity intent-data
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        this.onCreate(null); // force activity to reload
+    }
+
     /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
 
-        MainActivity.patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
+        // NOTE: just for testing
+        if (MainActivity.patients == null) {
+            MainActivity.patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
 
-        // NOTE: two fake patients to test functionality
-        MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
-        MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
-        MainActivity.patients.add(new Patient("10.170.20.31", "My Computer"));
+            // NOTE: two fake patients to test functionality
+            MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
+            MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
+            MainActivity.patients.add(new Patient("10.170.20.31", "My Computer"));
+        }
 
         PatientAdapter adapter = new PatientAdapter(this);
         setListAdapter(adapter);
@@ -45,13 +56,6 @@ public class GetCliBeatActivity extends ListActivity {
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 finish();
-            }
-        });
-
-        editPatientDataBtn = (Button) findViewById(R.id.editPatientDataBtn);
-        editPatientDataBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-                // TODO - implement; allow for editing of patient data
             }
         });
 
@@ -138,26 +142,19 @@ public class GetCliBeatActivity extends ListActivity {
                 @Override
                 public void onClick(View v) {
 
-                    // dialog allows doctor to contact patient and retrieve data
-
                     final AlertDialog.Builder builder = new AlertDialog.Builder(c);
-                   // final EditText editText = new EditText(c);
-                    //editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-
-                    builder.setTitle("Request patient data?");// Nearest selected interval will be returned.");
-
-                    //builder.setView(editText);
+                    builder.setTitle("Go to patient page?");// Nearest selected interval will be returned.");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            // TODO - perform a check: are networking capabilities enabled?
-                            // TODO - define message format; NDN compatible
-                            // TODO - define/improve request interval
+                            Intent intent = new Intent(c, PatientDataActivity.class);
 
-                            new UDPSocket(MainActivity.devicePort, p.getIP()).execute("INTEREST::" + Integer.toString(MainActivity.devicePort));
+                            // TODO - create/define/pass valid patient ID
 
+                            intent.putExtra(PATIENT_ID_STRING, p.getIP());
+                            startActivity(intent);
                         }
                     });
                     builder.setNegativeButton("No", new DialogInterface.OnClickListener() {

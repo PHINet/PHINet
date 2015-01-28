@@ -1,11 +1,17 @@
 package com.example.androidudpclient;
 
+import java.util.ArrayList;
+
+/** Temporary class used to store patient data; valid until cache is functional **/
 public class Patient {
 
     private String ip, name;
+    private ArrayList<Integer> data;
+
     Patient(String ip, String name) {
         this.ip = ip;
         this.name = name;
+        this.data = new ArrayList<Integer>(); // TODO - rework
     }
 
     void setName(String name) {
@@ -16,6 +22,10 @@ public class Patient {
         this.ip = ip;
     }
 
+    void addData(int data) {
+        this.data.add(data);
+    }
+
     String getIP() {
         return this.ip;
     }
@@ -24,5 +34,8 @@ public class Patient {
         return this.name;
     }
 
+    ArrayList<Integer> getData() {
+        return this.data;
+    }
 
 }
