@@ -34,6 +34,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Name: "
             android:layout_margin="10dp"
+            android:textStyle="bold"
             android:textSize="20sp"
             android:id="@+id/name_textView" />
 
@@ -60,6 +61,7 @@
             android:text="IP: "
             android:layout_margin="10dp"
             android:textSize="20sp"
+            android:textStyle="bold"
             android:id="@+id/ip_textView" />
 
         <EditText
@@ -87,6 +89,7 @@
             android:text="Data Status: "
             android:layout_margin="10dp"
             android:textSize="20sp"
+            android:textStyle="bold"
             android:id="@+id/datastatus_textView" />
 
         <TextView
@@ -101,16 +104,11 @@
     </LinearLayout>
 
 
-
-
-    <ImageView
-        android:layout_width="269dp"
-        android:layout_height="188dp"
-        android:id="@+id/imageView2"
-        android:src="@drawable/example"
-        android:layout_gravity="center_horizontal"
-        android:minHeight="40dp"
-        android:maxWidth="100dp"
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="200dip"
+        android:background="@color/white"
+        android:id="@+id/graph"
         android:layout_margin="10dp" />
 
     <Button
@@ -121,7 +119,8 @@
         android:background="@drawable/black_button"
         style="@style/button_text"
         android:layout_gravity="center|bottom"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:layout_margin="0dp" />
 
     <Button
         android:id="@+id/patientDataSubmitBtn"

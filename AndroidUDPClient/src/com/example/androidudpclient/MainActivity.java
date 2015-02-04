@@ -112,6 +112,8 @@ public class MainActivity extends Activity {
         continueReceiverExecution = false;  // notify receiver to terminate
     }
 
+    // TODO - break up thread into methods (perhaps a class)
+
     /** create and return receiver thread **/
     Thread initializeReceiver()
     {
@@ -146,25 +148,14 @@ public class MainActivity extends Activity {
                             String [] packetDataArray;
 
                             // remove "null" unicode characters
-                            packetData = packetData.replaceAll("\u0000", "");
+                            packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
 
-                            // TODO - this formast is temporary, rework
-                            packetDataArray = packetData.split("::");
+                            for (int i = 0; i < packetDataArray.length; i++) {
+                                System.out.println(packetDataArray[i]);
+                            }
 
-                            packetDataArray[0] = packetDataArray[0].trim();
-                            packetDataArray[1] = packetDataArray[1].trim();
 
-                            // TODO - respond to interest
-                            // TODO - make compliant with NDN
-
-                            // TODO - think from perspective of either doctor or patient when
-                            //          accepting data
-
-                            // TODO - validate data from sender
-
-                            // search for matching IP
-                            // TODO - rework this approach later, NDN compliant
-
+                            // TODO - map NAME to IP (avoid this check)
                             int senderPatientIndex = -1;
 
                             for (int i = 0; i < patients.size(); i++) {
@@ -173,21 +164,56 @@ public class MainActivity extends Activity {
                                 }
                             }
 
-                            if (packetDataArray[0].equals("INTEREST")) {
-                                if (senderPatientIndex != -1) {
-                                    // TODO - process
+                            if (packetDataArray[0].equals("DATA-TLV")) {
+
+
+                                // TODO - LOOK in PIT - should forward or do I want?
+
+                                for (int i = 0; i < packetDataArray.length; i++) {
+                                    if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
+                                        // TODO - store
+
+
+                                    } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
+
+                                        // i+2 corresponds content as per NDN standard
+                                        // i = notifier (CONTENT-TYPE), i+1 = bytes, i+2 = content
+                                        String[] content = packetDataArray[i+2].split(",");
+
+                                        // store packet content with patient object
+                                        for (int j = 0; j < content.length; j++) {
+                                            patients.get(senderPatientIndex).addData(Integer.parseInt(content[j]));
+                                        }
+
+                                    } else {
+                                        // TODO - inspect other packet elements
+                                    }
                                 }
 
-                            } else if (packetDataArray[0].equals("DATA")) {
-                                if (senderPatientIndex != -1) {
+                            } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
 
-                                    // TODO - rework adding actuall data later
+                                // TODO - interest directed to me? If not, send according to
+                                //          FIB and place in PIT (if not currently there)
 
-                                    MainActivity.patients.get(senderPatientIndex).addData(9);
+                                for (int i = 0; i < packetDataArray.length; i++) {
+                                    if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
+                                        // TODO - store
+
+
+                                    } else {
+                                        // TODO - inspect other packet elements
+
+                                    }
                                 }
                             } else {
                                 // throw away, packet is neither INTEREST nor DATA
                             }
+
+                            // TODO - think from perspective of either doctor or patient when
+                            //          accepting data
+
+                            // TODO - validate data from sender
+
                         } catch (SocketTimeoutException e) {
                             continue;
                         }

@@ -1,6 +1,5 @@
 package com.example.androidudpclient;
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -13,6 +12,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.ArrayList;
 
 public class PatientDataActivity extends Activity {
@@ -20,6 +23,7 @@ public class PatientDataActivity extends Activity {
     Button backBtn, requestBtn, submitBtn;
     EditText nameEditText, ipEditText;
     TextView dataStatusText;
+    GraphView graph;
 
     /** Called when the activity is first created. */
     @Override
@@ -47,11 +51,23 @@ public class PatientDataActivity extends Activity {
 
         dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
 
-        // TODO - in future, actually display data
+        graph = (GraphView) findViewById(R.id.graph);
         if (patient.getData().size() > 0) {
-            dataStatusText.setText("Some data present");
+            dataStatusText.setText("Some data present");//
+
+            // TODO - improve presentation
+            DataPoint[] dataPoints = new DataPoint[patient.getData().size()];
+            for (int i = 0; i < patient.getData().size(); i++) {
+                dataPoints[i] = new DataPoint(i, patient.getData().get(i));
+            }
+
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
+            graph.addSeries(series);
+
         } else {
             dataStatusText.setText("No Data present");
+
+            graph.setVisibility(View.INVISIBLE);
         }
 
         nameEditText = (EditText) findViewById(R.id.name_editText);
@@ -77,6 +93,18 @@ public class PatientDataActivity extends Activity {
                 if (mWifi.isConnected()) {
                     new UDPSocket(MainActivity.devicePort, patient.getIP())
                             .execute("INTEREST::" + Integer.toString(MainActivity.devicePort));
+
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+
+                            // reload activity after 2 seconds, so to check if client data arrived
+
+                            // TODO - rework so that multiple instances of this activity aren't on stack
+                            finish();
+                            startActivity(getIntent());
+                        }
+                    }, 2000);
                 } else {
                     Toast toast = Toast.makeText(c,
                             "You must first connect to WiFi.", Toast.LENGTH_LONG);
@@ -84,17 +112,7 @@ public class PatientDataActivity extends Activity {
 
                 }
 
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    public void run() {
 
-                        // reload activity after 2 seconds, so to check if client data arrived
-
-                        // TODO - rework so that multiple instances of this activity aren't on stack
-                        finish();
-                        startActivity(getIntent());
-                    }
-                }, 2000);
 
             }
         });
