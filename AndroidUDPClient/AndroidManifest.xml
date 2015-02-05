@@ -11,6 +11,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
     
 
     <application
@@ -31,7 +35,7 @@
         </activity>
         
         <activity 
-            android:name="RetrieveHeartbeatActivity"
+            android:name="RecordHeartbeatActivity"
             android:screenOrientation="portrait"
             android:parentActivityName="com.example.androidudpclient.MainActivity">
             <meta-data

@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         selfBeatBtn = (Button) findViewById(R.id.selfBeatBtn);
         selfBeatBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-            	startActivity(new Intent(MainActivity.this, RetrieveHeartbeatActivity.class));
+            	startActivity(new Intent(MainActivity.this, RecordHeartbeatActivity.class));
         	}
         });
         

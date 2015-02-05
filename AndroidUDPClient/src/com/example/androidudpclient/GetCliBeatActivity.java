@@ -46,6 +46,7 @@ public class GetCliBeatActivity extends ListActivity {
             MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
             MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
             MainActivity.patients.add(new Patient("10.170.4.188", "My Computer"));
+            MainActivity.patients.add(new Patient("10.55.7.194", "CLASSROOM"));
         }
 
         PatientAdapter adapter = new PatientAdapter(this);
