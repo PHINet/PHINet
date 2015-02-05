@@ -36,7 +36,7 @@ public class Packet {
         // TODO - later content += " " + createFreshnessPeriod()
         // TODO - later content += " " + createFinalBlockId()
 
-        return "META-INFO-TYPE " + content.length + " " + content
+        return "META-INFO-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -47,8 +47,8 @@ public class Packet {
     --------------
     **/
     String createContentType() {
-        String content = Integer.parseInt(NON_NEG_INT_CONST);
-        return "CONTENT-TYPE-TYPE " + content.length + " " + content;
+        String content = "";//Integer.parseInt(NON_NEG_INT_CONST);
+        return "CONTENT-TYPE-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -59,9 +59,9 @@ public class Packet {
     --------------
     **/
     String createFreshnessPeriod() {
-        String content = str(NON_NEG_INT_CONST);
+        String content = "";//str(NON_NEG_INT_CONST);
 
-        return "FRESHNESS-PERIOD-TLV " + content.length + " " + content;
+        return "FRESHNESS-PERIOD-TLV " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -72,9 +72,9 @@ public class Packet {
     --------------
     **/
     String createFinalBlockId() {
-        String content = getNameComponent();
+        String content = "";//getNameComponent();
 
-        return "FINAL-BLOCK-ID-TLV " + content.length + " " + content; 
+        return "FINAL-BLOCK-ID-TLV " + Integer.toString(content.length()) + " " + content; 
     }
 
     /**
@@ -84,8 +84,8 @@ public class Packet {
     --------------
     **/
     String createContent() {
-        content = "88,75,80,95,84,78,100,82"; // TODO - generate content
-        return "CONTENT-TYPE " + content.length + " " + content''   
+        String content = "88,75,80,95,84,78,100,82"; // TODO - generate content
+        return "CONTENT-TYPE " + Integer.toString(content.length()) + " " + content;
     }
     
 
@@ -97,7 +97,7 @@ public class Packet {
     **/
     String createNonce() {
         String content = "234190Absdfa"; // TODO - rework;
-        return "NONCE-TYPE " + content.length + " " + content;    
+        return "NONCE-TYPE " + Integer.toString(content.length()) + " " + content;    
     }
     
     /**
@@ -107,9 +107,9 @@ public class Packet {
     --------------
     **/
     String createName() {
-        String content = createNameComponent()
+        String content = createNameComponent();
 
-        return "NAME-TYPE " + content.length + " " + content; 
+        return "NAME-TYPE " + Integer.toString(content.length()) + " " + content; 
     }
 
     
@@ -119,7 +119,7 @@ public class Packet {
     GenericNameComponent | ImplicitSha256DigestComponent
     --------------
     **/
-    StringcreateNameComponent() {
+    String createNameComponent() {
         return createGenericNameComponent() + " " + createImplicitSha256DigestComponent();
     }
 
@@ -131,7 +131,7 @@ public class Packet {
     **/
     String createGenericNameComponent() {
         String content = CONSTANT_NAME;
-        return "NAME-COMPONENT-TYPE " + content.length + " " + content;
+        return "NAME-COMPONENT-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -145,14 +145,14 @@ public class Packet {
     Interest Lifetime?
     --------------
     **/
-    StringcreateINTEREST() {
+    String createINTEREST() {
         String content = createName();
         content += " " + createSelectors();
         content += " " +  createNonce();
         content += " " + createScope();
         content += " " + createInterestLifetime();
 
-        return "INTEREST-TYPE " + content.length + " " + content;
+        return "INTEREST-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -171,7 +171,7 @@ public class Packet {
 
     --------------
     **/
-    StringcreateInterestLifetime() {
+    String createInterestLifetime() {
         return "";
     }
 
@@ -181,7 +181,7 @@ public class Packet {
 
     --------------
     */
-    StringcreateScope() {
+    String createScope() {
         return "";
     }
 
@@ -193,8 +193,8 @@ public class Packet {
     **/
     String createImplicitSha256DigestComponent() {
         String exampleSha = "893259d98aca58c451453f29ec7dc38688e690dd0b59ef4f3b9d33738bff0b8d";
-
-        return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + str(sys.getsizeof(exampleSha)) + " " + exampleSha;
+        return "";
+      //  return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + str(sys.getsizeof(exampleSha)) + " " + exampleSha;
     }
 
     /**
@@ -219,7 +219,7 @@ public class Packet {
     String createSignatureInfo() {
         String content = createSignatureType();
         // TODO - later content += " " + createKeyLocator()
-        return "SIGNATURE-INFO-TYPE " + content.length + " " + content;
+        return "SIGNATURE-INFO-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -231,7 +231,7 @@ public class Packet {
     **/
     String createSignatureType() {
         String content = "0"; // TODO - rework later
-        return "SIGNATURE-TYPE-TYPE " + content.length + " " + content;
+        return "SIGNATURE-TYPE-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -250,10 +250,11 @@ public class Packet {
         content += " " + createContent();
         content += " " + createSignature();
 
-        return "DATA-TLV " + content.length + " " + content;
+        return "DATA-TLV " + Integer.toString(content.length()) + " " + content;
     }
 
-    String toString() {
+    @Override
+    public String toString() {
         if (type.equals("DATA")) {
             return createDATA();
         } else {
