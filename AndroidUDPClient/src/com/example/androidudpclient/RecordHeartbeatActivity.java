@@ -57,12 +57,12 @@ public class RecordHeartbeatActivity extends Activity {
     private static long startTime = 0;
 
     Button backBtn;
-
+    
     /**
      * {@inheritDoc}
      */
     @SuppressWarnings("deprecation")
-    @Override
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recordbeat);
@@ -77,20 +77,20 @@ public class RecordHeartbeatActivity extends Activity {
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
-
-
+       
+        
         /** Returns to MainActivity **/
-
+        
         backBtn = (Button) findViewById(R.id.retrieveBeatBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 finish();
             }
-
+        
         });
 
-
-        // TODO Add Component for to Sending data to Server
+		
+	    // TODO Add Component for to Sending data to Server
     }
 
     /**
