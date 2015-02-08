@@ -5,11 +5,12 @@ public class DataPacket {
 
     private NameField nameField;
     final int NON_NEG_INT_CONST = 0; // TODO - rework
-
+    private String content;
 
     // TODO - add more relevant params
-    public DataPacket() {
+    public DataPacket(String name, String content) {
         nameField = new NameField(""); // TODO - pass real name
+        this.content = content;
     }
 
     /**
@@ -74,7 +75,7 @@ public class DataPacket {
      --------------
      **/
     String createContent() {
-        String content = "88,75,80,95,84,78,100,82"; // TODO - generate content
+        String content = this.content; // TODO - generate content
         return "CONTENT-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
@@ -84,15 +85,12 @@ public class DataPacket {
      SignatureInfo SignatureBits
      --------------
      **/
-
     String createSignature() {
 
         // TODO - rework
         String signatureBits = " "; // TODO - rework
         return createSignatureInfo() + " " + signatureBits;
     }
-
-
 
     /**
      SignatureInfo ::==

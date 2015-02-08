@@ -106,8 +106,8 @@ public class PatientDataActivity extends Activity {
 
                 if (mWifi.isConnected() && isValidIP) {
 
-                    // TODO - rework packet
-                    InterestPacket interestPacket = new InterestPacket();
+                    // TODO - later add name rather than ""
+                    InterestPacket interestPacket = new InterestPacket("");
 
                     new UDPSocket(MainActivity.devicePort, patient.getIP())
                             .execute(interestPacket.toString()); // send interest packet

@@ -30,6 +30,8 @@ import android.text.format.Formatter;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.androidudpclient.Packet.DataPacket;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -55,6 +57,9 @@ public class MainActivity extends Activity {
 
     static ArrayList<Patient> patients; // NOTE: this is only temporary, data will be stored in cache eventually
 
+    // myData stores the patient data for particular phone user
+    static Patient myData; // NOTE: this is only temporary, data will be stored in cache eventually
+
     private DBDataSource datasource;
 
 	/*
@@ -66,7 +71,9 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
+        initializeMyData(); // NOTE: this is temporary, rework later with cache
+
         /*
          * Creates Tables
          */
@@ -94,7 +101,7 @@ public class MainActivity extends Activity {
         getAvgBtn = (Button) findViewById(R.id.getAvgBtn);
         getAvgBtn.setOnClickListener(new View.OnClickListener(){
         	public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, GetAvgBeatActivity.class));
+                startActivity(new Intent(MainActivity.this, ViewMyDataActivity.class));
         	}
         });
         
@@ -164,11 +171,9 @@ public class MainActivity extends Activity {
 
                             // remove "null" unicode characters
                             packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
-
                             for (int i = 0; i < packetDataArray.length; i++) {
                                 System.out.println(packetDataArray[i]);
                             }
-
 
                             // TODO - map NAME to IP (avoid this check)
                             int senderPatientIndex = -1;
@@ -181,13 +186,11 @@ public class MainActivity extends Activity {
 
                             if (packetDataArray[0].equals("DATA-TLV")) {
 
-
                                 // TODO - LOOK in PIT - should forward or do I want?
 
                                 for (int i = 0; i < packetDataArray.length; i++) {
                                     if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
                                         // TODO - store
-
 
                                     } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
 
@@ -214,19 +217,24 @@ public class MainActivity extends Activity {
                                     if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
                                         // TODO - store
 
-
                                     } else {
                                         // TODO - inspect other packet elements
-
                                     }
                                 }
 
-                                // TODO - reply to interest
+                                // reply to interest
+                                // NOTE: currently assumes interest requests all user data on phone
+                                //      later, rework so that specifics can be requested
 
+                                // TODO - rework with cache
+
+                                // TODO - later add actual name rather than ""
+                                DataPacket dataPacket = new DataPacket("", myData.getDataAsString());
+                                new UDPSocket(MainActivity.devicePort, senderIP)
+                                        .execute(dataPacket.toString()); // send interest packet
                             } else {
                                 // throw away, packet is neither INTEREST nor DATA
                             }
-
                             // TODO - think from perspective of either doctor or patient when
                             //          accepting data
 
@@ -246,5 +254,19 @@ public class MainActivity extends Activity {
             }
         });
         return thread;
+    }
+
+    /**
+     * Temporary method that initializes data for particular phone user.
+     *
+     * TODO - rework with CACHE
+     */
+    void initializeMyData()
+    {
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+
+        // get ip of phone
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        myData = new Patient(ip,"ME");
     }
 }

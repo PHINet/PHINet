@@ -50,7 +50,7 @@
                 android:value="com.example.anroidudpclient.MainActivity"/>
         </activity>
         
-        <activity android:name="GetAvgBeatActivity"
+        <activity android:name=".ViewMyDataActivity"
             android:screenOrientation="portrait"
             android:parentActivityName="com.example.androidudpclient.MainActivity">
             <meta-data

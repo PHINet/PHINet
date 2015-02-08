@@ -14,6 +14,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,7 +53,7 @@ public class RecordHeartbeatActivity extends Activity {
     private static double beats = 0;
     private static long startTime = 0;
 
-    Button backBtn;
+    Button backBtn, recordBtn;
     
     /**
      * {@inheritDoc}
@@ -73,7 +74,37 @@ public class RecordHeartbeatActivity extends Activity {
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
-       
+
+        final Context c = this; // TODO - can this work around be avoided?
+
+        /** Saves current reading **/
+        recordBtn = (Button) findViewById(R.id.recordBtn);
+        recordBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+
+                // TODO - rework with cache
+
+                String currentBeatText = text.getText().toString();
+                int currentBeatInt = -1;
+                try {
+                    currentBeatInt = Integer.parseInt(currentBeatText);
+                } catch (Exception e) {
+                    // do nothing, bad text
+                }
+
+                if (currentBeatInt == -1) {
+                    Toast toast = Toast.makeText(c,
+                            "No reading yet. Wait a moment.", Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    MainActivity.myData.addData(currentBeatInt);
+                    Toast toast = Toast.makeText(c,
+                            "Heart beat successfully recorded.", Toast.LENGTH_LONG);
+                    toast.show();
+
+                }
+            }
+        });
         
         /** Returns to MainActivity **/
         

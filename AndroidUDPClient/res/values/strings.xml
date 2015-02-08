@@ -5,7 +5,7 @@
     <string name="action_settings">Settings</string>
     <string name="backBtnText">Back</string>
     <string name="selfBeatText">Record Heartbeat</string>
-    <string name="avgBeatText">Retrieve Avg. Heartbeat</string>
+    <string name="patientDataText">View My Data</string>
     <string name="cliBeatText">View Patients</string>
     <string name="netLinksText">Configure Network Links</string>
     <string name="welcomeText">NDN HealthSensorNet</string>

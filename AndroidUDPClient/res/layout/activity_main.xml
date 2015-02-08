@@ -54,7 +54,7 @@
     <Button
         android:id="@+id/getAvgBtn"
         android:layout_height="wrap_content"
-        android:text="@string/avgBeatText"
+        android:text="@string/patientDataText"
         android:onClick="getAvgBeat"
         android:layout_width="180dp"
         android:background="@drawable/black_button"

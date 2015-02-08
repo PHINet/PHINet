@@ -37,4 +37,14 @@ public class Patient {
     ArrayList<Integer> getData() {
         return this.data;
     }
+
+    String getDataAsString() {
+        String stringData = "";
+
+        for (int i = 0; i < data.size(); i++) {
+            stringData += Integer.toString(data.get(i)) + ",";
+        }
+
+        return stringData;
+    }
 }

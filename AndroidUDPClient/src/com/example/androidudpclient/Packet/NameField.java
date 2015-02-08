@@ -7,10 +7,10 @@ public class NameField {
      "/ndn/userID/sensorID/timestring/processID"
      **/
 
-    private String name = "/ndn/7/9/8/6"; // TODO - rework
+    private String name;
 
     public NameField(String name) {
-        //TODO - set later this.name = name;
+        this.name = "/ndn/7/9/8/6"; // TODO - rework
     }
 
     /**
@@ -45,7 +45,6 @@ public class NameField {
         return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + Integer.toString(exampleSha.length())
                 + " " + exampleSha;
     }
-
 
     /**
      Name ::=

@@ -35,7 +35,7 @@
                 android:value="com.example.anroidudpclient.MainActivity"/>
         </activity>
         <activity android:name="ConfigNetLinksActivity"></activity>
-        <activity android:name="GetAvgBeatActivity"></activity>
+        <activity android:name=".ViewMyDataActivity"></activity>
         <activity android:name="GetCliBeatActivity"></activity>
     </application>
 

@@ -12,13 +12,10 @@ public class InterestPacket {
     private NameField nameField;
     final int NON_NEG_INT_CONST = 0; // TODO - rework
 
-
     // TODO - add more relevant params
-    public InterestPacket() {
+    public InterestPacket(String name) {
         nameField = new NameField(""); // TODO - pass real name
     }
-
-
 
     /**
     Nonce ::=
@@ -141,7 +138,6 @@ public class InterestPacket {
         return "MUST-BE-FRESH-TYPE 0"; // TODO - rework
     }
 
-
     /**
     InterestLifeTime ::=
     --------------
@@ -184,8 +180,6 @@ public class InterestPacket {
 
         return "INTEREST-TYPE " + Integer.toString(content.length()) + " " + content;
     }
-
-
 
     @Override
     public String toString() {
