@@ -14,9 +14,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 
+/**
+ * Activity displays list of current patients and allows the following
+ * 1. add new patient
+ * 2. select patient and move to activity where modification/data-requests are possible
+ */
 public class GetCliBeatActivity extends ListActivity {
 
     Button backBtn;
@@ -42,7 +46,7 @@ public class GetCliBeatActivity extends ListActivity {
         if (MainActivity.patients == null) {
             MainActivity.patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
 
-            // NOTE: two fake patients to test functionality
+            // NOTE:  fake patients to test functionality
             MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
             MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
             MainActivity.patients.add(new Patient("10.170.4.188", "My Computer"));
@@ -74,27 +78,27 @@ public class GetCliBeatActivity extends ListActivity {
                 builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        boolean isValidInput = false;
                         try {
                             patientInputString = patientInput.getText().toString().split(",");
-                        } catch (Exception e) {
-                            // TODO - handle
-                        }
 
-                        boolean validIP = false;
-                        try {
-                            // tests validity of IP input
+                            // tests validity of input
                             patientInputString[0] = patientInputString[0].trim();
                             patientInputString[1] = patientInputString[1].trim();
 
-                            InetAddress.getByName(patientInputString[0]);
-                            validIP = true;
+                            isValidInput = MainActivity.validIP(patientInputString[0]);
+
+                            // NOTE: name-length contraints were chosen somewhat arbitrarily
+                            isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
+                            isValidInput &= patientInputString[1].length() <= 10; // max name requirement
+
                         } catch (Exception e) {
-                            validIP = false;
+                            // input didn't pass checks, mark input as invalid and notify user
+                            isValidInput = false;
                         }
 
-                        // NOTE: name-length contraints were chosen somewhat arbitrarily
-                        if (validIP && patientInputString[1].length() >= 3
-                                && patientInputString[1].length() <= 10) {
+                        if (isValidInput) {
                             MainActivity.patients.add(new Patient(patientInputString[0], patientInputString[1]));
                         } else {
                             Toast toast = Toast.makeText(c,
@@ -115,6 +119,9 @@ public class GetCliBeatActivity extends ListActivity {
         });
     }
 
+    /**
+     * Used by patient list view.
+     */
     private class PatientAdapter extends ArrayAdapter<Patient> {
 
         Activity activity = null;
@@ -144,7 +151,7 @@ public class GetCliBeatActivity extends ListActivity {
                 public void onClick(View v) {
 
                     final AlertDialog.Builder builder = new AlertDialog.Builder(c);
-                    builder.setTitle("Go to patient page?");// Nearest selected interval will be returned.");
+                    builder.setTitle("Go to patient page?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override

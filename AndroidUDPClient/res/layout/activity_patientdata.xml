@@ -69,7 +69,6 @@
             android:layout_height="match_parent"
             android:id="@+id/ip_editText"
             android:gravity="right"
-            android:inputType="number"
             android:layout_marginLeft="35dp" />
 
     </LinearLayout>
@@ -106,40 +105,69 @@
 
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"
-        android:layout_height="200dip"
+        android:layout_height="145dp"
         android:background="@color/white"
         android:id="@+id/graph"
-        android:layout_margin="10dp" />
+        android:layout_margin="10dp"
+        android:layout_weight="0.89" />
 
-    <Button
-        android:id="@+id/patientDataRequestBtn"
-        android:layout_width="180dp"
-        android:layout_height="wrap_content"
-        android:text="Request Data"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="20sp"
-        android:layout_margin="0dp" />
 
-    <Button
-        android:id="@+id/patientDataSubmitBtn"
-        android:layout_width="180dp"
-        android:layout_height="wrap_content"
-        android:text="Submit Changes"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="20sp" />
 
-    <Button
-        android:id="@+id/patientDataBackBtn"
-        android:layout_width="180dp"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/backBtnText"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="20sp" />
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/patientDataRequestBtn"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="Request Data"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/patientDataSubmitBtn"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="Save Changes"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/deletePatientBtn"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="Delete Patient"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:layout_gravity="center|bottom"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/patientDataBackBtn"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="@string/backBtnText"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:layout_gravity="center|bottom"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+
 
 </LinearLayout>

@@ -19,8 +19,6 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... message) {
 
-        // TODO - verify wifi network
-
         DatagramSocket clientSocket = null;
 
         try {

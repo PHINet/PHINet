@@ -32,6 +32,7 @@ import android.widget.Button;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -103,6 +104,20 @@ public class MainActivity extends Activity {
         		startActivity(new Intent(MainActivity.this, GetCliBeatActivity.class));
         	}
         });
+    }
+
+    static boolean validIP(String ip) {
+        boolean validIP = false;
+        try {
+            // tests validity of IP input
+
+            InetAddress.getByName(ip);
+            validIP = true;
+        } catch (Exception e) {
+            validIP = false;
+        }
+
+        return validIP;
     }
 
     @Override
@@ -205,6 +220,9 @@ public class MainActivity extends Activity {
 
                                     }
                                 }
+
+                                // TODO - reply to interest
+
                             } else {
                                 // throw away, packet is neither INTEREST nor DATA
                             }

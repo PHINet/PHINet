@@ -15,17 +15,15 @@ public class MySqliteHelper extends SQLiteOpenHelper {
 
   private static final String DATABASE_NAME = "sensordata.db";
   private static final int DATABASE_VERSION = 1;
-
-  
   
   // Database creation sql statements
   
 //  Interest Table
-//  Domainname 			text:  “ndn”
+//  Domainname 			text:  ï¿½ndnï¿½
 //  userid PK/CK: 		text firstname+lastname+dob
-//  sensorID PK/CK 		text: “heartbeat”
-//  timestring PK/CK 	text: time OR string:time_start+”-“+time_end
-//  processed PK/CK 	text:	  “average” OR string: “instance”
+//  sensorID PK/CK 		text: ï¿½heartbeatï¿½
+//  timestring PK/CK 	text: time OR string:time_start+ï¿½-ï¿½+time_end
+//  processed PK/CK 	text:	  ï¿½averageï¿½ OR string: ï¿½instanceï¿½
 
 //CREATE TABLE something (column1, column2, column3, PRIMARY KEY (column1, column2));  
   
@@ -45,11 +43,11 @@ public class MySqliteHelper extends SQLiteOpenHelper {
       				+ "PIT_COLUMN_ID_ARRAY [5]));";
   
 //  Data Table
-//  Domainname 			text:  “ndn”
+//  Domainname 			text:  ï¿½ndnï¿½
 //  userid PK/CK: 		text firstname+lastname+dob
-//  sensorID PK/CK 		text: “heartbeat”
-//  timestring PK/CK 	text: time OR string:time_start+”-“+time_end
-//  processed PK/CK 	text:	  “average” OR string: “instance”
+//  sensorID PK/CK 		text: ï¿½heartbeatï¿½
+//  timestring PK/CK 	text: time OR string:time_start+ï¿½-ï¿½+time_end
+//  processed PK/CK 	text:	  ï¿½averageï¿½ OR string: ï¿½instanceï¿½
 //  data real: 			real number value for heartbeat or average  
   private static final String LOCALSTORE_CREATE = "create table "
 		  + LOCAL_STORAGE + "(" 

@@ -1,11 +1,5 @@
 package com.example.androidudpclient;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.example.androidudpclient.ImageProcessing;
-import com.example.androidudpclient.R;
-import com.example.androidudpclient.RecordHeartbeatActivity.TYPE;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -20,6 +14,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  * Linked to GetOwnHeartbeatButton

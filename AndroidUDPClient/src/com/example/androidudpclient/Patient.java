@@ -37,5 +37,4 @@ public class Patient {
     ArrayList<Integer> getData() {
         return this.data;
     }
-
 }
