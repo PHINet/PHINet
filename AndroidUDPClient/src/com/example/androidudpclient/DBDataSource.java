@@ -1,69 +1,61 @@
 package com.example.androidudpclient;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-
-import java.util.ArrayList;
-import java.util.List;
-//import android.support.v4.widget.SearchViewCompatIcs.MySearchView;
-
-
 /*
  * This class is the Data Access Object
  */
 public class DBDataSource {
 
 	  // Database fields
-	  private SQLiteDatabase database;
-	  private MySqliteHelper dbHelper;
-	  private String[] pit_Columns = MySqliteHelper.PIT_COLUMN_ID_ARRAY;
-	  private String[] localstore_Columns = MySqliteHelper.LOCAL_STORAGE_ID_ARRAY;
+	/*  private SQLiteDatabase database;
+	  private DatabaseHandler dbHelper;
+	  private String[] pitColumns =DatabaseHandler.PIT_COLUMN_ID_ARRAY;
+	  private String[] localstoreColumns = DatabaseHandler.LOCAL_STORAGE_ID_ARRAY;*/
 
 	  /*
 	   * Create Instance of SQLiteHelper
 	   */
-	  public DBDataSource(Context context) {
-	    dbHelper = new MySqliteHelper(context);
+/*	  public DBDataSource(Context context) {
+	    dbHelper = new DatabaseHandler(context);
 	  }
 
 	  /*
 	   * Open Database
 	   */
-	  public void open() throws SQLException {
+	/*  public void open() throws SQLException {
 	    database = dbHelper.getWritableDatabase();
 	  }
 
 	  /*
 	   * Close Database
 	   */
-	  public void close() {
+/*	  public void close() {
 	    dbHelper.close();
 	  }
 
 	  /*
 	   * Called when Incoming PIT is not in PIT AND not in datastore
 	   */
-	  public Data insertInterest(List<String> data) {
+	/*  public Data insertInterest(List<String> data) {
 	    ContentValues values = new ContentValues();
 	    
 	    StringBuilder s = new StringBuilder();
 	    
 	    int i = 0;
 	    while (i < (data.size()-1)){
-	    	values.put(pit_Columns[i], data.get(i));
+	    	values.put(pitColumns[i], data.get(i));
 	    	
-	    	s.append(pit_Columns[i] + " = " + data.get(i));
+	    	s.append(pitColumns[i] + " = " + data.get(i));
 	    	if(i < (data.size()-2)){
 	    		s.append(" AND ");
 	    	}
+
+            // TODO - i isn't updated? what is point of method?
+
 	    }
 	    
-	    long insertId = database.insert(MySqliteHelper.PENDING_INTERESTS, null,
+	    long insertId = database.insert(DatabaseHandler.PENDING_INTERESTS, null,
 	        values);
-	    Cursor cursor = database.query(MySqliteHelper.PENDING_INTERESTS, pit_Columns,
+	    Cursor cursor = database.query(DatabaseHandler.PENDING_INTERESTS, pitColumns,
 	    		s.toString(), null, null, null, null);
 	    cursor.moveToFirst();
 	    Data newData = cursorToData(cursor);
@@ -75,14 +67,7 @@ public class DBDataSource {
 	   * 
 	   * Delete Method for PIT
 	   */
-	//Domainname 			text:  �ndn�
-	//userid PK/CK: 		text firstname+lastname+dob
-	//sensorID PK/CK 		text: �heartbeat�
-	//timestring PK/CK 		text: time OR string:time_start+�-�+time_end
-	//processed PK/CK 		text:	  �average� OR string: �instance�
-	//data real: 			real number value for heartbeat or average
-
-	  public void deleteInterest(Data interest) {
+	/*  public void deleteInterest(Data interest) {
 		    
 		  
 	    String domainname = interest.getDomainName();
@@ -97,25 +82,24 @@ public class DBDataSource {
 	    		+ "\n Timestring: " + timestring
 	    		+ "\n ProcessID: " + processid);
 	    
-	    database.delete(MySqliteHelper.PENDING_INTERESTS,
-	    		pit_Columns[0] + " = " + domainname + " AND "
-	    		+ pit_Columns[1] + " = " + userid + " AND "
-	    		+ pit_Columns[2] + " = " + sensorid + " AND "
-	    		+ pit_Columns[3] + " = " + timestring + " AND "
-	    		+ pit_Columns[4] + " = " + processid + "AND"
-	    		+ pit_Columns[5] + " = " + IPAddr,
+	    database.delete(DatabaseHandler.PENDING_INTERESTS,
+	    		pitColumns[0] + " = " + domainname + " AND "
+	    		+ pitColumns[1] + " = " + userid + " AND "
+	    		+ pitColumns[2] + " = " + sensorid + " AND "
+	    		+ pitColumns[3] + " = " + timestring + " AND "
+	    		+ pitColumns[4] + " = " + processid + "AND"
+	    		+ pitColumns[5] + " = " + IPAddr,
 	    		null);
 	  }
-
 	  
 	  /*
 	   * Method for Retrieving List of Interests
 	   */
-	  public List<Data> getInterests() {
+	/*  public List<Data> getInterests() {
 	    List<Data> datalist = new ArrayList<Data>();
 
-	    Cursor cursor = database.query(MySqliteHelper.PENDING_INTERESTS,
-	        pit_Columns, null, null, null, null, null);
+	    Cursor cursor = database.query(DatabaseHandler.PENDING_INTERESTS,
+	        pitColumns, null, null, null, null, null);
 
 	    cursor.moveToFirst();
 	    while (!cursor.isAfterLast()) {
@@ -131,11 +115,11 @@ public class DBDataSource {
 	  /*
 	   * Method for Retrieving List of Data
 	   */
-	  public List<Data> getData() {
+	/*  public List<Data> getData() {
 	    List<Data> datalist = new ArrayList<Data>();
 
-	    Cursor cursor = database.query(MySqliteHelper.LOCAL_STORAGE,
-	        localstore_Columns, null, null, null, null, null);
+	    Cursor cursor = database.query(DatabaseHandler.LOCAL_STORAGE,
+	        localstoreColumns, null, null, null, null, null);
 
 	    cursor.moveToFirst();
 	    while (!cursor.isAfterLast()) {
@@ -151,7 +135,7 @@ public class DBDataSource {
 	  /*
 	   * Check if Incoming Interest Exists in PIT
 	   */
-	  public int interestExists(Data interest){
+	 /* public int interestExists(Data interest){
 		  int Exists = 0;
 		  List<Data> pit = getInterests();
 		  for(int i = 0; i<pit.size(); i++){
@@ -169,12 +153,11 @@ public class DBDataSource {
 		  }
 		  return Exists;
 	  }
-	  	
-	  
+
 	  /*
 	   * Check If Entry in PIT Exists in Local Data Storage
 	   */
-	  public int dataExists(){ 
+	/*  public int dataExists(){
 		  int Exists = 0;
 		  List<Data> interests = getInterests();
 		  List<Data> data = getData();
@@ -202,7 +185,7 @@ public class DBDataSource {
 	  /*
 	   * Method for converting cursor contents to data
 	   */
-	  private Data cursorToInterest(Cursor cursor) {
+	/*  private Data cursorToInterest(Cursor cursor) {
 	    Data data = new Data();
 	    data.setDomainName(cursor.getString(0));
 	    data.setUserId(cursor.getString(1));
@@ -216,7 +199,7 @@ public class DBDataSource {
 	  /*
 	   * Method for converting cursor contents to data
 	   */
-	  private Data cursorToData(Cursor cursor) {
+	/*  private Data cursorToData(Cursor cursor) {
 	    Data data = new Data();
 	    data.setDomainName(cursor.getString(0));
 	    data.setUserId(cursor.getString(1));
@@ -225,5 +208,5 @@ public class DBDataSource {
 	    data.setProcessId(cursor.getString(4));
 	    data.setData(cursor.getFloat(5));
 	    return data;
-	  }
-	} 
+	  }*/
+}

@@ -34,7 +34,6 @@ public class PatientDataActivity extends Activity {
     EditText nameEditText, ipEditText;
     TextView dataStatusText;
     GraphView graph;
-
     String patientIP;
 
     /** Called when the activity is first created. */
@@ -90,8 +89,6 @@ public class PatientDataActivity extends Activity {
         ipEditText = (EditText) findViewById(R.id.ip_editText);
         ipEditText.setText(patient.getIP());
 
-        final Context c = this; // TODO - can this work around be avoided?
-
         /** Returns to GetCliBeat **/
         requestBtn = (Button) findViewById(R.id.patientDataRequestBtn);
         requestBtn.setOnClickListener(new View.OnClickListener(){
@@ -124,13 +121,13 @@ public class PatientDataActivity extends Activity {
                 } else if (!isValidIP) {
                     // invalid ip
 
-                    Toast toast = Toast.makeText(c,
+                    Toast toast = Toast.makeText(getApplicationContext(),
                             "The IP address is invalid. Enter valid then save.", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
                     // not connected to wifi
 
-                    Toast toast = Toast.makeText(c,
+                    Toast toast = Toast.makeText(getApplicationContext(),
                             "You must first connect to WiFi.", Toast.LENGTH_LONG);
                     toast.show();
                 }
@@ -146,7 +143,7 @@ public class PatientDataActivity extends Activity {
 
                 // check before save AND notify user if invalid ip
                 if (!MainActivity.validIP(patientIP)) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(c);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
                     builder.setTitle("Invalid IP entered. Submit anyways?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

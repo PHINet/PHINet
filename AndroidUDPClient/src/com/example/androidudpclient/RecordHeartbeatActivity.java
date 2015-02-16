@@ -75,8 +75,6 @@ public class RecordHeartbeatActivity extends Activity {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
 
-        final Context c = this; // TODO - can this work around be avoided?
-
         /** Saves current reading **/
         recordBtn = (Button) findViewById(R.id.recordBtn);
         recordBtn.setOnClickListener(new View.OnClickListener(){
@@ -93,12 +91,22 @@ public class RecordHeartbeatActivity extends Activity {
                 }
 
                 if (currentBeatInt == -1) {
-                    Toast toast = Toast.makeText(c,
+                    Toast toast = Toast.makeText(getApplicationContext(),
                             "No reading yet. Wait a moment.", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    MainActivity.myData.addData(currentBeatInt);
-                    Toast toast = Toast.makeText(c,
+
+                    // store data in cache
+                    Data data = new Data();
+                    data.setUserID(MainActivity.myUserID);
+                    data.setSensorID(MainActivity.mySensorID);
+                    data.setTimeString(Data.CURRENT_TIME);
+                    data.setProcessID(""); // TODO - is null appropriate?
+                    data.setDatafloat(currentBeatInt);
+
+                    MainActivity.datasource.addData(data);
+
+                    Toast toast = Toast.makeText(getApplicationContext(),
                             "Heart beat successfully recorded.", Toast.LENGTH_LONG);
                     toast.show();
 

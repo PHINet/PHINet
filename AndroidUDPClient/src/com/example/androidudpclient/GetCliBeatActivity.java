@@ -14,8 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 /**
  * Activity displays list of current patients and allows the following
  * 1. add new patient
@@ -24,11 +22,10 @@ import java.util.ArrayList;
 public class GetCliBeatActivity extends ListActivity {
 
     Button backBtn;
-    Button editPatientDataBtn;
     Button addNewPatientBtn;
     private String[] patientInputString;
 
-    final static String PATIENT_ID_STRING = "PATIENT_ID"; // used to idenfity intent-data
+    final static String PATIENT_ID_STRING = "PATIENT_ID"; // used to identify intent-data
 
     @Override
     protected void onResume() {
@@ -41,17 +38,6 @@ public class GetCliBeatActivity extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
-
-        // NOTE: just for testing
-        if (MainActivity.patients == null) {
-            MainActivity.patients = new ArrayList<Patient>(); // TODO - store this data elsewhere
-
-            // NOTE:  fake patients to test functionality
-            MainActivity.patients.add(new Patient("10.170.20.10","Test Patient 1"));
-            MainActivity.patients.add(new Patient("10.170.21.9", "Test Patient 2"));
-            MainActivity.patients.add(new Patient("10.170.4.188", "My Computer"));
-            MainActivity.patients.add(new Patient("10.55.7.194", "CLASSROOM"));
-        }
 
         PatientAdapter adapter = new PatientAdapter(this);
         setListAdapter(adapter);
@@ -89,7 +75,7 @@ public class GetCliBeatActivity extends ListActivity {
 
                             isValidInput = MainActivity.validIP(patientInputString[0]);
 
-                            // NOTE: name-length contraints were chosen somewhat arbitrarily
+                            // NOTE: name-length constraints were chosen somewhat arbitrarily
                             isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
                             isValidInput &= patientInputString[1].length() <= 10; // max name requirement
 

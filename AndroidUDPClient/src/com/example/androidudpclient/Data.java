@@ -1,102 +1,105 @@
 package com.example.androidudpclient;
 
-
-//Domainname 			text:  “ndn”
-//userid PK/CK: 		text firstname+lastname+dob
-//sensorID PK/CK 		text: “heartbeat”
-//timestring PK/CK 		text: time OR string:time_start+”-“+time_end
-//processed PK/CK 		text:	  “average” OR string: “instance”
-//data real: 			real number value for heartbeat or average
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class Data {
-	  private String domainname;
-	  private String userid;
-	  private String sensorid;
-	  private String timestring;
-	  private String processid;
-	  private String IPAddr;
-	  private float datafloat;
 
-	  /*
-	   * Domain Name Get/Set
-	   */
-	  public String getDomainName() {
-	    return domainname;
-	  }
+    private String applicationName;
+    private String sensorID;
+    private String processID;
+    private String timeString;
+    private String userID;
+    private String ipAddr;
+    private float datafloat;
 
-	  public void setDomainName(String domain) {
-	    this.domainname = domain;
-	  }
-	  
-	  /*
-	   * UserId Get/Set
-	   */
-	  public String getUserId() {
-		return userid;
-	  }
+    static final String CURRENT_TIME = "CURRENT_TIME"; // const notifies current time should be given
 
-	  public void setUserId(String user) {
-		  this.userid = user;
-	  }
-	  
-	  /*
-	   * Sensor ID Get/Set
-	   */
-	  public String getSensorId() {
-		  return sensorid;
-	  }
+    public Data() {}
 
-	  public void setSensorId(String sensor) {
-		  this.sensorid = sensor;
-	  }
-	  
-	  /*
-	   * TimeString Get/Set
-	   */
-	  public String getTimestring() {
-		  return timestring;
-	  }
+    // Data Cache Constructor
+    public Data(String applicationName, String sensorID, String processID, String timeString,
+                String userID, float datafloat) {
+        this.applicationName = applicationName;
+        this.sensorID = sensorID;
+        this.processID = processID;
+        this.timeString = timeString;
+        this.userID = userID;
+        this.datafloat = datafloat;
+    }
 
-	  public void setTimestring(String time) {
-		  this.timestring = time;
-	  }
-	  
-	  /*
-	   * ProcessId Get/Set
-	   */
-	  public String getProcessId() {
-		  return processid;
-	  }
+    // PIT Entry Constructor
+    public Data(String applicationName, String sensorID, String processID, String timeString,
+                String userID, String ipAddr) {
+        this.applicationName = applicationName;
+        this.sensorID = sensorID;
+        this.processID = processID;
+        this.timeString = timeString;
+        this.userID = userID;
+        this.ipAddr = ipAddr;
+    }
 
-	  public void setProcessId(String process) {
-		  this.processid = process;
-	  }
-	  
-	  /*
-	   * IP Addr Get/Set
-	   */
-	  public String getIPAddr() {
-		  return IPAddr;
-	  }
+    public String getApplicationName() {
+        return applicationName;
+    }
 
-	  public void setIPAddr(String IP) {
-		  this.IPAddr= IP;
-	  }
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
 
-	  /*
-	   * Data Get/Set
-	   */
-	  public float getData() {
-	    return datafloat;
-	  }
+    public String getSensorID() {
+        return sensorID;
+    }
 
-	  public void setData(Float data) {
-	    this.datafloat = data;
-	  }
+    public void setSensorID(String sensorID) {
+        this.sensorID = sensorID;
+    }
 
-	  // Will be used by the ArrayAdapter in the ListView
-//	  @Override
-//	  public String toString() {
-//	  //  return data;
-//	  }
-	} 
+    public String getProcessID() {
+        return processID;
+    }
+
+    public void setProcessID(String processID) {
+        this.processID = processID;
+    }
+
+    public String getTimeString() {
+        return timeString;
+    }
+
+    public void setTimeString(String timeString) {
+
+        if (timeString.equals(CURRENT_TIME)) {
+            SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
+            formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+            timeString =  formatUTC.format(new Date()).toString();
+        }
+
+        this.timeString = timeString;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
+    public String getIpAddr() {
+        return ipAddr;
+    }
+
+    public void setIpAddr(String ipAddr) {
+        this.ipAddr = ipAddr;
+    }
+
+    public float getDatafloat() {
+        return datafloat;
+    }
+
+    public void setDatafloat(float datafloat) {
+        this.datafloat = datafloat;
+    }
+}

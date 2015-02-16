@@ -30,13 +30,7 @@ import android.text.format.Formatter;
 import android.view.View;
 import android.widget.Button;
 
-import com.example.androidudpclient.Packet.DataPacket;
-
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
@@ -47,7 +41,7 @@ public class MainActivity extends Activity {
 	Button cliBeatBtn;
 	
 	Thread receiverThread;
-    boolean continueReceiverExecution = true;
+    static boolean continueReceiverExecution = true;
 
     /** used to notify sender of this device's address **/
     static final int devicePort = 50056; // chosen arbitrarily
@@ -55,32 +49,30 @@ public class MainActivity extends Activity {
     WifiManager wm;
     /** used to notify sender of this device's address **/
 
-    static ArrayList<Patient> patients; // NOTE: this is only temporary, data will be stored in cache eventually
-
     // myData stores the patient data for particular phone user
-    static Patient myData; // NOTE: this is only temporary, data will be stored in cache eventually
+    static String myIP;
+    static String myUserID; // TODO - rework user id
+    static String mySensorID; // TODO - rework sensor id
+    static DatabaseHandler datasource;
 
-    private DBDataSource datasource;
+    // TODO - rework ; this is temporary storage
+    static ArrayList<Patient> patients = new ArrayList<Patient>();
 
-	/*
-	 * Run Upon Initial Installation of Applciation
-	 * (non-Javadoc)
-	 * @see android.app.Activity#onCreate(android.os.Bundle)
-	 */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initializeMyData(); // NOTE: this is temporary, rework later with cache
+        recordMyIP();
+        myUserID = "firstNameLastNameDOB"; // TODO - rework user aid assign
 
         /*
          * Creates Tables
          */
-        // TODO - resolve error
-        //datasource = new DBDataSource(this);
-        //datasource.open();
-        
+        datasource = new DatabaseHandler(getApplicationContext());
+
+        testDatabase(); // NOTE: this is only temporary
+
         receiverThread = initializeReceiver();
         receiverThread.start(); // begin listening for interest packets
 
@@ -134,7 +126,29 @@ public class MainActivity extends Activity {
         continueReceiverExecution = false;  // notify receiver to terminate
     }
 
-    // TODO - break up thread into methods (perhaps a class)
+    void testDatabase() {
+        Data data = new Data();
+        data.setSensorID("81231");
+        data.setTimeString("192911");
+        data.setUserID("124190");
+        data.setApplicationName("oneone");
+
+        datasource.addData(data);
+
+        datasource.getData(124190);
+
+        data.setSensorID("331");
+        data.setTimeString("99991");
+        data.setApplicationName("on124111eone");
+
+        datasource.updateData(data);
+
+        datasource.deleteData(124190);
+
+        assert datasource.getData(124190) == null;
+
+        System.out.println("TESTS PASS!");
+    }
 
     /** create and return receiver thread **/
     Thread initializeReceiver()
@@ -144,129 +158,17 @@ public class MainActivity extends Activity {
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());;
 
         // create thread to receive all incoming packets expected after request to patient
-        Thread thread = new Thread(new Runnable(){
-            DatagramSocket clientSocket = null;
-            @Override
-            public void run() {
-                try {
-                    clientSocket = new DatagramSocket(null);
-                    InetSocketAddress address = new InetSocketAddress(deviceIP, devicePort);
-
-                    clientSocket.bind(address); // give receiver static address
-
-                    // set timeout so to force thread to check whether its execution is valid
-                    clientSocket.setSoTimeout(1000);
-
-                    byte[] receiveData = new byte[1024];
-                    while (continueReceiverExecution) { // loop for packets
-                        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-
-                        try {
-                            clientSocket.receive(receivePacket);
-
-                            // convert sender IP to string and remove '/' which appears
-                            String senderIP = receivePacket.getAddress().toString().replaceAll("/","");
-                            String packetData = new String(receivePacket.getData());
-                            String [] packetDataArray;
-
-                            // remove "null" unicode characters
-                            packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
-                            for (int i = 0; i < packetDataArray.length; i++) {
-                                System.out.println(packetDataArray[i]);
-                            }
-
-                            // TODO - map NAME to IP (avoid this check)
-                            int senderPatientIndex = -1;
-
-                            for (int i = 0; i < patients.size(); i++) {
-                                if (patients.get(i).getIP().equals(senderIP)) {
-                                    senderPatientIndex = i;
-                                }
-                            }
-
-                            if (packetDataArray[0].equals("DATA-TLV")) {
-
-                                // TODO - LOOK in PIT - should forward or do I want?
-
-                                for (int i = 0; i < packetDataArray.length; i++) {
-                                    if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-                                        // TODO - store
-
-                                    } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
-
-                                        // i+2 corresponds content as per NDN standard
-                                        // i = notifier (CONTENT-TYPE), i+1 = bytes, i+2 = content
-                                        String[] content = packetDataArray[i+2].split(",");
-
-                                        // store packet content with patient object
-                                        for (int j = 0; j < content.length; j++) {
-                                            patients.get(senderPatientIndex).addData(Integer.parseInt(content[j]));
-                                        }
-
-                                    } else {
-                                        // TODO - inspect other packet elements
-                                    }
-                                }
-
-                            } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
-
-                                // TODO - interest directed to me? If not, send according to
-                                //          FIB and place in PIT (if not currently there)
-
-                                for (int i = 0; i < packetDataArray.length; i++) {
-                                    if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-                                        // TODO - store
-
-                                    } else {
-                                        // TODO - inspect other packet elements
-                                    }
-                                }
-
-                                // reply to interest
-                                // NOTE: currently assumes interest requests all user data on phone
-                                //      later, rework so that specifics can be requested
-
-                                // TODO - rework with cache
-
-                                // TODO - later add actual name rather than ""
-                                DataPacket dataPacket = new DataPacket("", myData.getDataAsString());
-                                new UDPSocket(MainActivity.devicePort, senderIP)
-                                        .execute(dataPacket.toString()); // send interest packet
-                            } else {
-                                // throw away, packet is neither INTEREST nor DATA
-                            }
-                            // TODO - think from perspective of either doctor or patient when
-                            //          accepting data
-
-                            // TODO - validate data from sender
-
-                        } catch (SocketTimeoutException e) {
-                            continue;
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (clientSocket != null) {
-                        clientSocket.close();
-                    }
-                }
-            }
-        });
-        return thread;
+        return new UDPListener(deviceIP);
     }
 
     /**
      * Temporary method that initializes data for particular phone user.
-     *
-     * TODO - rework with CACHE
      */
-    void initializeMyData()
+    void recordMyIP()
     {
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
 
         // get ip of phone
-        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-        myData = new Patient(ip,"ME");
+        myIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 }
