@@ -1,11 +1,15 @@
-//server.js
+/** 
+ * File contains code for that functions as "main"
+ * segment of execution for this web application
+ **/
+
 
 /*
 Handle UDP Socket
 */
 
 var PORT = 1635;
-var HOST = '127.0.0.1';
+var HOST = '10.0.2.15';
 
 //Create Socket & Initialize Buffer
 var dgram = require('dgram');
@@ -155,4 +159,3 @@ var server = http.createServer(app).listen(port, host, function() {
 	console.log("Server listening to %s:%d within %s environment",
 		host, port, app.get('env'));
 });
-

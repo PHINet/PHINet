@@ -1,0 +1,45 @@
+body {
+  font-size: 120%;
+  background-color: #009900;
+  font-family: "Lucida Grande", sans-serif;
+}
+
+.midform {
+	margin: 0 10% 0 10%;
+	word-wrap: break-word;
+	width: 80%;
+}
+
+
+.with_background {
+    background-color: white;
+    border-style: solid;
+    padding: 1%;
+}
+
+b {
+    font-size: 120%;
+}
+
+/* --- Site Navigation --- */
+
+header {
+  margin: 0 0 2% 0; /* bottom margin */
+}
+
+.loginArea {
+    position: absolute;
+    top: 1%;
+    right: 1%;
+    font-size: 120%;
+}
+
+a {
+  	text-decoration: none;
+}
+
+a:visited {
+    color: #1919A3;
+}
+
+/* --- Site Navigation --- */
