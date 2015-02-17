@@ -20,6 +20,15 @@
         android:textStyle="bold"
         android:textSize="25sp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="You have no patients.\nAdd one now."
+        android:textStyle="bold"
+        android:id="@+id/emptyListTextView"
+        android:layout_gravity="center_horizontal" />
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="250dp"

@@ -57,6 +57,7 @@ public class MainActivity extends Activity {
 
     // TODO - rework ; this is temporary storage
     static ArrayList<Patient> patients = new ArrayList<Patient>();
+    static Patient myData;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -170,5 +171,6 @@ public class MainActivity extends Activity {
 
         // get ip of phone
         myIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        myData = new Patient(myIP, "ME");
     }
 }

@@ -104,6 +104,8 @@ public class RecordHeartbeatActivity extends Activity {
                     data.setProcessID(""); // TODO - is null appropriate?
                     data.setDatafloat(currentBeatInt);
 
+                    MainActivity.myData.addData(currentBeatInt);
+
                     MainActivity.datasource.addData(data);
 
                     Toast toast = Toast.makeText(getApplicationContext(),

@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -24,6 +25,7 @@ public class GetCliBeatActivity extends ListActivity {
     Button backBtn;
     Button addNewPatientBtn;
     private String[] patientInputString;
+    TextView emptyListTextView;
 
     final static String PATIENT_ID_STRING = "PATIENT_ID"; // used to identify intent-data
 
@@ -41,6 +43,13 @@ public class GetCliBeatActivity extends ListActivity {
 
         PatientAdapter adapter = new PatientAdapter(this);
         setListAdapter(adapter);
+
+        emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
+
+        if (adapter.getCount() > 0) {
+            // hide "empty patient list" text when patients exist
+            emptyListTextView.setVisibility(View.GONE);
+        }
 
         /** Returns to MainActivity **/
         backBtn = (Button) findViewById(R.id.getCliBeatBackBtn);
@@ -86,6 +95,10 @@ public class GetCliBeatActivity extends ListActivity {
 
                         if (isValidInput) {
                             MainActivity.patients.add(new Patient(patientInputString[0], patientInputString[1]));
+
+                            // hide "empty patient list" text when patient added
+                            emptyListTextView.setVisibility(View.GONE);
+
                         } else {
                             Toast toast = Toast.makeText(c,
                                     "Invalid IP or name length (3-10 characters).", Toast.LENGTH_LONG);

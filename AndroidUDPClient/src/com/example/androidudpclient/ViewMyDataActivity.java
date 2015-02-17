@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 /**
  * Activity deals specifically with interacting with user's own data.
@@ -33,7 +35,7 @@ public class ViewMyDataActivity extends Activity {
         graph = (GraphView) findViewById(R.id.graph);
 
         // TODO - rework with CACHE
-        /*if (MainActivity.myData.getData().size() > 0) {
+        if (MainActivity.myData.getData().size() > 0) {
             dataStatusText.setText("Some data present");
 
             // TODO - improve presentation
@@ -45,10 +47,10 @@ public class ViewMyDataActivity extends Activity {
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
             graph.addSeries(series);
 
-        } else {*/
+        } else {
             dataStatusText.setText("No Data present");
             graph.setVisibility(View.INVISIBLE); // no data, make graph go away
-//        }
+        }
 
         /** Returns to GetCliBeat **/
         backBtn = (Button) findViewById(R.id.userDataBackBtn);
