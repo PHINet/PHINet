@@ -1,7 +1,7 @@
 
 /** 
- * File contains code for the data-object  
- * used to handle patient information
+ * File contains code for creating 
+ * NDN-compliant packets
  **/
 
 

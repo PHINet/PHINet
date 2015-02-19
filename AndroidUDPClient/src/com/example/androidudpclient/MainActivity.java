@@ -72,8 +72,6 @@ public class MainActivity extends Activity {
          */
         datasource = new DatabaseHandler(getApplicationContext());
 
-        testDatabase(); // NOTE: this is only temporary
-
         receiverThread = initializeReceiver();
         receiverThread.start(); // begin listening for interest packets
 
@@ -125,30 +123,6 @@ public class MainActivity extends Activity {
     {
         super.onDestroy();
         continueReceiverExecution = false;  // notify receiver to terminate
-    }
-
-    void testDatabase() {
-        Data data = new Data();
-        data.setSensorID("81231");
-        data.setTimeString("192911");
-        data.setUserID("124190");
-        data.setApplicationName("oneone");
-
-        datasource.addData(data);
-
-        datasource.getData(124190);
-
-        data.setSensorID("331");
-        data.setTimeString("99991");
-        data.setApplicationName("on124111eone");
-
-        datasource.updateData(data);
-
-        datasource.deleteData(124190);
-
-        assert datasource.getData(124190) == null;
-
-        System.out.println("TESTS PASS!");
     }
 
     /** create and return receiver thread **/

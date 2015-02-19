@@ -1,6 +1,6 @@
 /** 
- * File contains code for the data-object  
- * used to handle patient information
+ * File contains code for the object
+ * that enables UDP communication
  **/
 
 
