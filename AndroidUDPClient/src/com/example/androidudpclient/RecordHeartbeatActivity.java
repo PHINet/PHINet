@@ -97,16 +97,16 @@ public class RecordHeartbeatActivity extends Activity {
                 } else {
 
                     // store data in cache
-                    Data data = new Data();
+                    DBData data = new DBData();
                     data.setUserID(MainActivity.myUserID);
                     data.setSensorID(MainActivity.mySensorID);
-                    data.setTimeString(Data.CURRENT_TIME);
+                    data.setTimeString(DBData.CURRENT_TIME);
                     data.setProcessID(""); // TODO - is null appropriate?
-                    data.setDatafloat(currentBeatInt);
+                    data.setDataFloat(currentBeatInt);
 
                     MainActivity.myData.addData(currentBeatInt);
 
-                    MainActivity.datasource.addData(data);
+                    MainActivity.datasource.addCSData(data);
 
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Heart beat successfully recorded.", Toast.LENGTH_LONG);

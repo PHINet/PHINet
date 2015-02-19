@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class Data {
+public class DBData {
 
     private String applicationName;
     private String sensorID;
@@ -12,26 +12,26 @@ public class Data {
     private String timeString;
     private String userID;
     private String ipAddr;
-    private float datafloat;
+    private float dataFloat;
 
     static final String CURRENT_TIME = "CURRENT_TIME"; // const notifies current time should be given
 
-    public Data() {}
+    public DBData() {}
 
     // Data Cache Constructor
-    public Data(String applicationName, String sensorID, String processID, String timeString,
-                String userID, float datafloat) {
+    public DBData(String applicationName, String sensorID, String processID, String timeString,
+                  String userID, float datafloat) {
         this.applicationName = applicationName;
         this.sensorID = sensorID;
         this.processID = processID;
         this.timeString = timeString;
         this.userID = userID;
-        this.datafloat = datafloat;
+        this.dataFloat = datafloat;
     }
 
     // PIT Entry Constructor
-    public Data(String applicationName, String sensorID, String processID, String timeString,
-                String userID, String ipAddr) {
+    public DBData(String applicationName, String sensorID, String processID, String timeString,
+                  String userID, String ipAddr) {
         this.applicationName = applicationName;
         this.sensorID = sensorID;
         this.processID = processID;
@@ -95,11 +95,11 @@ public class Data {
         this.ipAddr = ipAddr;
     }
 
-    public float getDatafloat() {
-        return datafloat;
+    public float getDataFloat() {
+        return dataFloat;
     }
 
-    public void setDatafloat(float datafloat) {
-        this.datafloat = datafloat;
+    public void setDataFloat(float dataFloat) {
+        this.dataFloat = dataFloat;
     }
 }
