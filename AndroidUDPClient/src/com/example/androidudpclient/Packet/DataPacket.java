@@ -9,7 +9,7 @@ public class DataPacket {
 
     // TODO - add more relevant params
     public DataPacket(String name, String content) {
-        nameField = new NameField(""); // TODO - pass real name
+        nameField = new NameField(name); // TODO - pass real name
         this.content = content;
     }
 

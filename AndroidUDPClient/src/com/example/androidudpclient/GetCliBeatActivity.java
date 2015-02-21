@@ -3,7 +3,6 @@ package com.example.androidudpclient;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -47,7 +46,7 @@ public class GetCliBeatActivity extends ListActivity {
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
 
         if (adapter.getCount() > 0) {
-            // hide "empty patient list" text when patients exist
+            // hide "empty patient list" text when patients actually do exist
             emptyListTextView.setVisibility(View.GONE);
         }
 
@@ -59,14 +58,12 @@ public class GetCliBeatActivity extends ListActivity {
             }
         });
 
-        final Context c = this; // TODO - can this work around be avoided?
-
         addNewPatientBtn = (Button) findViewById(R.id.addNewPatientBtn);
         addNewPatientBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                final EditText patientInput = new EditText(c);
-                final AlertDialog.Builder builder = new AlertDialog.Builder(c);
+                final EditText patientInput = new EditText(getApplicationContext());
+                final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
                 builder.setTitle("Input Format: 'IP,Name'");
                 builder.setView(patientInput);
 
@@ -74,13 +71,15 @@ public class GetCliBeatActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        boolean isValidInput = false;
-                        try {
+                        boolean isValidInput;
+                        try { // try/catch attempts input validation
+
+                            // if syntactically correct, input is separated by comma
                             patientInputString = patientInput.getText().toString().split(",");
 
                             // tests validity of input
-                            patientInputString[0] = patientInputString[0].trim();
-                            patientInputString[1] = patientInputString[1].trim();
+                            patientInputString[0] = patientInputString[0].trim(); // name input
+                            patientInputString[1] = patientInputString[1].trim(); // ip input
 
                             isValidInput = MainActivity.validIP(patientInputString[0]);
 
@@ -100,7 +99,7 @@ public class GetCliBeatActivity extends ListActivity {
                             emptyListTextView.setVisibility(View.GONE);
 
                         } else {
-                            Toast toast = Toast.makeText(c,
+                            Toast toast = Toast.makeText(getApplicationContext(),
                                     "Invalid IP or name length (3-10 characters).", Toast.LENGTH_LONG);
                             toast.show();
                         }
@@ -128,7 +127,6 @@ public class GetCliBeatActivity extends ListActivity {
         public PatientAdapter(ListActivity li)
         {
             super(li, 0, MainActivity.patients);
-            activity = (Activity)li;
         }
 
         @Override
@@ -140,8 +138,8 @@ public class GetCliBeatActivity extends ListActivity {
             }
 
             final Patient p = MainActivity.patients.get(position);
-            final Context c = this.activity;
 
+            // creates individual button in ListView for each patient
             Button patientButton = (Button)convertView.findViewById(R.id.list_patientButton);
             patientButton.setText("IP: "  + p.getIP() + "\nName: "+ p.getName());
             patientButton.setOnClickListener(new View.OnClickListener() {
@@ -149,14 +147,14 @@ public class GetCliBeatActivity extends ListActivity {
                 @Override
                 public void onClick(View v) {
 
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(c);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
                     builder.setTitle("Go to patient page?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            Intent intent = new Intent(c, PatientDataActivity.class);
+                            Intent intent = new Intent(getApplicationContext(), PatientDataActivity.class);
 
                             // TODO - create/define/pass valid patient ID
 

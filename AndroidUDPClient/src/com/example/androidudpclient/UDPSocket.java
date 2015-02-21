@@ -6,6 +6,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+/**
+ * Class handles outbound UDP packets.
+ */
 class UDPSocket extends AsyncTask<String, Void, Void> {
 
     String destAddr;
@@ -24,10 +27,7 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
         try {
             clientSocket = new DatagramSocket();
             InetAddress IPAddress = InetAddress.getByName(destAddr);
-            byte[] sendData = new byte[1024];
-
-
-            sendData = message[0].getBytes();
+            byte[] sendData = message[0].getBytes();
 
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
@@ -42,10 +42,5 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
         }
 
         return null;
-    }
-
-    protected void onPostExecute(Void result){
-        //textResponse.setText(response);
-        //super.onPostExecute(result);
     }
 }

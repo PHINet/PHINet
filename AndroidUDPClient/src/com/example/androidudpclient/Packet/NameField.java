@@ -1,16 +1,21 @@
 package com.example.androidudpclient.Packet;
 
+/**
+ * Class creates an NDN-compliant name for use within packets.
+ */
 public class NameField {
 
     /**
      Our Name Format:
-     "/ndn/userID/sensorID/timestring/processID"
+     "/ndn/userID/sensorID/timestring/processID/ [datacontents] or [ip]"
+
+     The last field is specific to DATA and INTEREST packets, respectively.
      **/
 
     private String name;
 
     public NameField(String name) {
-        this.name = "/ndn/7/9/8/6"; // TODO - rework
+        this.name = name;
     }
 
     /**
@@ -41,6 +46,9 @@ public class NameField {
      --------------
      **/
     String createImplicitSha256DigestComponent() {
+
+        // TODO - create real component
+
         String exampleSha = "893259d98aca58c451453f29ec7dc38688e690dd0b59ef4f3b9d33738bff0b8d";
         return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + Integer.toString(exampleSha.length())
                 + " " + exampleSha;
@@ -60,6 +68,6 @@ public class NameField {
 
     @Override
     public String toString() {
-        return createName(); // TODO - rework
+        return createName();
     }
 }

@@ -29,17 +29,17 @@ import android.os.Bundle;
 import android.text.format.Formatter;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
-	Button netLinkBtn;
-	Button selfBeatBtn;
-	Button getAvgBtn;
-	Button cliBeatBtn;
-	
+    final int CREDENTIAL_RESULT_CODE = 1;
+
+	Button userCredentialBtn, netLinkBtn, selfBeatBtn, getAvgBtn, cliBeatBtn;
+	TextView credentialWarningText, doctorText, patientText;
 	Thread receiverThread;
     static boolean continueReceiverExecution = true;
 
@@ -51,8 +51,6 @@ public class MainActivity extends Activity {
 
     // myData stores the patient data for particular phone user
     static String myIP;
-    static String myUserID; // TODO - rework user id
-    static String mySensorID; // TODO - rework sensor id
     static DatabaseHandler datasource;
 
     // TODO - rework ; this is temporary storage
@@ -64,48 +62,99 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recordMyIP();
-        myUserID = "firstNameLastNameDOB"; // TODO - rework user aid assign
+        onCreateHelper();
+    }
 
-        /*
-         * Creates Tables
-         */
+    /** method exists so that layout can easily be reset **/
+    private void onCreateHelper()
+    {
+        System.out.println("ON CREATE CALLED");
+
+        String mySensorID = Utils.getFromPrefs(getApplicationContext(),
+                Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+        String myUserID = Utils.getFromPrefs(getApplicationContext(),
+                Utils.PREFS_LOGIN_USER_ID_KEY, "");
+
+        recordMyIP();
+
+        // create tables
         datasource = new DatabaseHandler(getApplicationContext());
+        testDB();
+
+        credentialWarningText = (TextView) findViewById(R.id.credentialWarning_textView);
+        doctorText = (TextView) findViewById(R.id.doctor_textView);
+        patientText = (TextView) findViewById(R.id.patient_textView);
 
         receiverThread = initializeReceiver();
         receiverThread.start(); // begin listening for interest packets
 
+        userCredentialBtn = (Button) findViewById(R.id.userCredentialBtn);
+        userCredentialBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+
+                startActivityForResult(new Intent(MainActivity.this, UserCredentialActivity.class),
+                        CREDENTIAL_RESULT_CODE);
+            }
+        });
+
         selfBeatBtn = (Button) findViewById(R.id.selfBeatBtn);
         selfBeatBtn.setOnClickListener(new View.OnClickListener(){
-        	public void onClick(View v) {
-            	startActivity(new Intent(MainActivity.this, RecordHeartbeatActivity.class));
-        	}
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, RecordHeartbeatActivity.class));
+            }
         });
-        
+
         netLinkBtn = (Button) findViewById(R.id.netLinkBtn);
         netLinkBtn.setOnClickListener(new View.OnClickListener(){
-        	public void onClick(View v) {
-        	    startActivity(new Intent(MainActivity.this, ConfigNetLinksActivity.class));
-        	}
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ConfigNetLinksActivity.class));
+            }
         });
-        
+
         getAvgBtn = (Button) findViewById(R.id.getAvgBtn);
         getAvgBtn.setOnClickListener(new View.OnClickListener(){
-        	public void onClick(View v) {
+            public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, ViewMyDataActivity.class));
-        	}
+            }
         });
-        
+
         cliBeatBtn = (Button) findViewById(R.id.cliBeatBtn);
         cliBeatBtn.setOnClickListener(new View.OnClickListener(){
-        	public void onClick(View v) {
-        		startActivity(new Intent(MainActivity.this, GetCliBeatActivity.class));
-        	}
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, GetCliBeatActivity.class));
+            }
         });
+
+        if (mySensorID == null || myUserID == null
+                || mySensorID.equals("") || myUserID.equals("")) {
+
+            //destroy all buttons until user enters credentials
+            cliBeatBtn.setVisibility(View.GONE);
+            getAvgBtn.setVisibility(View.GONE);
+            netLinkBtn.setVisibility(View.GONE);
+            selfBeatBtn.setVisibility(View.GONE);
+            patientText.setVisibility(View.GONE);
+            doctorText.setVisibility(View.GONE);
+
+        } else {
+            // user has entered credentials, remove warning
+            credentialWarningText.setVisibility(View.GONE);
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == CREDENTIAL_RESULT_CODE) {
+            if (resultCode == RESULT_OK) {
+                // reset the layout after user has entered credentials
+                setContentView(R.layout.activity_main);
+                onCreateHelper();
+            }
+        }
     }
 
     static boolean validIP(String ip) {
-        boolean validIP = false;
+        boolean validIP;
         try {
             // tests validity of IP input
 
@@ -146,5 +195,67 @@ public class MainActivity extends Activity {
         // get ip of phone
         myIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
         myData = new Patient(myIP, "ME");
+    }
+
+    // NOTE: TEMPORARY METHOD
+    void testDB()
+    {
+        String mySensorID = Utils.getFromPrefs(getApplicationContext(),
+                Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+        String myUserID = Utils.getFromPrefs(getApplicationContext(),
+                Utils.PREFS_LOGIN_USER_ID_KEY, "");
+
+        DBData data = new DBData();
+        data.setUserID(myUserID);
+        data.setSensorID(mySensorID);
+        data.setTimeString(DBData.CURRENT_TIME);
+        data.setProcessID("ONE"); // TODO - is null appropriate?
+        data.setDataFloat(10);
+
+
+        data.setIpAddr("10.10.10.10");
+        datasource.addCSData(data);
+
+        data.setIpAddr("10.10.10.11");
+        datasource.addFIBData(data);
+
+        data.setIpAddr("10.10.10.12");
+        datasource.addPITData(data);
+
+        DBData pitGET = datasource.getPITData(myUserID);
+        DBData csGET = datasource.getCSData(myUserID);
+        DBData fibGET = datasource.getFIBData(myUserID);
+
+
+
+        if (csGET.getDataFloat() == 10) {
+            System.out.println("CS PASSESS");
+        }
+        if (pitGET.getIpAddr().equals("10.10.10.12")) {
+            System.out.println("PIT PASSESS");
+        }
+        if (fibGET.getIpAddr().equals("10.10.10.11")) {
+            System.out.println("FIB PASSES");
+        }
+
+        csGET.setDataFloat(11);
+        pitGET.setIpAddr("10.10.10.100");
+        fibGET.setIpAddr("10.10.10.200");
+
+        datasource.updateCSData(csGET);
+        datasource.updateFIBData(fibGET);
+        datasource.updatePITData(pitGET);
+
+        datasource.getCSData(myUserID);
+        datasource.getFIBData(myUserID);
+        datasource.getPITData(myUserID);
+
+        datasource.deleteCSEntry(myUserID);
+        datasource.deleteFIBEntry(myUserID);
+        datasource.deletePITEntry(myUserID);
+
+        datasource.getCSData(myUserID);
+        datasource.getFIBData(myUserID);
+        datasource.getPITData(myUserID);
     }
 }

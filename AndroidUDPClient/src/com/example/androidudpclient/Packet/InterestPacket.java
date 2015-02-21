@@ -14,7 +14,7 @@ public class InterestPacket {
 
     // TODO - add more relevant params
     public InterestPacket(String name) {
-        nameField = new NameField(""); // TODO - pass real name
+        nameField = new NameField(name); // TODO - pass real name
     }
 
     /**

@@ -80,8 +80,6 @@ public class RecordHeartbeatActivity extends Activity {
         recordBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                // TODO - rework with cache
-
                 String currentBeatText = text.getText().toString();
                 int currentBeatInt = -1;
                 try {
@@ -96,10 +94,15 @@ public class RecordHeartbeatActivity extends Activity {
                     toast.show();
                 } else {
 
+                    String mySensorID = Utils.getFromPrefs(getApplicationContext(),
+                            Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                    String myUserID = Utils.getFromPrefs(getApplicationContext(),
+                            Utils.PREFS_LOGIN_USER_ID_KEY, "");
+
                     // store data in cache
                     DBData data = new DBData();
-                    data.setUserID(MainActivity.myUserID);
-                    data.setSensorID(MainActivity.mySensorID);
+                    data.setUserID(myUserID);
+                    data.setSensorID(mySensorID);
                     data.setTimeString(DBData.CURRENT_TIME);
                     data.setProcessID(""); // TODO - is null appropriate?
                     data.setDataFloat(currentBeatInt);
@@ -111,7 +114,6 @@ public class RecordHeartbeatActivity extends Activity {
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Heart beat successfully recorded.", Toast.LENGTH_LONG);
                     toast.show();
-
                 }
             }
         });

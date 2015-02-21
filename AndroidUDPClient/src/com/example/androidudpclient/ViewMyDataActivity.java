@@ -28,7 +28,7 @@ public class ViewMyDataActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_viewmydata);
 
-        // textview used to notify user whether data for patient exists
+        // TextView used to notify user whether data for patient exists
         dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
 
         // display graph is data is present
