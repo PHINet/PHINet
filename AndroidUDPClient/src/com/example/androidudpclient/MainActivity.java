@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
 
         // create tables
         datasource = new DatabaseHandler(getApplicationContext());
-        testDB();
+       // testDB();
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarning_textView);
         doctorText = (TextView) findViewById(R.id.doctor_textView);
@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());;
 
         // create thread to receive all incoming packets expected after request to patient
-        return new UDPListener(deviceIP);
+        return new UDPListener(deviceIP, getApplicationContext());
     }
 
     /**
@@ -197,7 +197,7 @@ public class MainActivity extends Activity {
         myData = new Patient(myIP, "ME");
     }
 
-    // NOTE: TEMPORARY METHOD
+    /*// NOTE: TEMPORARY METHOD
     void testDB()
     {
         String mySensorID = Utils.getFromPrefs(getApplicationContext(),
@@ -257,5 +257,5 @@ public class MainActivity extends Activity {
         datasource.getCSData(myUserID);
         datasource.getFIBData(myUserID);
         datasource.getPITData(myUserID);
-    }
+    }*/
 }

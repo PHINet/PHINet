@@ -103,8 +103,10 @@ public class PatientDataActivity extends Activity {
 
                 if (mWifi.isConnected() && isValidIP) {
 
-                    // TODO - later add name rather than ""
-                    InterestPacket interestPacket = new InterestPacket("");
+                    // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
+
+                    InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
+                            "", "", "");
 
                     new UDPSocket(MainActivity.devicePort, patient.getIP())
                             .execute(interestPacket.toString()); // send interest packet

@@ -16,8 +16,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String PIT_DB = "PendingInterestTable";
     private static final String FIB_DB = "ForwardingInformationBase";
 
-    private static final String DATABASE_NAME = "NDNHealthNet5";
-    private static final int DATABASE_VERSION = 5;
+    private static final String DATABASE_NAME = "NDNHealthNet6";
+    private static final int DATABASE_VERSION = 6;
 
     private static final String KEY_USER_ID = "_userID";
     private static final String KEY_SENSOR_ID = "sensorID";
@@ -25,7 +25,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_PROCESS_ID = "processID";
     private static final String KEY_IP_ADDRESS = "ipAddress";
     private static final String KEY_DATA_CONTENTS = "dataContents";
-
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -35,6 +34,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
+        // keys are USER_ID and TIME_STRING - only one piece of data per user per time instant
         String CREATE_DATABASE_TABLE = "CREATE TABLE " + CS_DB + "("
                 + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
@@ -42,12 +42,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         db.execSQL(CREATE_DATABASE_TABLE); // create CS
 
+        // keys are USER_ID, TIME_STRING, and IP_ADDRESS
+                    // - only one piece of requested data per user per time instant
         CREATE_DATABASE_TABLE = "CREATE TABLE " + PIT_DB + "("
-                +KEY_USER_ID + " TEXT PRIMARY KEY," + KEY_SENSOR_ID + " TEXT," +
-               KEY_TIME_STRING + " TEXT," +KEY_PROCESS_ID + " TEXT," +KEY_IP_ADDRESS + " TEXT)";
+                +KEY_USER_ID + " TEXT ," + KEY_SENSOR_ID + " TEXT," +
+               KEY_TIME_STRING + " TEXT," +KEY_PROCESS_ID + " TEXT," +KEY_IP_ADDRESS + " TEXT,"
+                + "PRIMARY KEY(" + KEY_USER_ID + "," + KEY_TIME_STRING + ", "
+                + KEY_IP_ADDRESS+ "))";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create PIT
 
+        // keys are USER_ID - only location per user
         CREATE_DATABASE_TABLE = "CREATE TABLE " + FIB_DB + "("
                 +KEY_USER_ID + " TEXT PRIMARY KEY," + KEY_TIME_STRING +
                 " TEXT, " +KEY_IP_ADDRESS + " TEXT)";
@@ -116,26 +121,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         addData(data, FIB_DB);
     }
 
-    private DBData getData(String id, String tableName) {
+    private DBData getData(String userID, String timeString, String ipAddr, String tableName) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
 
         // TODO - rework this feature
         if (tableName.equals(PIT_DB)) {
 
+            String whereSelection = "_userID=" + userID + "AND timestring=" + timeString
+                    + "AND ipAddress=" + ipAddr;
+
             cursor = db.query(tableName, new String[] {KEY_USER_ID,
-                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},KEY_USER_ID + "=?",
-                    new String[] { id }, null, null, null, null);
+                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},whereSelection
+                    , null, null, null, null);
         } else if (tableName.equals(FIB_DB)) {
 
             cursor = db.query(tableName, new String[] {KEY_USER_ID,
                             KEY_TIME_STRING,KEY_IP_ADDRESS},KEY_USER_ID + "=?",
-                    new String[] { id }, null, null, null, null);
+                    new String[] { userID }, null, null, null, null);
         } else if (tableName.equals(CS_DB)) {
 
+            String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
+
             cursor = db.query(tableName, new String[] {KEY_USER_ID,
-                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},KEY_USER_ID + "=?",
-                    new String[] { id }, null, null, null, null);
+                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
+                    whereSelection, null, null, null, null);
         } else {
             // TODO - throw exception
         }
@@ -180,16 +190,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return data;
     }
 
-    public DBData getPITData(String id) {
-        return getData(id, PIT_DB);
+    public DBData getPITData(String userID, String timestring, String ipAddr) {
+        return getData(userID, timestring, ipAddr, PIT_DB);
     }
 
-    public DBData getFIBData(String id) {
-        return getData(id, FIB_DB);
+    public DBData getFIBData(String userID) {
+        // middle 2 args aren't needed to get FIB Data
+        return getData(userID, "", "", FIB_DB);
     }
 
-    public DBData getCSData(String id) {
-        return getData(id, CS_DB);
+    public DBData getCSData(String userID, String timestring) {
+        // 3rd arg isn't needed to get CS Data
+        return getData(userID, timestring, "", CS_DB);
     }
 
     private int updateData(DBData data, String tableName) {

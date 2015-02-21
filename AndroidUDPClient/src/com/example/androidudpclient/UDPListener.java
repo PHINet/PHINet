@@ -1,18 +1,26 @@
 package com.example.androidudpclient;
 
+import android.content.Context;
+
+import com.example.androidudpclient.Packet.DataPacket;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 
+/**
+ * Class handles incoming UDP packets.
+ */
 public class UDPListener extends Thread {
-
 
     DatagramSocket clientSocket = null;
     String deviceIP;
+    Context context;
 
-    public UDPListener(String ip) {
+    public UDPListener(String ip, Context context) {
         this.deviceIP = ip;
+        this.context = context;
     }
 
     @Override
@@ -42,6 +50,8 @@ public class UDPListener extends Thread {
 
                     // remove "null" unicode characters
                     packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
+
+                    // NOTE; temporary debug print
                     for (int i = 0; i < packetDataArray.length; i++) {
                         System.out.println(packetDataArray[i]);
                     }
@@ -57,17 +67,12 @@ public class UDPListener extends Thread {
                     }
 
                     if (packetDataArray[0].equals("DATA-TLV")) {
-
                         handleDataPacket(packetDataArray, senderPatientIndex);
-
                     } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
                         handleInterestPacket(packetDataArray);
                     } else {
                         // throw away, packet is neither INTEREST nor DATA
                     }
-                    // TODO - think from perspective of either doctor or patient when
-                    //          accepting data``
-                    // TODO - validate data from sender
                 } catch (SocketTimeoutException e) {
                     continue;
                 }
@@ -81,42 +86,92 @@ public class UDPListener extends Thread {
         }
     }
 
+    /** handles INTEREST packet as per NDN specification
+     * Method parses packet then asks the following questions:
+     * 1. Do I have the data?
+     * 2. Have I already sent an interest for this data?
+     */
     void handleInterestPacket(String[] packetDataArray) {
-        // TODO - interest directed to me? If not, send according to
-        //          FIB and place in PIT (if not currently there)
+
+        String [] nameComponent = null;
 
         for (int i = 0; i < packetDataArray.length; i++) {
             if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-                // TODO - store
+
+                // i+2 corresponds name as per NDN standard
+                // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
+                nameComponent = packetDataArray[i+2].split("/"); // split into various components
 
             } else {
                 // TODO - inspect other packet elements
             }
         }
 
-        // reply to interest
-        // NOTE: currently assumes interest requests all user data on phone
-        //      later, rework so that specifics can be requested
+        // information extracted from our name format:
+        // "/ndn/userID/sensorID/timestring/processID/ip"
+        String packetUserID = nameComponent[1];
+        String packetSensorID = nameComponent[2];
+        String packetTimeString = nameComponent[3];
+        String packetProcessID = nameComponent[4];
+        String packetIP = nameComponent[5];
 
-        // TODO - rework with cache
+        // first, check CONTENT STORE (cache)
+        DBData csDATA = MainActivity.datasource.getCSData(packetUserID, packetTimeString);
 
-        // TODO - later add actual name rather than ""
+        if (csDATA != null) {
 
+            // NOTE: params list = Context context, String timestring, String processID, String content
+            DataPacket dataPacket = new DataPacket(context, packetTimeString, packetProcessID,
+                    Float.toString(csDATA.getDataFloat()));
 
-        //DataPacket dataPacket = new DataPacket("", MainActivity.myData.getDataAsString());
+            new UDPSocket(MainActivity.devicePort, deviceIP)
+                    .execute(dataPacket.toString()); // send interest packet
+        } else {
+            // second, check PIT
+            DBData pitDATA = MainActivity.datasource.getPITData(packetUserID,
+                    packetTimeString, packetIP);
 
+            if (pitDATA == null) {
+                // add new request to PIT, then look into FIB before sending request
+                DBData newPITEntry = new DBData();
+                newPITEntry.setUserID(packetUserID);
+                newPITEntry.setSensorID(packetSensorID);
+                newPITEntry.setTimeString(packetTimeString);
+                newPITEntry.setProcessID(packetProcessID);
+                newPITEntry.setIpAddr(packetIP);
 
-       // new UDPSocket(MainActivity.devicePort, deviceIP)
-        //        .execute(dataPacket.toString()); // send interest packet
+                MainActivity.datasource.addPITData(newPITEntry);
+
+                // TODO - look in FIB for next hop
+
+                // TODO - construct interest packet and send
+            } else {
+                // add new request to PIT and wait, request has already been sent
+                DBData newPITEntry = new DBData();
+                newPITEntry.setUserID(packetUserID);
+                newPITEntry.setSensorID(packetSensorID);
+                newPITEntry.setTimeString(packetTimeString);
+                newPITEntry.setProcessID(packetProcessID);
+                newPITEntry.setIpAddr(packetIP);
+
+                MainActivity.datasource.addPITData(newPITEntry);
+            }
+        }
     }
 
+    /** handles DATA packet as per NDN specification
+     * Method parses packet then asks the following questions:
+     * 1. Is this data for me?
+     */
     void handleDataPacket(String[] packetDataArray, int senderPatientIndex)
     {
-        // TODO - LOOK in PIT - should forward or do I want?
+        String [] nameComponent = null;
 
         for (int i = 0; i < packetDataArray.length; i++) {
             if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-                // TODO - store
+                // i+2 corresponds name as per NDN standard
+                // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
+                nameComponent = packetDataArray[i+2].split("/"); // split into various components
 
             } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
 
@@ -133,6 +188,25 @@ public class UDPListener extends Thread {
                 // TODO - inspect other packet elements
             }
         }
+
+        // information extracted from our name format:
+        // "/ndn/userID/sensorID/timestring/processID/floatContent"
+        String packetUserID = nameComponent[1];
+        String packetSensorID = nameComponent[2];
+        String packetTimeString = nameComponent[3];
+        String packetProcessID = nameComponent[4];
+        String packetFloatContent = nameComponent[5];
+
+        /* TODO - implement
+
+        update CS
+        if (data is only for me) {
+            process
+        } else {
+            send data to everyone who wants
+        }
+
+         */
     }
 }
 

@@ -1,6 +1,8 @@
 package com.example.androidudpclient.Packet;
 
 
+import android.content.Context;
+
 public class DataPacket {
 
     private NameField nameField;
@@ -8,8 +10,8 @@ public class DataPacket {
     private String content;
 
     // TODO - add more relevant params
-    public DataPacket(String name, String content) {
-        nameField = new NameField(name); // TODO - pass real name
+    public DataPacket(Context context, String timestring, String processID, String content) {
+        nameField = new NameField(context, timestring, processID, content); // TODO - pass real name
         this.content = content;
     }
 
