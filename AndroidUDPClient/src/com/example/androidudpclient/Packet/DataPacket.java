@@ -11,7 +11,7 @@ public class DataPacket {
 
     // TODO - add more relevant params
     public DataPacket(Context context, String timestring, String processID, String content) {
-        nameField = new NameField(context, timestring, processID, content); // TODO - pass real name
+        nameField = new NameField(context, timestring, processID, content);
         this.content = content;
     }
 

@@ -12,15 +12,15 @@ public class DBData {
     private String timeString;
     private String userID;
     private String ipAddr;
-    private float dataFloat;
+    private String dataFloat;
 
     static final String CURRENT_TIME = "CURRENT_TIME"; // const notifies current time should be given
 
     public DBData() {}
 
-    // Data Cache Constructor
+   /* // TODO - later use and specify constructors // Data Cache Constructor
     public DBData(String applicationName, String sensorID, String processID, String timeString,
-                  String userID, float datafloat) {
+                  String userID, String datafloat) {
         this.applicationName = applicationName;
         this.sensorID = sensorID;
         this.processID = processID;
@@ -38,7 +38,7 @@ public class DBData {
         this.timeString = timeString;
         this.userID = userID;
         this.ipAddr = ipAddr;
-    }
+    }*/
 
     public String getApplicationName() {
         return applicationName;
@@ -95,11 +95,11 @@ public class DBData {
         this.ipAddr = ipAddr;
     }
 
-    public float getDataFloat() {
+    public String getDataFloat() {
         return dataFloat;
     }
 
-    public void setDataFloat(float dataFloat) {
+    public void setDataFloat(String dataFloat) {
         this.dataFloat = dataFloat;
     }
 }

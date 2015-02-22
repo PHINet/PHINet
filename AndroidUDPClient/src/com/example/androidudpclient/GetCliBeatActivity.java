@@ -44,7 +44,12 @@ public class GetCliBeatActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
 
-        PatientAdapter adapter = new PatientAdapter(this, MainActivity.datasource.getAllFIBData());
+        ArrayList<DBData> patientList = MainActivity.datasource.getAllFIBData();
+        if (patientList == null) {
+            patientList = new ArrayList<DBData>(); // pass empty structure rather than null
+        }
+
+        final PatientAdapter adapter = new PatientAdapter(this, patientList);
         setListAdapter(adapter);
 
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
@@ -115,6 +120,9 @@ public class GetCliBeatActivity extends ListActivity {
 
                                 MainActivity.datasource.updateFIBData(data);
                             }
+
+                            adapter.add(data);
+                            adapter.notifyDataSetChanged();
 
                         } else {
                             Toast toast = Toast.makeText(GetCliBeatActivity.this,

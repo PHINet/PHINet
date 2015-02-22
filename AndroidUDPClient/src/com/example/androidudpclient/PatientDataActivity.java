@@ -98,11 +98,31 @@ public class PatientDataActivity extends Activity {
 
                     // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
 
-                    InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
-                            ".", ".", MainActivity.deviceIP);
+                    // place entry into PIT for self; this is because if a request is
+                    // received for same data, we won't send two identical PITs
+                    if (MainActivity.datasource.getSpecificPITData(patientUserID, "Tuesday", patientIP) == null) {
 
-                    new UDPSocket(MainActivity.devicePort, patientIP)
-                            .execute(interestPacket.toString()); // send interest packet
+                        DBData selfPITEntry = new DBData();
+                        selfPITEntry.setUserID(patientUserID);
+                        selfPITEntry.setSensorID("abc"); // TODO - rework
+                        selfPITEntry.setTimeString("Tuesday"); // TODO - rework
+                        selfPITEntry.setProcessID("one"); // TODO - rework
+                        selfPITEntry.setIpAddr(patientIP);
+
+                        MainActivity.datasource.addPITData(selfPITEntry);
+
+                        InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
+                                ".", ".", MainActivity.deviceIP);
+
+                        new UDPSocket(MainActivity.devicePort, patientIP)
+                                .execute(interestPacket.toString()); // send interest packet
+                    } else {
+                        // user has already requested data, notify
+
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                "You've already requested data. Wait a moment.", Toast.LENGTH_LONG);
+                        toast.show();
+                    }
 
                     Handler handler = new Handler();
                     handler.postDelayed(new Runnable() {

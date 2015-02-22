@@ -57,7 +57,10 @@ public class Utils {
         ArrayList<Float> myFloatData = new ArrayList<Float>();
 
         for (int i = 0; i < myData.size(); i++) {
-            myFloatData.add(myData.get(i).getDataFloat());
+            String [] floatArray = myData.get(i).getDataFloat().trim().split(",");
+            for (int j = 0; j < floatArray.length; j++) {
+                myFloatData.add(Float.parseFloat(floatArray[j].trim()));
+            }
         }
 
         return myFloatData;

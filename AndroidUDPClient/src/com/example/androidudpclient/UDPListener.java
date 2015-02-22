@@ -59,8 +59,10 @@ public class UDPListener extends Thread {
                     }
 
                     if (packetDataArray[0].equals("DATA-TLV")) {
+                        System.out.println("DATA PACKET INCOMING");
                         handleDataPacket(packetDataArray);
                     } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
+                        System.out.println("INTEREST PACKET INCOMING");
                         handleInterestPacket(packetDataArray);
                     } else {
                         // throw away, packet is neither INTEREST nor DATA
@@ -101,11 +103,12 @@ public class UDPListener extends Thread {
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/ip"
-        String packetUserID = nameComponent[1];
-        String packetSensorID = nameComponent[2];
-        String packetTimeString = nameComponent[3];
-        String packetProcessID = nameComponent[4];
-        String packetIP = nameComponent[5];
+        // the indexes used are position + 1 (+1 is due to string properties)
+        String packetUserID = nameComponent[2];
+        String packetSensorID = nameComponent[3];
+        String packetTimeString = nameComponent[4];
+        String packetProcessID = nameComponent[5];
+        String packetIP = nameComponent[6];
 
         // first, check CONTENT STORE (cache)
         DBData csDATA = MainActivity.datasource.getSpecificCSData(packetUserID, packetTimeString);
@@ -114,7 +117,7 @@ public class UDPListener extends Thread {
 
             // NOTE: params list = Context context, String timestring, String processID, String content
             DataPacket dataPacket = new DataPacket(context, packetTimeString, packetProcessID,
-                    Float.toString(csDATA.getDataFloat()));
+                    csDATA.getDataFloat());
 
             new UDPSocket(MainActivity.devicePort, packetIP)
                     .execute(dataPacket.toString()); // reply to interest with DATA from cache
@@ -189,7 +192,8 @@ public class UDPListener extends Thread {
             if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
                 // i+2 corresponds name as per NDN standard
                 // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
-                nameComponent = packetDataArray[i+2].split("/"); // split into various components
+
+                nameComponent = packetDataArray[i+2].trim().split("/"); // split into various components
 
             } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
 
@@ -203,13 +207,15 @@ public class UDPListener extends Thread {
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"
-        String packetUserID = nameComponent[1];
-        String packetSensorID = nameComponent[2];
-        String packetTimeString = nameComponent[3];
-        String packetProcessID = nameComponent[4];
+        // the indexes used are position + 1 (+1 is due to string properties)
+        String packetUserID = nameComponent[2].trim();
+        String packetSensorID = nameComponent[3].trim();
+        String packetTimeString = nameComponent[4].trim();
+        String packetProcessID = nameComponent[5].trim();
+
 
         // TODO - packet structure (floatContent inclusion, specifically)
-        String packetFloatContent = dataContents;//nameComponent[5];
+        String packetFloatContent = dataContents.trim();//nameComponent[5];
 
         // first, determine who wants the data
         ArrayList<DBData> allValidPITEntries = MainActivity.datasource
@@ -224,21 +230,30 @@ public class UDPListener extends Thread {
             data.setSensorID(packetSensorID);
             data.setTimeString(packetTimeString);
             data.setProcessID(packetProcessID);
-            data.setDataFloat(Float.parseFloat(packetFloatContent));
+            data.setDataFloat(packetFloatContent);
 
             // if data exists in cache, just update
             if (MainActivity.datasource.getSpecificCSData(packetUserID, packetTimeString) != null) {
+
                 MainActivity.datasource.updateCSData(data);
             } else {
+
                 // data not in cache, add now
                 MainActivity.datasource.addCSData(data);
             }
 
             // now, send packets to each entity that requested the data
             for (int i = 0; i < allValidPITEntries.size(); i++) {
+
+
+                // data satisfies PIT entry; delete the entry
+                MainActivity.datasource.deletePITEntry(allValidPITEntries.get(i).getUserID(),
+                        allValidPITEntries.get(i).getTimeString(), allValidPITEntries.get(i).getIpAddr());
+
                 if (allValidPITEntries.get(i).getIpAddr() == deviceIP) {
                     // this device requested the data, notify
                     // TODO - notify of reception of requested data
+
                 } else {
                     // NOTE: params list = Context context, String timestring, String processID, String content
                     DataPacket dataPacket = new DataPacket(context, packetTimeString, packetProcessID,

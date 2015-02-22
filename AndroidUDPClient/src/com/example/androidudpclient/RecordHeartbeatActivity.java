@@ -105,7 +105,7 @@ public class RecordHeartbeatActivity extends Activity {
                     data.setSensorID(mySensorID);
                     data.setTimeString(DBData.CURRENT_TIME);
                     data.setProcessID(""); // TODO - is null appropriate?
-                    data.setDataFloat(currentBeatInt);
+                    data.setDataFloat(Integer.toString(currentBeatInt));
 
                     MainActivity.datasource.addCSData(data);
 

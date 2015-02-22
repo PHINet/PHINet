@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_DATABASE_TABLE = "CREATE TABLE " + CS_DB + "("
                 + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
-                " REAL, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + "))";
+                " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + "))";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create CS
 
@@ -96,7 +97,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_DATA_CONTENTS, data.getDataFloat());
         } else if (tableName.equals(FIB_DB)) {
 
-
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
@@ -129,7 +129,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<DBData> getGeneralPITData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
+        String whereSelection = "_userID=\"" + userID + "\" AND timestring=\"" + timeString + "\"";
 
         Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
@@ -166,12 +166,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public DBData getSpecificPITData(String userID, String timeString, String ipAddr) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString
-                + "AND ipAddress=" + ipAddr;
+        String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
+                + "\" AND ipAddress= \"" + ipAddr + "\"";
 
-        Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
-                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
-                whereSelection, null, null, null, null);
+        Cursor cursor;
+        try {
+            cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
+                            KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
+                    whereSelection, null, null, null, null);
+        } catch (SQLiteException e) {
+            cursor = null; // bad query apparently
+
+            System.out.println("SQL EXCEPTION: " + e.toString());
+        }
 
         DBData data = new DBData();
 
@@ -224,11 +231,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<DBData> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=" + userID;
+        String whereSelection = "_userID=\"" + userID + "\"";
 
-        Cursor cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
-                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
-                whereSelection, null, null, null, null);
+        Cursor cursor;
+
+        try {
+            cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
+                            KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
+                    whereSelection, null, null, null, null);
+        } catch (SQLiteException e) {
+            cursor = null; // presumably bad request
+        }
 
         ArrayList<DBData> allValidCSEntries = new ArrayList<DBData>();
 
@@ -241,12 +254,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 data.setSensorID(cursor.getString(1));
                 data.setTimeString(cursor.getString(2));
                 data.setProcessID(cursor.getString(3));
-                data.setDataFloat(Float.parseFloat(cursor.getString(4)));
+                data.setDataFloat(cursor.getString(4));
                 allValidCSEntries.add(data);
             }
 
             cursor.close();
-
         } else {
             allValidCSEntries = null; // query found nothing, set return object to null
         }
@@ -282,7 +294,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public DBData getSpecificCSData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
+        String whereSelection = "_userID=\"" + userID + "\" AND timestring=\"" + timeString + "\"";
 
         Cursor cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
@@ -298,7 +310,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             data.setSensorID(cursor.getString(1));
             data.setTimeString(cursor.getString(2));
             data.setProcessID(cursor.getString(3));
-            data.setDataFloat(cursor.getFloat(4));
+            data.setDataFloat(cursor.getString(4));
 
             cursor.close();
         } else {
@@ -352,22 +364,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return updateData(data, CS_DB);
     }
 
-    private void deleteData(String id, String tableName) {
+    public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(tableName,KEY_USER_ID + " = ?",
-                new String[] { id });
-        db.close();
+
+        String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
+                + "\" AND ipAddress= \"" + ipAddr + "\"";
+
+        return db.delete(PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
-    public void deletePITEntry(String id) {
-        deleteData(id, PIT_DB);
+    public boolean deleteFIBEntry(String userID) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String whereSelection = "_userID= \"" + userID + "\"";
+
+        return db.delete(FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
-    public void deleteFIBEntry(String id) {
-        deleteData(id, FIB_DB);
-    }
+    public boolean deleteCSEntry(String userID, String timeString) {
+        SQLiteDatabase db = this.getWritableDatabase();
 
-    public void deleteCSEntry(String id) {
-        deleteData(id, CS_DB);
+        String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
+                + "\"";
+
+        return db.delete(CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 }
