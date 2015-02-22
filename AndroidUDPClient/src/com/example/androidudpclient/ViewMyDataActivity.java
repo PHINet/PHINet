@@ -10,6 +10,8 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.ArrayList;
+
 /**
  * Activity deals specifically with interacting with user's own data.
  *
@@ -34,14 +36,21 @@ public class ViewMyDataActivity extends Activity {
         // display graph is data is present
         graph = (GraphView) findViewById(R.id.graph);
 
-        // TODO - rework with CACHE
-        if (MainActivity.myData.getData().size() > 0) {
+        // get user id for quering db
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                Utils.PREFS_LOGIN_USER_ID_KEY, "");
+
+        ArrayList<DBData> myData = MainActivity.datasource.getGeneralCSData(currentUserID);
+        ArrayList<Float> myFloatData = Utils.convertDBRowTFloats(myData);
+
+        if (myData != null && myData.size() > 0) {
             dataStatusText.setText("Some data present");
 
+
             // TODO - improve presentation
-            DataPoint[] dataPoints = new DataPoint[MainActivity.myData.getData().size()];
-            for (int i = 0; i < MainActivity.myData.getData().size(); i++) {
-                dataPoints[i] = new DataPoint(i, MainActivity.myData.getData().get(i));
+            DataPoint[] dataPoints = new DataPoint[myFloatData.size()];
+            for (int i = 0; i < myFloatData.size(); i++) {
+                dataPoints[i] = new DataPoint(i, myFloatData.get(i));
             }
 
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);

@@ -31,10 +31,10 @@ import java.util.ArrayList;
 public class PatientDataActivity extends Activity {
 
     Button backBtn, requestBtn, submitBtn, deleteBtn;
-    EditText nameEditText, ipEditText;
-    TextView dataStatusText;
+    EditText ipEditText;
+    TextView dataStatusText, nameText;
     GraphView graph;
-    String patientIP;
+    String patientIP, patientUserID;
 
     /** Called when the activity is first created. */
     @Override
@@ -42,37 +42,26 @@ public class PatientDataActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patientdata);
 
-        // use IP from intent to find patient among all patients (TODO - later use CACHE)
-        patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_ID_STRING);
+        // use IP and ID from intent to find patient among all patients
+        patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_IP);
+        patientUserID = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_USER_ID);
 
-        Patient pa = null;  // identify chosen patient
-        final ArrayList<Patient> patients = MainActivity.patients;
-        for (int i = 0; i < patients.size(); i++) {
-            if (patients.get(i).getIP().equals(patientIP)) {
-                pa = patients.get(i);
-                break;
-            }
-        }
-
-        // TODO - can this work around be avoided?
-        final Patient patient = pa; // set patient final so that can be used in anonymous-classes
-
-        if (pa == null) {
-            // TODO - handle this problem; exit activity and notify user
-        }
+        ArrayList<DBData> patientCacheData = MainActivity.datasource.getGeneralCSData(patientUserID);
 
         // textview used to notify user whether data for patient exists
         dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
 
         // display graph is data is present
         graph = (GraphView) findViewById(R.id.graph);
-        if (patient.getData().size() > 0) {
+        if (patientCacheData != null && patientCacheData.size() > 0) {
             dataStatusText.setText("Some data present");//
 
             // TODO - improve presentation
-            DataPoint[] dataPoints = new DataPoint[patient.getData().size()];
-            for (int i = 0; i < patient.getData().size(); i++) {
-                dataPoints[i] = new DataPoint(i, patient.getData().get(i));
+            ArrayList<Float> patientFloatData = Utils.convertDBRowTFloats(patientCacheData);
+
+            DataPoint[] dataPoints = new DataPoint[patientFloatData.size()];
+            for (int i = 0; i < patientFloatData.size(); i++) {
+                dataPoints[i] = new DataPoint(i, patientFloatData.get(i));
             }
 
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
@@ -83,11 +72,11 @@ public class PatientDataActivity extends Activity {
             graph.setVisibility(View.INVISIBLE); // no data, make graph go away
         }
 
-        nameEditText = (EditText) findViewById(R.id.name_editText);
-        nameEditText.setText(patient.getName());
+        nameText = (TextView) findViewById(R.id.name_Text);
+        nameText.setText(patientUserID);
 
         ipEditText = (EditText) findViewById(R.id.ip_editText);
-        ipEditText.setText(patient.getIP());
+        ipEditText.setText(patientIP);
 
         /** Returns to GetCliBeat **/
         requestBtn = (Button) findViewById(R.id.patientDataRequestBtn);
@@ -96,19 +85,23 @@ public class PatientDataActivity extends Activity {
 
                 // TODO - define/improve request interval
 
+                System.out.println("REQUEST button clicked");
+
                 // performs a network-capabilities AND IP check before attempting to send
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-                boolean isValidIP = MainActivity.validIP(patient.getIP());
+                boolean isValidIP = MainActivity.validIP(patientIP);
 
                 if (mWifi.isConnected() && isValidIP) {
+                    System.out.println("SENDING PACKET");
+                    System.out.println("PATIENT IP: " + patientIP);
 
                     // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
 
                     InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
-                            "", "", "");
+                            ".", ".", MainActivity.deviceIP);
 
-                    new UDPSocket(MainActivity.devicePort, patient.getIP())
+                    new UDPSocket(MainActivity.devicePort, patientIP)
                             .execute(interestPacket.toString()); // send interest packet
 
                     Handler handler = new Handler();
@@ -144,14 +137,14 @@ public class PatientDataActivity extends Activity {
                 // TODO - rework once cache is functional
 
                 // check before save AND notify user if invalid ip
-                if (!MainActivity.validIP(patientIP)) {
+                if (!MainActivity.validIP(ipEditText.getText().toString())) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
                     builder.setTitle("Invalid IP entered. Submit anyways?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            updatePatientData(patientIP);
+                            updatePatientData();
                         }
                     });
                     builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -164,7 +157,7 @@ public class PatientDataActivity extends Activity {
 
                     builder.show();
                 } else {
-                    updatePatientData(patientIP);
+                    updatePatientData();
                 }
             }
         });
@@ -183,32 +176,31 @@ public class PatientDataActivity extends Activity {
             public void onClick(View v) {
                 // TODO - rework with cache
 
-                ArrayList<Patient> patients = MainActivity.patients;
-
-                for (int i = 0; i < patients.size(); i++) {
-                    if (patients.get(i).getIP().equals(patientIP)) {
-                        patients.remove(patients.get(i));
-                        break;
-                    }
-                }
-                finish();
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "Feature isn't currently functional.", Toast.LENGTH_LONG);
+                toast.show();
             }
         });
     }
 
     /**
-     * Called when user wishes to save patient data.
+     * Called when user wishes to save patient data. Updates FIB entry.
      */
-    void updatePatientData(String patientIP) {
+    void updatePatientData() {
 
         // updates patient data
-        for (int i = 0; i < MainActivity.patients.size(); i++) {
-            if (MainActivity.patients.get(i).getIP().equals(patientIP)) {
-                MainActivity.patients.get(i).setIP(ipEditText.getText().toString());
-                MainActivity.patients.get(i).setName(nameEditText.getText().toString());
-                break;
-            }
-        }
+        DBData updatedFIBEntry = new DBData();
+        updatedFIBEntry.setTimeString(DBData.CURRENT_TIME);
+        updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
+        updatedFIBEntry.setUserID(patientUserID);
+
+        /* TODO - allow name modification
+        if (!patientUserID.equals(nameEditText.getText().toString())) {
+            // patient updated id, delete FIB entry
+            // rework other tables as well
+        }*/
+
+        MainActivity.datasource.updateFIBData(updatedFIBEntry);
 
         Toast toast = Toast.makeText(this, "Save successful.", Toast.LENGTH_LONG);
         toast.show();

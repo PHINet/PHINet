@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.util.ArrayList;
+
 /**
- * Class facilitates user credential storage, which is necessary for NDN communication.
- *
- * Code from stackoverflow user umair.ali @ http://stackoverflow.com/users/1334114/umair-ali
+ * Class facilitates user credential storage, which is necessary for NDN communication
  *
  * TODO - encrypt
  */
@@ -16,6 +16,8 @@ public class Utils {
     public static final String PREFS_LOGIN_SENSOR_ID_KEY = "__SENSOR_ID__" ;
 
     /**
+     * Code from stackoverflow user umair.ali @ http://stackoverflow.com/users/1334114/umair-ali
+     *
      * Called to save supplied value in shared preferences against given key.
      * @param context Context of caller activity
      * @param key Key of value to save against
@@ -29,6 +31,8 @@ public class Utils {
     }
 
     /**
+     * Code from stackoverflow user umair.ali @ http://stackoverflow.com/users/1334114/umair-ali
+     *
      * Called to retrieve required value from shared preferences, identified by given key.
      * Default value will be returned of no value found or error occurred.
      * @param context Context of caller activity
@@ -44,5 +48,18 @@ public class Utils {
             e.printStackTrace();
             return defaultValue;
         }
+    }
+
+    /** Method takes query results and converts to a format that can be presented via graph **/
+    public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData) {
+        // TODO - improve display accuracy (order chonologically, etc)
+
+        ArrayList<Float> myFloatData = new ArrayList<Float>();
+
+        for (int i = 0; i < myData.size(); i++) {
+            myFloatData.add(myData.get(i).getDataFloat());
+        }
+
+        return myFloatData;
     }
 }

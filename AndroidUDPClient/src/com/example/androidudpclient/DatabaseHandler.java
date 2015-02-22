@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+
 /**
  * Class handles logic associated with three DB tables
  * the PIT, CS, FIB (whose contents are specified by NDN)
@@ -121,34 +123,55 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         addData(data, FIB_DB);
     }
 
-    private DBData getData(String userID, String timeString, String ipAddr, String tableName) {
+    /**
+     * Data is queried without ipAddr specification; multiple entries may be found.
+     * **/
+    public ArrayList<DBData> getGeneralPITData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = null;
 
-        // TODO - rework this feature
-        if (tableName.equals(PIT_DB)) {
+        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
 
-            String whereSelection = "_userID=" + userID + "AND timestring=" + timeString
-                    + "AND ipAddress=" + ipAddr;
+        Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
+                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
+                whereSelection, null, null, null, null);
 
-            cursor = db.query(tableName, new String[] {KEY_USER_ID,
-                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},whereSelection
-                    , null, null, null, null);
-        } else if (tableName.equals(FIB_DB)) {
+        ArrayList<DBData> allValidPITEntries = new ArrayList<DBData>();
 
-            cursor = db.query(tableName, new String[] {KEY_USER_ID,
-                            KEY_TIME_STRING,KEY_IP_ADDRESS},KEY_USER_ID + "=?",
-                    new String[] { userID }, null, null, null, null);
-        } else if (tableName.equals(CS_DB)) {
+        // ensure query was successful
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                DBData data = new DBData();
 
-            String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
+                data.setUserID(cursor.getString(0));
+                data.setSensorID(cursor.getString(1));
+                data.setTimeString(cursor.getString(2));
+                data.setProcessID(cursor.getString(3));
+                data.setIpAddr(cursor.getString(4));
+                allValidPITEntries.add(data);
+            }
 
-            cursor = db.query(tableName, new String[] {KEY_USER_ID,
-                           KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
-                    whereSelection, null, null, null, null);
+            cursor.close();
+
         } else {
-            // TODO - throw exception
+            allValidPITEntries = null; // query found nothing, set return object to null
         }
+
+        db.close();
+        return allValidPITEntries;
+    }
+
+    /**
+     * Data is queried with ipAddr specification; at most one entry is found.
+     * **/
+    public DBData getSpecificPITData(String userID, String timeString, String ipAddr) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString
+                + "AND ipAddress=" + ipAddr;
+
+        Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
+                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
+                whereSelection, null, null, null, null);
 
         DBData data = new DBData();
 
@@ -156,32 +179,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
 
-            // TODO - add to appropriate fields
-            if (tableName.equals(CS_DB)) {
-                data.setUserID(cursor.getString(0));
-                data.setSensorID(cursor.getString(1));
-                data.setTimeString(cursor.getString(2));
-                data.setProcessID(cursor.getString(3));
-                data.setDataFloat(cursor.getFloat(4));
-            } else if (tableName.equals(FIB_DB)) {
-
-                data.setUserID(cursor.getString(0));
-                data.setSensorID(cursor.getString(1));
-                data.setIpAddr(cursor.getString(2));
-            } else if (tableName.equals(PIT_DB)) {
-
-                data.setUserID(cursor.getString(0));
-                data.setSensorID(cursor.getString(1));
-                data.setTimeString(cursor.getString(2));
-                data.setProcessID(cursor.getString(3));
-                data.setIpAddr(cursor.getString(4));
-            } else {
-                // TODO - here
-            }
-
-
+            data.setUserID(cursor.getString(0));
+            data.setSensorID(cursor.getString(1));
+            data.setTimeString(cursor.getString(2));
+            data.setProcessID(cursor.getString(3));
+            data.setIpAddr(cursor.getString(4));
             cursor.close();
-
         } else {
             data = null; // query found nothing, set return object to null
         }
@@ -190,18 +193,120 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return data;
     }
 
-    public DBData getPITData(String userID, String timestring, String ipAddr) {
-        return getData(userID, timestring, ipAddr, PIT_DB);
-    }
-
     public DBData getFIBData(String userID) {
-        // middle 2 args aren't needed to get FIB Data
-        return getData(userID, "", "", FIB_DB);
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(FIB_DB, new String[] {KEY_USER_ID,
+                        KEY_TIME_STRING,KEY_IP_ADDRESS},KEY_USER_ID + "=?",
+                new String[] { userID }, null, null, null, null);
+
+        DBData data = new DBData();
+
+        // ensure query was successful
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+
+            data.setUserID(cursor.getString(0));
+            data.setSensorID(cursor.getString(1));
+            data.setIpAddr(cursor.getString(2));
+
+            cursor.close();
+        } else {
+            data = null; // query found nothing, set return object to null
+        }
+
+        db.close();
+        return data;
     }
 
-    public DBData getCSData(String userID, String timestring) {
-        // 3rd arg isn't needed to get CS Data
-        return getData(userID, timestring, "", CS_DB);
+    /**
+     * Data is queried without timestring specification; multiple entries may be found.
+     * **/
+    public ArrayList<DBData> getGeneralCSData(String userID) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String whereSelection = "_userID=" + userID;
+
+        Cursor cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
+                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
+                whereSelection, null, null, null, null);
+
+        ArrayList<DBData> allValidCSEntries = new ArrayList<DBData>();
+
+        // ensure query was successful
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                DBData data = new DBData();
+
+                data.setUserID(cursor.getString(0));
+                data.setSensorID(cursor.getString(1));
+                data.setTimeString(cursor.getString(2));
+                data.setProcessID(cursor.getString(3));
+                data.setDataFloat(Float.parseFloat(cursor.getString(4)));
+                allValidCSEntries.add(data);
+            }
+
+            cursor.close();
+
+        } else {
+            allValidCSEntries = null; // query found nothing, set return object to null
+        }
+
+        db.close();
+        return allValidCSEntries;
+    }
+
+    /** Method used to query entire FIB table; useful when multi-casting interests **/
+    public ArrayList<DBData> getAllFIBData() {
+        ArrayList<DBData> allFIBData = new ArrayList<DBData>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * from " + FIB_DB, null);
+
+        if (cursor == null || cursor.getCount() == 0) {
+            return null;
+        } else {
+            // return each row
+            while (cursor.moveToNext()) {
+                DBData data = new DBData();
+
+                data.setUserID(cursor.getString(0));
+                data.setSensorID(cursor.getString(1));
+                data.setIpAddr(cursor.getString(2));
+                allFIBData.add(data);
+            }
+            cursor.close();
+        }
+
+        return allFIBData;
+    }
+
+    public DBData getSpecificCSData(String userID, String timeString) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String whereSelection = "_userID=" + userID + "AND timestring=" + timeString;
+
+        Cursor cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
+                        KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
+                whereSelection, null, null, null, null);
+
+        DBData data = new DBData();
+
+        // ensure query was successful
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+
+            data.setUserID(cursor.getString(0));
+            data.setSensorID(cursor.getString(1));
+            data.setTimeString(cursor.getString(2));
+            data.setProcessID(cursor.getString(3));
+            data.setDataFloat(cursor.getFloat(4));
+
+            cursor.close();
+        } else {
+            data = null; // query found nothing, set return object to null
+        }
+
+        db.close();
+        return data;
     }
 
     private int updateData(DBData data, String tableName) {

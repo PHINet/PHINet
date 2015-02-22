@@ -38,10 +38,10 @@
             android:textSize="20sp"
             android:id="@+id/name_textView" />
 
-        <EditText
+        <TextView
             android:layout_width="251dp"
             android:layout_height="match_parent"
-            android:id="@+id/name_editText"
+            android:id="@+id/name_Text"
             android:gravity="right" />
 
     </LinearLayout>

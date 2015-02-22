@@ -3,11 +3,13 @@ package com.example.androidudpclient;
 import android.content.Context;
 
 import com.example.androidudpclient.Packet.DataPacket;
+import com.example.androidudpclient.Packet.InterestPacket;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 /**
  * Class handles incoming UDP packets.
@@ -56,18 +58,8 @@ public class UDPListener extends Thread {
                         System.out.println(packetDataArray[i]);
                     }
 
-                    // TODO - map NAME to IP (avoid this check)
-                    int senderPatientIndex = -1;
-
-                    for (int i = 0; i < MainActivity.patients.size(); i++) {
-
-                        if (MainActivity.patients.get(i).getIP().equals(senderIP)) {
-                            senderPatientIndex = i;
-                        }
-                    }
-
                     if (packetDataArray[0].equals("DATA-TLV")) {
-                        handleDataPacket(packetDataArray, senderPatientIndex);
+                        handleDataPacket(packetDataArray);
                     } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
                         handleInterestPacket(packetDataArray);
                     } else {
@@ -116,7 +108,7 @@ public class UDPListener extends Thread {
         String packetIP = nameComponent[5];
 
         // first, check CONTENT STORE (cache)
-        DBData csDATA = MainActivity.datasource.getCSData(packetUserID, packetTimeString);
+        DBData csDATA = MainActivity.datasource.getSpecificCSData(packetUserID, packetTimeString);
 
         if (csDATA != null) {
 
@@ -124,11 +116,11 @@ public class UDPListener extends Thread {
             DataPacket dataPacket = new DataPacket(context, packetTimeString, packetProcessID,
                     Float.toString(csDATA.getDataFloat()));
 
-            new UDPSocket(MainActivity.devicePort, deviceIP)
-                    .execute(dataPacket.toString()); // send interest packet
+            new UDPSocket(MainActivity.devicePort, packetIP)
+                    .execute(dataPacket.toString()); // reply to interest with DATA from cache
         } else {
             // second, check PIT
-            DBData pitDATA = MainActivity.datasource.getPITData(packetUserID,
+            DBData pitDATA = MainActivity.datasource.getSpecificPITData(packetUserID,
                     packetTimeString, packetIP);
 
             if (pitDATA == null) {
@@ -142,9 +134,34 @@ public class UDPListener extends Thread {
 
                 MainActivity.datasource.addPITData(newPITEntry);
 
-                // TODO - look in FIB for next hop
+                // TODO - access FIB intelligently
+                /*
+                String nextHopIP;
 
-                // TODO - construct interest packet and send
+                // first check for actual source in FIB, then send out broadly
+                DBData fibDATA = MainActivity.datasource.getFIBData(packetUserID);
+                if (fibDATA == null) {
+                    ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
+                } else {
+                    nextHopIP = fibDATA.getIpAddr();
+                }*/
+
+                ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
+
+                if (allFIBData == null || allFIBData.size() == 0) {
+                    // TODO - sophisticate way in which user deals with FIB
+
+                    // FIB is empty, user must reconfigure
+                    throw new NullPointerException("Cannot send message; FIB is empty.");
+                } else {
+                    for (int i = 0; i < allFIBData.size(); i++) {
+                        InterestPacket interestPacket = new InterestPacket(context, packetTimeString,
+                                packetProcessID, packetIP);
+
+                        new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr())
+                                .execute(interestPacket.toString()); // send interest packet
+                    }
+                }
             } else {
                 // add new request to PIT and wait, request has already been sent
                 DBData newPITEntry = new DBData();
@@ -163,9 +180,10 @@ public class UDPListener extends Thread {
      * Method parses packet then asks the following questions:
      * 1. Is this data for me?
      */
-    void handleDataPacket(String[] packetDataArray, int senderPatientIndex)
+    void handleDataPacket(String[] packetDataArray)
     {
         String [] nameComponent = null;
+        String dataContents = null;
 
         for (int i = 0; i < packetDataArray.length; i++) {
             if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
@@ -177,13 +195,7 @@ public class UDPListener extends Thread {
 
                 // i+2 corresponds content as per NDN standard
                 // i = notifier (CONTENT-TYPE), i+1 = bytes, i+2 = content
-                String[] content = packetDataArray[i+2].split(",");
-
-                // store packet content with patient object
-                for (int j = 0; j < content.length; j++) {
-                    MainActivity.patients.get(senderPatientIndex).addData(Integer.parseInt(content[j]));
-                }
-
+                dataContents = packetDataArray[i+2];
             } else {
                 // TODO - inspect other packet elements
             }
@@ -195,19 +207,47 @@ public class UDPListener extends Thread {
         String packetSensorID = nameComponent[2];
         String packetTimeString = nameComponent[3];
         String packetProcessID = nameComponent[4];
-        String packetFloatContent = nameComponent[5];
 
-        /* TODO - implement
+        // TODO - packet structure (floatContent inclusion, specifically)
+        String packetFloatContent = dataContents;//nameComponent[5];
 
-        update CS
-        if (data is only for me) {
-            process
+        // first, determine who wants the data
+        ArrayList<DBData> allValidPITEntries = MainActivity.datasource
+                .getGeneralPITData(packetUserID, packetTimeString);
+
+        if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
+            // no one requested the data, merely drop it
         } else {
-            send data to everyone who wants
-        }
+            // data was requested; second, update cache with new packet
+            DBData data = new DBData();
+            data.setUserID(packetUserID);
+            data.setSensorID(packetSensorID);
+            data.setTimeString(packetTimeString);
+            data.setProcessID(packetProcessID);
+            data.setDataFloat(Float.parseFloat(packetFloatContent));
 
-         */
+            // if data exists in cache, just update
+            if (MainActivity.datasource.getSpecificCSData(packetUserID, packetTimeString) != null) {
+                MainActivity.datasource.updateCSData(data);
+            } else {
+                // data not in cache, add now
+                MainActivity.datasource.addCSData(data);
+            }
+
+            // now, send packets to each entity that requested the data
+            for (int i = 0; i < allValidPITEntries.size(); i++) {
+                if (allValidPITEntries.get(i).getIpAddr() == deviceIP) {
+                    // this device requested the data, notify
+                    // TODO - notify of reception of requested data
+                } else {
+                    // NOTE: params list = Context context, String timestring, String processID, String content
+                    DataPacket dataPacket = new DataPacket(context, packetTimeString, packetProcessID,
+                            packetFloatContent);
+
+                    new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr())
+                            .execute(dataPacket.toString()); // send DATA packet
+                }
+            }
+        }
     }
 }
-
-

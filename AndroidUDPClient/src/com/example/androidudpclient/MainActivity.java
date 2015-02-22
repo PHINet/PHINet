@@ -32,7 +32,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -45,22 +44,24 @@ public class MainActivity extends Activity {
 
     /** used to notify sender of this device's address **/
     static final int devicePort = 50056; // chosen arbitrarily
-    String deviceIP;
+    static String deviceIP;
     WifiManager wm;
     /** used to notify sender of this device's address **/
 
-    // myData stores the patient data for particular phone user
-    static String myIP;
     static DatabaseHandler datasource;
-
-    // TODO - rework ; this is temporary storage
-    static ArrayList<Patient> patients = new ArrayList<Patient>();
-    static Patient myData;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        // get ip of phone
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+
+        // create tables
+        datasource = new DatabaseHandler(getApplicationContext());
+        receiverThread = initializeReceiver();
+        receiverThread.start(); // begin listening for interest packets
 
         onCreateHelper();
     }
@@ -68,25 +69,16 @@ public class MainActivity extends Activity {
     /** method exists so that layout can easily be reset **/
     private void onCreateHelper()
     {
-        System.out.println("ON CREATE CALLED");
+        setContentView(R.layout.activity_main);
 
         String mySensorID = Utils.getFromPrefs(getApplicationContext(),
                 Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 Utils.PREFS_LOGIN_USER_ID_KEY, "");
 
-        recordMyIP();
-
-        // create tables
-        datasource = new DatabaseHandler(getApplicationContext());
-       // testDB();
-
         credentialWarningText = (TextView) findViewById(R.id.credentialWarning_textView);
         doctorText = (TextView) findViewById(R.id.doctor_textView);
         patientText = (TextView) findViewById(R.id.patient_textView);
-
-        receiverThread = initializeReceiver();
-        receiverThread.start(); // begin listening for interest packets
 
         userCredentialBtn = (Button) findViewById(R.id.userCredentialBtn);
         userCredentialBtn.setOnClickListener(new View.OnClickListener(){
@@ -146,9 +138,7 @@ public class MainActivity extends Activity {
     {
         if (requestCode == CREDENTIAL_RESULT_CODE) {
             if (resultCode == RESULT_OK) {
-                // reset the layout after user has entered credentials
-                setContentView(R.layout.activity_main);
-                onCreateHelper();
+                onCreateHelper(); // reset the layout after user has entered credentials
             }
         }
     }
@@ -175,87 +165,13 @@ public class MainActivity extends Activity {
     }
 
     /** create and return receiver thread **/
-    Thread initializeReceiver()
-    {
+    Thread initializeReceiver() {
         // get the device's ip
         wm = (WifiManager) getSystemService(WIFI_SERVICE);
-        deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());;
+        deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        ;
 
         // create thread to receive all incoming packets expected after request to patient
         return new UDPListener(deviceIP, getApplicationContext());
     }
-
-    /**
-     * Temporary method that initializes data for particular phone user.
-     */
-    void recordMyIP()
-    {
-        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
-
-        // get ip of phone
-        myIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-        myData = new Patient(myIP, "ME");
-    }
-
-    /*// NOTE: TEMPORARY METHOD
-    void testDB()
-    {
-        String mySensorID = Utils.getFromPrefs(getApplicationContext(),
-                Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
-        String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                Utils.PREFS_LOGIN_USER_ID_KEY, "");
-
-        DBData data = new DBData();
-        data.setUserID(myUserID);
-        data.setSensorID(mySensorID);
-        data.setTimeString(DBData.CURRENT_TIME);
-        data.setProcessID("ONE"); // TODO - is null appropriate?
-        data.setDataFloat(10);
-
-
-        data.setIpAddr("10.10.10.10");
-        datasource.addCSData(data);
-
-        data.setIpAddr("10.10.10.11");
-        datasource.addFIBData(data);
-
-        data.setIpAddr("10.10.10.12");
-        datasource.addPITData(data);
-
-        DBData pitGET = datasource.getPITData(myUserID);
-        DBData csGET = datasource.getCSData(myUserID);
-        DBData fibGET = datasource.getFIBData(myUserID);
-
-
-
-        if (csGET.getDataFloat() == 10) {
-            System.out.println("CS PASSESS");
-        }
-        if (pitGET.getIpAddr().equals("10.10.10.12")) {
-            System.out.println("PIT PASSESS");
-        }
-        if (fibGET.getIpAddr().equals("10.10.10.11")) {
-            System.out.println("FIB PASSES");
-        }
-
-        csGET.setDataFloat(11);
-        pitGET.setIpAddr("10.10.10.100");
-        fibGET.setIpAddr("10.10.10.200");
-
-        datasource.updateCSData(csGET);
-        datasource.updateFIBData(fibGET);
-        datasource.updatePITData(pitGET);
-
-        datasource.getCSData(myUserID);
-        datasource.getFIBData(myUserID);
-        datasource.getPITData(myUserID);
-
-        datasource.deleteCSEntry(myUserID);
-        datasource.deleteFIBEntry(myUserID);
-        datasource.deletePITEntry(myUserID);
-
-        datasource.getCSData(myUserID);
-        datasource.getFIBData(myUserID);
-        datasource.getPITData(myUserID);
-    }*/
 }

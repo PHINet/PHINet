@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 /**
  * Activity displays list of current patients and allows the following
  * 1. add new patient
@@ -26,7 +28,9 @@ public class GetCliBeatActivity extends ListActivity {
     private String[] patientInputString;
     TextView emptyListTextView;
 
-    final static String PATIENT_ID_STRING = "PATIENT_ID"; // used to identify intent-data
+    // used to identify intent-data
+    final static String PATIENT_IP = "PATIENT_IP";
+    final static String PATIENT_USER_ID = "PATIENT_USER_ID";
 
     @Override
     protected void onResume() {
@@ -40,7 +44,7 @@ public class GetCliBeatActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
 
-        PatientAdapter adapter = new PatientAdapter(this);
+        PatientAdapter adapter = new PatientAdapter(this, MainActivity.datasource.getAllFIBData());
         setListAdapter(adapter);
 
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
@@ -62,8 +66,8 @@ public class GetCliBeatActivity extends ListActivity {
         addNewPatientBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                final EditText patientInput = new EditText(getApplicationContext());
-                final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                final EditText patientInput = new EditText(GetCliBeatActivity.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(GetCliBeatActivity.this);
                 builder.setTitle("Input Format: 'IP,Name'");
                 builder.setView(patientInput);
 
@@ -85,21 +89,35 @@ public class GetCliBeatActivity extends ListActivity {
 
                             // NOTE: name-length constraints were chosen somewhat arbitrarily
                             isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
-                            isValidInput &= patientInputString[1].length() <= 10; // max name requirement
+                            isValidInput &= patientInputString[1].length() <= 15; // max name requirement
 
                         } catch (Exception e) {
                             // input didn't pass checks, mark input as invalid and notify user
                             isValidInput = false;
                         }
 
-                        if (isValidInput) {
-                            MainActivity.patients.add(new Patient(patientInputString[0], patientInputString[1]));
+                        if (isValidInput) { // add user to fib
 
-                            // hide "empty patient list" text when patient added
-                            emptyListTextView.setVisibility(View.GONE);
+                            DBData data = new DBData();
+                            data.setIpAddr(patientInputString[0]);
+                            data.setUserID(patientInputString[1]);
+                            data.setTimeString(DBData.CURRENT_TIME);
+
+                            if (MainActivity.datasource.getFIBData(patientInputString[0]) == null) {
+                                // user entered valid patient, now add to fib
+
+                                MainActivity.datasource.addFIBData(data);
+
+                                // hide "empty patient list" text when patient added
+                                emptyListTextView.setVisibility(View.GONE);
+                            } else {
+                                // user entered previous patient, just update
+
+                                MainActivity.datasource.updateFIBData(data);
+                            }
 
                         } else {
-                            Toast toast = Toast.makeText(getApplicationContext(),
+                            Toast toast = Toast.makeText(GetCliBeatActivity.this,
                                     "Invalid IP or name length (3-10 characters).", Toast.LENGTH_LONG);
                             toast.show();
                         }
@@ -120,13 +138,18 @@ public class GetCliBeatActivity extends ListActivity {
     /**
      * Used by patient list view.
      */
-    private class PatientAdapter extends ArrayAdapter<Patient> {
+    private class PatientAdapter extends ArrayAdapter<DBData> {
 
         Activity activity = null;
+        ArrayList<DBData> listData;
 
-        public PatientAdapter(ListActivity li)
+        public PatientAdapter(ListActivity li, ArrayList<DBData> allFIBData)
         {
-            super(li, 0, MainActivity.patients);
+            // TODO - rework (be selective with FIB data that is displayed)
+
+            super(li, 0, allFIBData);
+            listData = allFIBData;
+            activity = li;
         }
 
         @Override
@@ -137,28 +160,29 @@ public class GetCliBeatActivity extends ListActivity {
                         .inflate(R.layout.list_item_patient, null);
             }
 
-            final Patient p = MainActivity.patients.get(position);
+            final DBData dbData = listData.get(position);
 
             // creates individual button in ListView for each patient
             Button patientButton = (Button)convertView.findViewById(R.id.list_patientButton);
-            patientButton.setText("IP: "  + p.getIP() + "\nName: "+ p.getName());
+            patientButton.setText("IP: "  + dbData.getIpAddr() + "\nName: "+ dbData.getUserID());
             patientButton.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
 
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(GetCliBeatActivity.this);
                     builder.setTitle("Go to patient page?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            Intent intent = new Intent(getApplicationContext(), PatientDataActivity.class);
+                            Intent intent = new Intent(GetCliBeatActivity.this, PatientDataActivity.class);
 
                             // TODO - create/define/pass valid patient ID
 
-                            intent.putExtra(PATIENT_ID_STRING, p.getIP());
+                            intent.putExtra(PATIENT_IP, dbData.getIpAddr());
+                            intent.putExtra(PATIENT_USER_ID, dbData.getUserID());
                             startActivity(intent);
                         }
                     });
