@@ -14,8 +14,9 @@ public class InterestPacket {
     private NameField nameField;
     final int NON_NEG_INT_CONST = 0; // TODO - rework
 
-    public InterestPacket(Context context, String timestring, String processID, String ipAddr) {
-        nameField = new NameField(context, timestring, processID, ipAddr);
+    public InterestPacket(Context context, String userDataID, String sensorID,
+                          String timestring, String processID, String ipAddr) {
+        nameField = new NameField(context, userDataID, sensorID, timestring, processID, ipAddr);
     }
 
     /**

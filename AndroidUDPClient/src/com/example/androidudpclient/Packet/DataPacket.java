@@ -10,8 +10,9 @@ public class DataPacket {
     private String content;
 
     // TODO - add more relevant params
-    public DataPacket(Context context, String timestring, String processID, String content) {
-        nameField = new NameField(context, timestring, processID, content);
+    public DataPacket(Context context, String userDataID, String sensorID,
+                      String timestring, String processID, String content) {
+        nameField = new NameField(context, userDataID, sensorID, timestring, processID, content);
         this.content = content;
     }
 

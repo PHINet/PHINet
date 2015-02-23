@@ -129,7 +129,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<DBData> getGeneralPITData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=\"" + userID + "\" AND timestring=\"" + timeString + "\"";
+        // TODO - rework with real timestring
+
+        String whereSelection = "_userID=\"" + userID + "\"";// AND timestring=\"" + timeString + "\"";
 
         Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},

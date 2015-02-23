@@ -46,6 +46,10 @@ public class PatientDataActivity extends Activity {
         patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_IP);
         patientUserID = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_USER_ID);
 
+
+        System.out.println("PATIENT IP : " + patientIP);
+        System.out.println("PATIENT USER ID: " + patientUserID);
+
         ArrayList<DBData> patientCacheData = MainActivity.datasource.getGeneralCSData(patientUserID);
 
         // textview used to notify user whether data for patient exists
@@ -85,7 +89,27 @@ public class PatientDataActivity extends Activity {
 
                 // TODO - define/improve request interval
 
-                System.out.println("REQUEST button clicked");
+            /*    final CalendarView intervalSelector = new CalendarView(PatientDataActivity.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
+                builder.setTitle("Choose the start interval.");
+                builder.setView(intervalSelector);
+
+                builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                //    intervalSelector.getDate();
+
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();*/
+
 
                 // performs a network-capabilities AND IP check before attempting to send
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -93,26 +117,27 @@ public class PatientDataActivity extends Activity {
                 boolean isValidIP = MainActivity.validIP(patientIP);
 
                 if (mWifi.isConnected() && isValidIP) {
-                    System.out.println("SENDING PACKET");
-                    System.out.println("PATIENT IP: " + patientIP);
 
                     // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
 
                     // place entry into PIT for self; this is because if a request is
                     // received for same data, we won't send two identical PITs
-                    if (MainActivity.datasource.getSpecificPITData(patientUserID, "Tuesday", patientIP) == null) {
+                    if (MainActivity.datasource.getGeneralPITData(patientUserID, patientIP) == null) {
 
                         DBData selfPITEntry = new DBData();
                         selfPITEntry.setUserID(patientUserID);
                         selfPITEntry.setSensorID("abc"); // TODO - rework
                         selfPITEntry.setTimeString("Tuesday"); // TODO - rework
                         selfPITEntry.setProcessID("one"); // TODO - rework
-                        selfPITEntry.setIpAddr(patientIP);
+
+                        // deviceIP, because this device is the requester
+                        selfPITEntry.setIpAddr(MainActivity.deviceIP);
 
                         MainActivity.datasource.addPITData(selfPITEntry);
 
+                        // TODO - include real SENSOR_ID and TIMESTRING and PROCESS_ID
                         InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
-                                ".", ".", MainActivity.deviceIP);
+                                patientUserID, ".", ".", ".", MainActivity.deviceIP);
 
                         new UDPSocket(MainActivity.devicePort, patientIP)
                                 .execute(interestPacket.toString()); // send interest packet
@@ -153,8 +178,6 @@ public class PatientDataActivity extends Activity {
         submitBtn = (Button) findViewById(R.id.patientDataSubmitBtn);
         submitBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
-                // TODO - rework once cache is functional
 
                 // check before save AND notify user if invalid ip
                 if (!MainActivity.validIP(ipEditText.getText().toString())) {

@@ -24,6 +24,8 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
 
         DatagramSocket clientSocket = null;
 
+        System.out.println("OUTGOING PACKET");
+
         try {
             clientSocket = new DatagramSocket();
             InetAddress IPAddress = InetAddress.getByName(destAddr);

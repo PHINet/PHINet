@@ -52,7 +52,7 @@ public class Utils {
 
     /** Method takes query results and converts to a format that can be presented via graph **/
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData) {
-        // TODO - improve display accuracy (order chonologically, etc)
+        // TODO - improve display accuracy (order chrpyonologically, etc)
 
         ArrayList<Float> myFloatData = new ArrayList<Float>();
 
