@@ -116,7 +116,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void addCSData(DBData data) {
-        addData(data, CS_DB);
+
+        System.out.println("ADD DATA CALLED");
+
+        /* TODO - rework (currently only "updating" string rather than storing multiple entries
+                 with multiple time strings */
+        ArrayList<DBData> csDATA = getGeneralCSData(data.getUserID());
+
+
+        if (csDATA != null) {
+
+            System.out.println("ONLY UPDATING");
+            // append data to current entry
+            // TODO - again, rework this
+
+            // NOTE: there should only be one in array list, we'll rely on this
+                    // horrible assumption for now
+            csDATA.get(0).setDataFloat(csDATA.get(0).getDataFloat() + "," + data.getDataFloat());
+            updateCSData(csDATA.get(0));
+        } else {
+            System.out.println("ACTUALLY ADDING");
+            addData(data, CS_DB);
+        }
     }
 
     public void addFIBData(DBData data) {
@@ -369,8 +390,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
-                + "\" AND ipAddress= \"" + ipAddr + "\"";
+        // TODO - use PARAM TIME_STRING
+        String whereSelection = "_userID= \"" + userID + "\"" // AND timestring=\"" + timeString
+                + " AND ipAddress= \"" + ipAddr + "\"";
 
         return db.delete(PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }

@@ -41,11 +41,16 @@ public class ViewMyDataActivity extends Activity {
                 Utils.PREFS_LOGIN_USER_ID_KEY, "");
 
         ArrayList<DBData> myData = MainActivity.datasource.getGeneralCSData(currentUserID);
-        ArrayList<Float> myFloatData = Utils.convertDBRowTFloats(myData);
+        ArrayList<Float> myFloatData;
+
+        if (myData == null) {
+            myFloatData = new ArrayList<Float>(); // no user data found in cache
+        } else {
+            myFloatData = Utils.convertDBRowTFloats(myData);  // use data from cache
+        }
 
         if (myData != null && myData.size() > 0) {
             dataStatusText.setText("Some data present");
-
 
             // TODO - improve presentation
             DataPoint[] dataPoints = new DataPoint[myFloatData.size()];

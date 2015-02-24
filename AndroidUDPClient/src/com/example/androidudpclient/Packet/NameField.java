@@ -1,7 +1,5 @@
 package com.example.androidudpclient.Packet;
 
-import android.content.Context;
-
 /**
  * Class creates an NDN-compliant name for use within packets.
  */
@@ -16,7 +14,7 @@ public class NameField {
 
     private String name;
 
-    public NameField(Context context, String userDataID, String sensorID, String timestring, String processID, String finalField) {
+    public NameField(String userDataID, String sensorID, String timestring, String processID, String finalField) {
         // NOTE: method assumes userID and sensorID are device specific
                 // meaning, no specification is needed; just get from memory
 

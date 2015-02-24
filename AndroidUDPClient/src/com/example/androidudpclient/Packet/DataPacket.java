@@ -1,8 +1,6 @@
 package com.example.androidudpclient.Packet;
 
 
-import android.content.Context;
-
 public class DataPacket {
 
     private NameField nameField;
@@ -10,9 +8,9 @@ public class DataPacket {
     private String content;
 
     // TODO - add more relevant params
-    public DataPacket(Context context, String userDataID, String sensorID,
+    public DataPacket(String userDataID, String sensorID,
                       String timestring, String processID, String content) {
-        nameField = new NameField(context, userDataID, sensorID, timestring, processID, content);
+        nameField = new NameField(userDataID, sensorID, timestring, processID, content);
         this.content = content;
     }
 

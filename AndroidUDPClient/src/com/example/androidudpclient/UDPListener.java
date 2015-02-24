@@ -112,10 +112,74 @@ public class UDPListener extends Thread {
         String packetProcessID = nameComponent[5];
         String packetIP = nameComponent[6];
 
+        if (packetProcessID.equals(ProcessID.REQUEST_FIB)) {
+
+            handleInterestFIBRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                    packetIP);
+
+        } else {
+            // otherwise, assume cache data is requested
+            // TODO - rework so that others can be specified
+
+            handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                    packetIP);
+        }
+    }
+
+    /** returns entire FIB to user who requested it **/
+    void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetTimeString,
+                          String packetProcessID, String packetIP)
+    {
+        ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
+
+        if (allFIBData == null || allFIBData.size() == 0) {
+
+            // TODO - get own information, and send a data packet with no content
+            /*
+            DataPacket dataPacket = new DataPacket(packetUserID, packetSensorID,
+                    csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
+
+            System.out.println("seding data pcket: " + dataPacket.toString());
+
+            new UDPSocket(MainActivity.devicePort, packetIP)
+                    .execute(dataPacket.toString()); // reply to interest with DATA from cache*/
+
+        } else {
+
+            for (int i = 0; i < allFIBData.size(); i++) {
+
+                // don't send data to same node that requested; check first
+                if (!allFIBData.get(i).getIpAddr().equals(packetIP)) {
+
+                    String mySensorID = Utils.getFromPrefs(context,
+                            Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                    String myUserID = Utils.getFromPrefs(context,
+                            Utils.PREFS_LOGIN_USER_ID_KEY, "");
+
+                    // content returned in format: "userID,userIP"
+                    String fibContent = allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr();
+
+                    // TODO - use real time string
+                    DataPacket dataPacket = new DataPacket(myUserID, mySensorID,
+                            "NOW",  ProcessID.FIB_DATA, fibContent);
+
+                    new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr())
+                            .execute(dataPacket.toString()); // send interest packet
+                }
+            }
+        }
+    }
+
+    /** performs NDN logic on packet that requets data **/
+    void handleInterestCacheRequest(String packetUserID, String packetSensorID, String packetTimeString,
+                            String packetProcessID, String packetIP)
+    {
         // first, check CONTENT STORE (cache)
 
         // TODO - rework with specific data once TIMESTRING is valid!
         ArrayList<DBData> csDATA = MainActivity.datasource.getGeneralCSData(packetUserID);//, packetTimeString);
+
+        System.out.println("data in cache = : " + csDATA == null);
 
         if (csDATA != null) {
 
@@ -128,8 +192,10 @@ public class UDPListener extends Thread {
                 System.out.println("SENDING DATA");
                 // TODO - again, rework with specific date once TIMESTRING is valid
 
-                DataPacket dataPacket = new DataPacket(context, csDATA.get(i).getUserID(), csDATA.get(i).getSensorID(),
-                       csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
+                DataPacket dataPacket = new DataPacket(csDATA.get(i).getUserID(), csDATA.get(i).getSensorID(),
+                        csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
+
+                System.out.println("seding data pcket: " + dataPacket.toString());
 
                 new UDPSocket(MainActivity.devicePort, packetIP)
                         .execute(dataPacket.toString()); // reply to interest with DATA from cache
@@ -179,13 +245,19 @@ public class UDPListener extends Thread {
 
 
                     for (int i = 0; i < allFIBData.size(); i++) {
-                        System.out.println("FIB NOT EMPTY, sending request to: " + allFIBData.get(i).getIpAddr());
 
-                        InterestPacket interestPacket = new InterestPacket(context, packetUserID, packetSensorID,
-                                packetTimeString,  packetProcessID, packetIP);
+                        // don't send data to same node that requested; check first
+                        if (!allFIBData.get(i).getIpAddr().equals(packetIP)) {
+                            System.out.println("FIB NOT EMPTY, sending request to: " + allFIBData.get(i).getIpAddr());
 
-                        new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr())
-                                .execute(interestPacket.toString()); // send interest packet
+                            InterestPacket interestPacket = new InterestPacket(packetUserID, packetSensorID,
+                                    packetTimeString,  packetProcessID, packetIP);
+
+                            System.out.println("seding interest pcket: " + interestPacket.toString());
+
+                            new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr())
+                                    .execute(interestPacket.toString()); // send interest packet
+                        }
                     }
                 }
             } else {
@@ -258,43 +330,61 @@ public class UDPListener extends Thread {
             data.setProcessID(packetProcessID);
             data.setDataFloat(packetFloatContent);
 
-            // if data exists in cache, just update
+            // TODO - user helper methods for this
 
-            // TODO - again, rework for specific CS data once TIMESTRING is valid
+            if (packetProcessID.equals(ProcessID.FIB_DATA)) {
+                // data packet contains requested fib data, store in fib now
 
-            if (MainActivity.datasource.getGeneralCSData(packetUserID) != null) {
+                String myUserID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_USER_ID_KEY, "");
 
-                MainActivity.datasource.updateCSData(data);
+                // don't add data for self here
+                if (!data.getUserID().equals(myUserID)) {
+                    MainActivity.datasource.addFIBData(data);
+                }
+
             } else {
+                // TODO - change assumption that all other packets are cache data
 
-                // data not in cache, add now
-                MainActivity.datasource.addCSData(data);
-            }
+                // if data exists in cache, just update
 
-            // now, send packets to each entity that requested the data
-            for (int i = 0; i < allValidPITEntries.size(); i++) {
+                // TODO - again, rework for specific CS data once TIMESTRING is valid
 
+                if (MainActivity.datasource.getGeneralCSData(packetUserID) != null) {
 
-                // data satisfies PIT entry; delete the entry
-                MainActivity.datasource.deletePITEntry(allValidPITEntries.get(i).getUserID(),
-                        allValidPITEntries.get(i).getTimeString(), allValidPITEntries.get(i).getIpAddr());
-
-                System.out.println("LAST DATA LOOP, IP: " + allValidPITEntries.get(i).getIpAddr());
-
-                if (allValidPITEntries.get(i).getIpAddr().equals(deviceIP)) {
-                    // this device requested the data, notify
-                    // TODO - notify of reception of requested data
-
+                    MainActivity.datasource.updateCSData(data);
                 } else {
 
-                    System.out.println("SEIND Packet from dataPacket(): " + i);
+                    // data not in cache, add now
+                    MainActivity.datasource.addCSData(data);
+                }
 
-                    // NOTE: params list = Context context, String timestring, String processID, String content
-                    DataPacket dataPacket = new DataPacket(context, packetUserID,
-                            packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
+                // now, send packets to each entity that requested the data
+                for (int i = 0; i < allValidPITEntries.size(); i++) {
 
-                    new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr())
-                            .execute(dataPacket.toString()); // send DATA packet
+
+                    // data satisfies PIT entry; delete the entry
+                    MainActivity.datasource.deletePITEntry(allValidPITEntries.get(i).getUserID(),
+                            allValidPITEntries.get(i).getTimeString(), allValidPITEntries.get(i).getIpAddr());
+
+                    System.out.println("LAST DATA LOOP, IP: " + allValidPITEntries.get(i).getIpAddr());
+
+                    if (allValidPITEntries.get(i).getIpAddr().equals(deviceIP)) {
+                        // this device requested the data, notify
+                        // TODO - notify of reception of requested data
+
+                    } else {
+
+                        System.out.println("SEIND Packet from dataPacket(): " + i);
+
+                        // NOTE: params list = Context context, String timestring, String processID, String content
+                        DataPacket dataPacket = new DataPacket(packetUserID,
+                                packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
+
+                        System.out.println("seding data pcket: " + dataPacket.toString());
+
+                        new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr())
+                                .execute(dataPacket.toString()); // send DATA packet
+                    }
                 }
             }
         }

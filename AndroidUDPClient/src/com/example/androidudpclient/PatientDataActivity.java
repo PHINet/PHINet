@@ -120,6 +120,10 @@ public class PatientDataActivity extends Activity {
 
                     // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
 
+
+                    // TODO - avoid this, don't delete here
+                    MainActivity.datasource.deletePITEntry(patientUserID, "", patientIP);
+
                     // place entry into PIT for self; this is because if a request is
                     // received for same data, we won't send two identical PITs
                     if (MainActivity.datasource.getGeneralPITData(patientUserID, patientIP) == null) {
@@ -136,11 +140,22 @@ public class PatientDataActivity extends Activity {
                         MainActivity.datasource.addPITData(selfPITEntry);
 
                         // TODO - include real SENSOR_ID and TIMESTRING and PROCESS_ID
-                        InterestPacket interestPacket = new InterestPacket(getApplicationContext(),
-                                patientUserID, ".", ".", ".", MainActivity.deviceIP);
 
-                        new UDPSocket(MainActivity.devicePort, patientIP)
-                                .execute(interestPacket.toString()); // send interest packet
+                        ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
+
+                        for (int i = 0; i < allFIBEntries.size(); i++) {
+                            // send request to everyone in FIB; only send to users with actual ip
+                            if (allFIBEntries.get(i).getIpAddr().equals("")) {
+                                InterestPacket interestPacket = new InterestPacket(
+                                        patientUserID, ".", ".", ".", MainActivity.deviceIP);
+
+                                System.out.println("outgoing packet string: " + interestPacket.toString());
+
+                                new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
+                                        .execute(interestPacket.toString()); // send interest packet
+                            }
+
+                        }
                     } else {
                         // user has already requested data, notify
 

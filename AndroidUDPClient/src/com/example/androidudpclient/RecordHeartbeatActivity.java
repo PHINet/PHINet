@@ -103,8 +103,15 @@ public class RecordHeartbeatActivity extends Activity {
                     DBData data = new DBData();
                     data.setUserID(myUserID);
                     data.setSensorID(mySensorID);
-                    data.setTimeString(DBData.CURRENT_TIME);
-                    data.setProcessID(""); // TODO - is null appropriate?
+
+                    // TODO - use actual "current time"
+                            // NOTE: this causes problem with parsing data packet
+                                    // the space in time format is an issue
+                    data.setTimeString("NOW");
+
+                    // TODO - rework with real process id
+
+                    data.setProcessID("NULL");
                     data.setDataFloat(Integer.toString(currentBeatInt));
 
                     MainActivity.datasource.addCSData(data);

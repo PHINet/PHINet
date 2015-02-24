@@ -1,7 +1,5 @@
 package com.example.androidudpclient.Packet;
 
-import android.content.Context;
-
 import java.util.Random;
 
 /**
@@ -14,9 +12,9 @@ public class InterestPacket {
     private NameField nameField;
     final int NON_NEG_INT_CONST = 0; // TODO - rework
 
-    public InterestPacket(Context context, String userDataID, String sensorID,
+    public InterestPacket(String userDataID, String sensorID,
                           String timestring, String processID, String ipAddr) {
-        nameField = new NameField(context, userDataID, sensorID, timestring, processID, ipAddr);
+        nameField = new NameField(userDataID, sensorID, timestring, processID, ipAddr);
     }
 
     /**

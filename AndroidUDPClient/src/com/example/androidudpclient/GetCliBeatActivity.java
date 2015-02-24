@@ -73,28 +73,38 @@ public class GetCliBeatActivity extends ListActivity {
 
                 final EditText patientInput = new EditText(GetCliBeatActivity.this);
                 final AlertDialog.Builder builder = new AlertDialog.Builder(GetCliBeatActivity.this);
-                builder.setTitle("Input Format: 'IP,Name'");
+                builder.setTitle("Input Format (IP is optional): 'IP,Name'");
                 builder.setView(patientInput);
 
                 builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        boolean isValidInput;
+                        boolean isValidInput = true; // we'll later check if false
+                        boolean ipEntered = false;
                         try { // try/catch attempts input validation
 
-                            // if syntactically correct, input is separated by comma
-                            patientInputString = patientInput.getText().toString().split(",");
+                            if (patientInput.getText().toString().indexOf(",") == -1) {
+                                // this means there was no comma; user likely didn't enter IP
+                                ipEntered = false;
 
-                            // tests validity of input
-                            patientInputString[0] = patientInputString[0].trim(); // name input
-                            patientInputString[1] = patientInputString[1].trim(); // ip input
+                                isValidInput &= patientInput.getText().toString().length() <= 15; // max name requirement
+                            } else {
+                                ipEntered = true;
 
-                            isValidInput = MainActivity.validIP(patientInputString[0]);
+                                // if syntactically correct, input is separated by comma
+                                patientInputString = patientInput.getText().toString().split(",");
 
-                            // NOTE: name-length constraints were chosen somewhat arbitrarily
-                            isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
-                            isValidInput &= patientInputString[1].length() <= 15; // max name requirement
+                                // tests validity of input
+                                patientInputString[0] = patientInputString[0].trim(); // name input
+                                patientInputString[1] = patientInputString[1].trim(); // ip input
+
+                                isValidInput = MainActivity.validIP(patientInputString[0]);
+
+                                // NOTE: name-length constraints were chosen somewhat arbitrarily
+                                isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
+                                isValidInput &= patientInputString[1].length() <= 15; // max name requirement
+                            }
 
                         } catch (Exception e) {
                             // input didn't pass checks, mark input as invalid and notify user
@@ -104,29 +114,37 @@ public class GetCliBeatActivity extends ListActivity {
                         if (isValidInput) { // add user to fib
 
                             DBData data = new DBData();
-                            data.setIpAddr(patientInputString[0]);
-                            data.setUserID(patientInputString[1]);
-                            data.setTimeString(DBData.CURRENT_TIME);
+                            if (!ipEntered) {
 
-                            if (MainActivity.datasource.getFIBData(patientInputString[0]) == null) {
-                                // user entered valid patient, now add to fib
+                                // if ip wasn't entered, can't store user in FIB
+                                data.setUserID(patientInput.getText().toString());
 
-                                MainActivity.datasource.addFIBData(data);
+                                // TODO - permanently store in db even if no IP is entered
 
-                                // hide "empty patient list" text when patient added
-                                emptyListTextView.setVisibility(View.GONE);
                             } else {
-                                // user entered previous patient, just update
+                                data.setIpAddr(patientInputString[0]);
+                                data.setUserID(patientInputString[1]);
+                                data.setTimeString(DBData.CURRENT_TIME);
 
-                                MainActivity.datasource.updateFIBData(data);
+                                if (MainActivity.datasource.getFIBData(patientInputString[0]) == null) {
+                                    // user entered valid patient, now add to fib
+
+                                    MainActivity.datasource.addFIBData(data);
+
+                                    // hide "empty patient list" text when patient added
+                                    emptyListTextView.setVisibility(View.GONE);
+                                } else {
+                                    // user entered previous patient, just update
+
+                                    MainActivity.datasource.updateFIBData(data);
+                                }
                             }
 
                             adapter.add(data);
                             adapter.notifyDataSetChanged();
-
                         } else {
                             Toast toast = Toast.makeText(GetCliBeatActivity.this,
-                                    "Invalid IP or name length (3-10 characters).", Toast.LENGTH_LONG);
+                                    "Invalid IP or name length (3-15 characters).", Toast.LENGTH_LONG);
                             toast.show();
                         }
                     }

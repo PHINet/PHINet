@@ -73,7 +73,10 @@ public class DBData {
         if (timeString.equals(CURRENT_TIME)) {
             SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
             formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-            timeString =  formatUTC.format(new Date()).toString();
+
+            // removes space from string
+            // TODO - does this resolve parsing issue?
+            timeString =  formatUTC.format(new Date()).replace(" ", "");
         }
 
         this.timeString = timeString;
