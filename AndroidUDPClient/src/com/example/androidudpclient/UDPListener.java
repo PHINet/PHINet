@@ -52,9 +52,9 @@ public class UDPListener extends Thread {
                     packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
 
                     // NOTE; temporary debug print
-                    for (int i = 0; i < packetDataArray.length; i++) {
+                    /*for (int i = 0; i < packetDataArray.length; i++) {
                         System.out.println(packetDataArray[i]);
-                    }
+                    }*/
 
                     if (packetDataArray[0].equals("DATA-TLV")) {
                         handleDataPacket(packetDataArray);
@@ -309,10 +309,10 @@ public class UDPListener extends Thread {
             // data was requested; second, update cache with new packet
             DBData data = new DBData();
 
-
             // TODO - user helper methods for this
 
             if (packetProcessID.equals(ProcessID.FIB_DATA)) {
+
                 // data packet contains requested fib data, store in fib now
 
                 String myUserID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_USER_ID_KEY, "");
@@ -326,7 +326,14 @@ public class UDPListener extends Thread {
 
                 // don't add data for self here
                 if (!data.getUserID().equals(myUserID)) {
-                    MainActivity.datasource.addFIBData(data);
+
+                    DBData fibCheckObject = MainActivity.datasource.getFIBData(data.getUserID());
+
+                    if (fibCheckObject == null) {
+                        MainActivity.datasource.addFIBData(data);
+                    } else {
+                        MainActivity.datasource.updateFIBData(data);
+                    }
                 }
 
             } else {

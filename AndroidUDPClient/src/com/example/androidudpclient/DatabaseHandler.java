@@ -219,14 +219,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public DBData getFIBData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
+        String whereSelection = "_userID=\"" + userID + "\"";
         Cursor cursor = db.query(FIB_DB, new String[] {KEY_USER_ID,
-                        KEY_TIME_STRING,KEY_IP_ADDRESS},KEY_USER_ID + "=?",
-                new String[] { userID }, null, null, null, null);
+                        KEY_TIME_STRING,KEY_IP_ADDRESS},
+                whereSelection, null, null, null, null);
 
         DBData data = new DBData();
 
         // ensure query was successful
         if (cursor != null && cursor.getCount() > 0) {
+
             cursor.moveToFirst();
 
             data.setUserID(cursor.getString(0));
@@ -354,7 +356,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_DATA_CONTENTS, data.getDataFloat());
         } else if (tableName.equals(FIB_DB)) {
 
-            values.put(KEY_USER_ID, data.getApplicationName());
+            values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
         } else {

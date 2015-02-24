@@ -29,12 +29,14 @@ public class ConfigNetLinksActivity extends Activity {
                 for (int i = 0; i < neighbors.size(); i++) {
 
                     // TODO - use real TIME_STRING and SENSOR_ID
+                    // TODO - perform real IP-input validation
+                    if (!neighbors.get(i).getIpAddr().equals("null")) {
+                        InterestPacket interestPacket = new InterestPacket(
+                                neighbors.get(i).getUserID(), ".", ProcessID.REQUEST_FIB, ".", MainActivity.deviceIP);
 
-                    InterestPacket interestPacket = new InterestPacket(
-                            neighbors.get(i).getUserID(), ".", ProcessID.REQUEST_FIB, ".", MainActivity.deviceIP);
-
-                    new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr())
-                            .execute(interestPacket.toString()); // send interest packet
+                        new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr())
+                                .execute(interestPacket.toString()); // send interest packet
+                    }
                 }
 
                 /* TODO - place request if PIT
