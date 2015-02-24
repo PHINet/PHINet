@@ -133,7 +133,6 @@ public class RecordHeartbeatActivity extends Activity {
         
         });
 
-		
 	    // TODO Add Component for to Sending data to Server
     }
 

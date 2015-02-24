@@ -46,10 +46,6 @@ public class PatientDataActivity extends Activity {
         patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_IP);
         patientUserID = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_USER_ID);
 
-
-        System.out.println("PATIENT IP : " + patientIP);
-        System.out.println("PATIENT USER ID: " + patientUserID);
-
         ArrayList<DBData> patientCacheData = MainActivity.datasource.getGeneralCSData(patientUserID);
 
         // textview used to notify user whether data for patient exists
@@ -116,7 +112,7 @@ public class PatientDataActivity extends Activity {
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                 boolean isValidIP = MainActivity.validIP(patientIP);
 
-                if (mWifi.isConnected() && isValidIP) {
+                if (mWifi.isConnected()){// TODO - later validate IP && isValidIP) {
 
                     // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
 
@@ -145,16 +141,16 @@ public class PatientDataActivity extends Activity {
 
                         for (int i = 0; i < allFIBEntries.size(); i++) {
                             // send request to everyone in FIB; only send to users with actual ip
-                            if (allFIBEntries.get(i).getIpAddr().equals("")) {
+
+                            // TODO - better ip validation
+                            if (!allFIBEntries.get(i).getIpAddr().equals("null")) {
+
                                 InterestPacket interestPacket = new InterestPacket(
                                         patientUserID, ".", ".", ".", MainActivity.deviceIP);
-
-                                System.out.println("outgoing packet string: " + interestPacket.toString());
 
                                 new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
                                         .execute(interestPacket.toString()); // send interest packet
                             }
-
                         }
                     } else {
                         // user has already requested data, notify

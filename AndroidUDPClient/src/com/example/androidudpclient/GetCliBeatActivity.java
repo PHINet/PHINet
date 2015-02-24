@@ -115,9 +115,11 @@ public class GetCliBeatActivity extends ListActivity {
 
                             DBData data = new DBData();
                             if (!ipEntered) {
-
                                 // if ip wasn't entered, can't store user in FIB
                                 data.setUserID(patientInput.getText().toString());
+                                data.setTimeString("NOW"); // TODO _ use real
+                                data.setIpAddr("null");
+                                MainActivity.datasource.addFIBData(data);
 
                                 // TODO - permanently store in db even if no IP is entered
 

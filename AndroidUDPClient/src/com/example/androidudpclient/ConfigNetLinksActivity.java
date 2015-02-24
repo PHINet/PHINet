@@ -33,11 +33,22 @@ public class ConfigNetLinksActivity extends Activity {
                     InterestPacket interestPacket = new InterestPacket(
                             neighbors.get(i).getUserID(), ".", ProcessID.REQUEST_FIB, ".", MainActivity.deviceIP);
 
-                    System.out.println("outgoing packet string: " + interestPacket.toString());
-
                     new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr())
                             .execute(interestPacket.toString()); // send interest packet
                 }
+
+                /* TODO - place request if PIT
+                DBData selfPITEntry = new DBData();
+                        selfPITEntry.setUserID(patientUserID);
+                        selfPITEntry.setSensorID("abc"); // TODO - rework
+                        selfPITEntry.setTimeString("Tuesday"); // TODO - rework
+                        selfPITEntry.setProcessID("one"); // TODO - rework
+
+                        // deviceIP, because this device is the requester
+                        selfPITEntry.setIpAddr(MainActivity.deviceIP);
+
+                        MainActivity.datasource.addPITData(selfPITEntry);
+                 */
 
                 Toast toast = Toast.makeText(getApplicationContext(),
                         "Requests were successful.", Toast.LENGTH_LONG);

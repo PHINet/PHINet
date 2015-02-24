@@ -117,16 +117,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addCSData(DBData data) {
 
-        System.out.println("ADD DATA CALLED");
-
         /* TODO - rework (currently only "updating" string rather than storing multiple entries
                  with multiple time strings */
         ArrayList<DBData> csDATA = getGeneralCSData(data.getUserID());
 
-
         if (csDATA != null) {
 
-            System.out.println("ONLY UPDATING");
             // append data to current entry
             // TODO - again, rework this
 
@@ -135,7 +131,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             csDATA.get(0).setDataFloat(csDATA.get(0).getDataFloat() + "," + data.getDataFloat());
             updateCSData(csDATA.get(0));
         } else {
-            System.out.println("ACTUALLY ADDING");
             addData(data, CS_DB);
         }
     }
@@ -200,7 +195,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } catch (SQLiteException e) {
             cursor = null; // bad query apparently
 
-            System.out.println("SQL EXCEPTION: " + e.toString());
         }
 
         DBData data = new DBData();
@@ -253,9 +247,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * **/
     public ArrayList<DBData> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
-
         String whereSelection = "_userID=\"" + userID + "\"";
-
         Cursor cursor;
 
         try {
@@ -346,7 +338,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private int updateData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
 
         if (tableName.equals(PIT_DB)) {
