@@ -2,20 +2,17 @@
 <html>
 	<head>
 		<link rel="shortcut icon" href="/static/favicon.ico">
-		<link type="text/css" rel="stylesheet" href="/static/main.css">
+		<link type="text/css" rel="stylesheet" href="public/css/main.css">
 		<meta charset="utf-8">
 		<title>NDN-Health | Signup</title>
 	</head>
 	<body>
 		<header>
              <div class="loginArea">
-                {% if user %}
-                    <a href="/profile">View Profile</a> |
-                    {{user.userName}} (<a href="/logout">logout</a>)
-                {% else %}
+                    <!--<a href="/profile">View Profile</a> |
+                    (<a href="/logout">logout</a>)-->
                   <a href="/login">login</a> |
                   <a href="/signup">signup</a>
-                {% endif %}
             </div>
             <h1 class="midform"><a href="/">NDN-Health</a></h1>
             <hr>
@@ -30,10 +27,9 @@
 						Username:
 						</td>
 						<td>
-							<input type="text" name="username" value="{{username}}">
+							<input type="text" name="username" >
 						</td>
 						<td class="error">
-							{{errorUsername}}
 						</td>
 					</tr>
 					<tr>
@@ -41,10 +37,9 @@
 							Password:
 						</td>
 						<td>
-							<input type="password" name="password" value="{{password}}">
+							<input type="password" name="password" >
 						</td>
 						<td class="error">
-							{{errorPassword}}
 						</td>
 					</tr>
 					<tr>
@@ -52,10 +47,9 @@
 							Verify Password:
 						</td>
 						<td>
-							<input type="password" name="verify" value="{{verify}}">
+							<input type="password" name="verify">
 						</td>
 						<td class="error">
-							{{errorVerify}}
 						</td>
 					</tr>
                     <tr>
@@ -63,19 +57,17 @@
 							User Type:
 						</td>
 						<td>
-                            <input type="radio" name="type" value="patient" checked>Patient
-							<input type="radio" name="type" value="doctor">Doctor
+                            <input type="radio" name="type" >Patient
+							<input type="radio" name="type" >Doctor
 						</td>
 					</tr>
 					<tr>
 						<td>
-							Email (Optional):
 						</td>
 						<td>
-							<input type="email" name="email" value="{{email}}">
+							<input type="email" name="email" >
 						</td>
 						<td class="error">
-							{{errorEmail}}
 						</td>
 					</tr>
 				</table>

@@ -9,43 +9,35 @@
 	<body>
 		<header>
             <div class="loginArea">
-                {% if user %}
-                    <a href="/profile">View Profile</a> |
-                    {{user.userName}} (<a href="/logout">logout</a>)
-                {% else %}
+                 <!--   <a href="/profile">View Profile</a> |
+                  (<a href="/logout">logout</a>)-->
                   <a href="/login">login</a> |
                   <a href="/signup">signup</a>
-                {% endif %}
             </div>
             <h1 class="midform"><a href="/">NDN-Health</a></h1>
             <hr>
         </header>
-        {% if user %}
-            <h1 class="midform">{{user.userName}}'s Profile</h1>
+            <h1 class="midform">X's Profile</h1>
             <br>
             <form method="post" class="midform">
-               <b>Edit User Type:</b>
+           <!--    <b>Edit User Type:</b>
                 {% if user.userType == "patient" %}
                     <input type="radio" name="type" value="patient" checked>Patient
                     <input type="radio" name="type" value="doctor">Doctor
                 {% else %}
                     <input type="radio" name="type" value="patient" checked>Patient
                     <input type="radio" name="type" value="doctor">Doctor
-                {% endif %}
+                {% endif %}-->
                 <br>
             <br>
             <input text="update" type="submit">
             </form>
 
-        {% if user.userType == "doctor" %}
             <!-- TODO - form list of patients -->
             <b>List of Patients</b>
-        {% endif %}
+  
 
-
-        {% else %}
             <h1> You must have an account before you can edit it!</h1>
-        {% endif %}
-		<br>
+  		<br>
 	</body>
 </html>
