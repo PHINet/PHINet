@@ -15,10 +15,13 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1;
 
+    Button tempDeletePITBtn;
+
 	Button userCredentialBtn, netLinkBtn, selfBeatBtn, getAvgBtn, cliBeatBtn;
 	TextView credentialWarningText, doctorText, patientText;
-	Thread receiverThread;
+	UDPListener receiverThread;
     static boolean continueReceiverExecution = true;
+
 
     /** used to notify sender of this device's address **/
     static final int devicePort = 50056; // chosen arbitrarily
@@ -95,6 +98,15 @@ public class MainActivity extends Activity {
             }
         });
 
+        tempDeletePITBtn = (Button) findViewById(R.id.deletePITBtn);
+        tempDeletePITBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                datasource.deleteEntirePIT();
+                datasource.deleteEntireCS();
+                datasource.deleteEntireFIB();
+            }
+        });
+
         if (mySensorID == null || myUserID == null
                 || mySensorID.equals("") || myUserID.equals("")) {
 
@@ -143,7 +155,7 @@ public class MainActivity extends Activity {
     }
 
     /** create and return receiver thread **/
-    Thread initializeReceiver() {
+    UDPListener initializeReceiver() {
         // get the device's ip
         wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());

@@ -46,7 +46,8 @@ public class GetCliBeatActivity extends ListActivity {
 
         ArrayList<DBData> patientList = MainActivity.datasource.getAllFIBData();
         if (patientList == null) {
-            patientList = new ArrayList<DBData>(); // pass empty structure rather than null
+            // array list is null; pass empty data structure rather than null
+            patientList = new ArrayList<DBData>();
         }
 
         final PatientAdapter adapter = new PatientAdapter(this, patientList);
@@ -115,14 +116,12 @@ public class GetCliBeatActivity extends ListActivity {
 
                             DBData data = new DBData();
                             if (!ipEntered) {
-                                // if ip wasn't entered, can't store user in FIB
+
                                 data.setUserID(patientInput.getText().toString());
                                 data.setTimeString("NOW"); // TODO _ use real
-                                data.setIpAddr("null");
+                                data.setIpAddr(ProcessID.NULL_IP);
+
                                 MainActivity.datasource.addFIBData(data);
-
-                                // TODO - permanently store in db even if no IP is entered
-
                             } else {
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);

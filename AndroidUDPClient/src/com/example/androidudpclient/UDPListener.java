@@ -158,7 +158,8 @@ public class UDPListener extends Thread {
 
                     // TODO - use real time string
                     DataPacket dataPacket = new DataPacket(myUserID, mySensorID,
-                            "NOW",  ProcessID.FIB_DATA, fibContent);
+                            "NOW",  ProcessID.FIB_DATA, fibContent, DataPacket.CONTENT_TYPE_DEFAULT,
+                            DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
 
                     new UDPSocket(MainActivity.devicePort, packetIP)
                             .execute(dataPacket.toString()); // send interest packet
@@ -184,7 +185,9 @@ public class UDPListener extends Thread {
                 // TODO - again, rework with specific date once TIMESTRING is valid
 
                 DataPacket dataPacket = new DataPacket(csDATA.get(i).getUserID(), csDATA.get(i).getSensorID(),
-                        csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
+                        csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat()
+                        , DataPacket.CONTENT_TYPE_DEFAULT,
+                        DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
 
                 new UDPSocket(MainActivity.devicePort, packetIP)
                         .execute(dataPacket.toString()); // reply to interest with DATA from cache
@@ -374,7 +377,9 @@ public class UDPListener extends Thread {
 
                         // NOTE: params list = Context context, String timestring, String processID, String content
                         DataPacket dataPacket = new DataPacket(packetUserID,
-                                packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
+                                packetSensorID, packetTimeString, packetProcessID, packetFloatContent,
+                                DataPacket.CONTENT_TYPE_DEFAULT,
+                                DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
 
                         new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr())
                                 .execute(dataPacket.toString()); // send DATA packet

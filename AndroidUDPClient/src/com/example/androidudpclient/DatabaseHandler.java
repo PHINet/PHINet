@@ -19,12 +19,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String PIT_DB = "PendingInterestTable";
     private static final String FIB_DB = "ForwardingInformationBase";
 
-    private static final String DATABASE_NAME = "NDNHealthNet6";
-    private static final int DATABASE_VERSION = 6;
+    private static final String DATABASE_NAME = "NDNHealthNet7";
+    private static final int DATABASE_VERSION = 7;
 
     private static final String KEY_USER_ID = "_userID";
     private static final String KEY_SENSOR_ID = "sensorID";
-    private static final String KEY_TIME_STRING = "timestring";
+    private static final String KEY_TIME_STRING = "timeString";
     private static final String KEY_PROCESS_ID = "processID";
     private static final String KEY_IP_ADDRESS = "ipAddress";
     private static final String KEY_DATA_CONTENTS = "dataContents";
@@ -80,6 +80,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private void addData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        boolean tableFound = true;
 
         if (tableName.equals(PIT_DB)) {
 
@@ -101,10 +102,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
         } else {
-            // TODO - throw exception
+           throw new NullPointerException("Cannot add data to DB; param was bad");
         }
-
-        // TODO - check to see if doesn't exist first
 
         // Inserting Row
         db.insert(tableName, null, values);
@@ -405,5 +404,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + "\"";
 
         return db.delete(CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
+    }
+
+    public void deleteEntirePIT() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(PIT_DB, null, null);
+    }
+
+    public void deleteEntireCS() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(CS_DB, null, null);
+    }
+
+    public void deleteEntireFIB() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(FIB_DB, null, null);
     }
 }

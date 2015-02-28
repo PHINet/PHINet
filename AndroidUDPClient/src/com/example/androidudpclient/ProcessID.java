@@ -4,6 +4,8 @@ package com.example.androidudpclient;
  * File contains constant strings that are sent withing
  * packets to identify what processing should be invoked;
  * hence, ProcessID.
+ *
+ * Also contained are other useful string constants.
  */
 public class ProcessID {
 
@@ -12,4 +14,14 @@ public class ProcessID {
 
     // notify recipient that content in data packet is FIBData
     static public final String FIB_DATA = "FIBData";
+
+    // placeholder in name when a field isn't needed for specific packet
+    public static final String NULL_FIELD = "NULL_FIELD";
+
+    // denotes a user who has no associated IP
+    public static final String NULL_IP = "NULL_IP";
+
+    // denotes that data from cache is desired
+    static public final String REQUEST_CACHE_DATA = "CacheRequest";
+
 }

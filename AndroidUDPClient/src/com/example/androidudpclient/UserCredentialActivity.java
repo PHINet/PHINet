@@ -16,6 +16,8 @@ public class UserCredentialActivity extends Activity {
     Button backBtn, credentialSaveBtn;
     EditText userIDEdit, sensorIDEdit;
 
+    final private int SENSOR_ID_LENGTH = 4; // valid sensor id is defined as 4 digit integer
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,15 +46,12 @@ public class UserCredentialActivity extends Activity {
                 String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                         Utils.PREFS_LOGIN_USER_ID_KEY, "");
 
-                // TODO - input validation
+               Intent returnIntent = new Intent();
 
-                Intent returnIntent = new Intent();
-
-                if (currentSensorID == null || currentUserID == null
-                        || currentUserID.equals("") || currentSensorID.equals("")) {
-                    setResult(RESULT_CANCELED, returnIntent);
-                } else {
+                if (validInputSensorID(currentSensorID) && validInputUserID(currentUserID)) {
                     setResult(RESULT_OK,returnIntent);
+                } else {
+                    setResult(RESULT_CANCELED, returnIntent);
                 }
 
                 finish();
@@ -64,15 +63,41 @@ public class UserCredentialActivity extends Activity {
         credentialSaveBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                Utils.saveToPrefs(getApplicationContext(), Utils.PREFS_LOGIN_USER_ID_KEY,
-                        userIDEdit.getText().toString());
-                Utils.saveToPrefs(getApplicationContext(), Utils.PREFS_LOGIN_SENSOR_ID_KEY,
-                        sensorIDEdit.getText().toString());
+                String userID = userIDEdit.getText().toString();
+                String sensorID = sensorIDEdit.getText().toString();
 
-                Toast toast = Toast.makeText(getApplicationContext(), "Save successful.", Toast.LENGTH_LONG);
-                toast.show();
-                // TODO - perform input validation
+                if (validInputUserID(userID) && validInputSensorID(sensorID)) {
+                    Utils.saveToPrefs(getApplicationContext(), Utils.PREFS_LOGIN_USER_ID_KEY, userID);
+                    Utils.saveToPrefs(getApplicationContext(), Utils.PREFS_LOGIN_SENSOR_ID_KEY, sensorID);
+
+                    Toast toast = Toast.makeText(getApplicationContext(), "Save successful.", Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Input invalid", Toast.LENGTH_LONG);
+                    toast.show();
+                }
             }
         });
+    }
+
+    // attempts to determine whether userID input is valid
+    private boolean validInputUserID(String userID) {
+        // TODO - perform sophisticated input validation
+
+        return userID.length() > 5 && userID.length() < 15;
+
+    }
+
+    /** attempts to determine whether sensorID input is valid
+     *  valid input is a four digit integer string **/
+    private boolean validInputSensorID(String sensorID) {
+
+        boolean allDigits = sensorID.length() == SENSOR_ID_LENGTH;
+
+        for (int i = 0; i < sensorID.length(); i++) {
+            allDigits &= Character.isDigit(sensorID.charAt(i));
+        }
+
+        return allDigits;
     }
 }

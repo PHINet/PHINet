@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +36,13 @@ public class PatientDataActivity extends Activity {
     TextView dataStatusText, nameText;
     GraphView graph;
     String patientIP, patientUserID;
+
+    private int startYear = 0, startMonth = 0, startDay = 0;
+    private int endYear = 0, endMonth = 0, endDay = 0;
+
+    // title of dialog that allows user to select interval
+    private final String INTERVAL_TITLE_1 = "Choose the start interval.";
+    private final String INTERVAL_TITLE_2 = "Choose the end interval.";
 
     /** Called when the activity is first created. */
     @Override
@@ -83,109 +91,12 @@ public class PatientDataActivity extends Activity {
         requestBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                // TODO - define/improve request interval
-
-            /*    final CalendarView intervalSelector = new CalendarView(PatientDataActivity.this);
-                final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
-                builder.setTitle("Choose the start interval.");
-                builder.setView(intervalSelector);
-
-                builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                //    intervalSelector.getDate();
-
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-                builder.show();*/
-
-
-                // performs a network-capabilities AND IP check before attempting to send
-                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-                boolean isValidIP = MainActivity.validIP(patientIP);
-
-                if (mWifi.isConnected()){// TODO - later validate IP && isValidIP) {
-
-                    // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
-
-
-                    // TODO - avoid this, don't delete here
-                    MainActivity.datasource.deletePITEntry(patientUserID, "", patientIP);
-
-                    // place entry into PIT for self; this is because if a request is
-                    // received for same data, we won't send two identical PITs
-                    if (MainActivity.datasource.getGeneralPITData(patientUserID, patientIP) == null) {
-
-                        DBData selfPITEntry = new DBData();
-                        selfPITEntry.setUserID(patientUserID);
-                        selfPITEntry.setSensorID("abc"); // TODO - rework
-                        selfPITEntry.setTimeString("Tuesday"); // TODO - rework
-                        selfPITEntry.setProcessID("one"); // TODO - rework
-
-                        // deviceIP, because this device is the requester
-                        selfPITEntry.setIpAddr(MainActivity.deviceIP);
-
-                        MainActivity.datasource.addPITData(selfPITEntry);
-
-                        // TODO - include real SENSOR_ID and TIMESTRING and PROCESS_ID
-
-                        ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
-
-                        for (int i = 0; i < allFIBEntries.size(); i++) {
-                            // send request to everyone in FIB; only send to users with actual ip
-
-                            // TODO - better ip validation
-                            if (!allFIBEntries.get(i).getIpAddr().equals("null")) {
-
-                                InterestPacket interestPacket = new InterestPacket(
-                                        patientUserID, ".", ".", ".", MainActivity.deviceIP);
-
-                                new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
-                                        .execute(interestPacket.toString()); // send interest packet
-                            }
-                        }
-                    } else {
-                        // user has already requested data, notify
-
-                        Toast toast = Toast.makeText(getApplicationContext(),
-                                "You've already requested data. Wait a moment.", Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        public void run() {
-                            // reload activity after 2 seconds, so to check if client data arrived
-                            // TODO - rework so that multiple instances of this activity aren't on stack
-                            finish();
-                            startActivity(getIntent());
-                        }
-                    }, 2000);
-                } else if (!isValidIP) {
-                    // invalid ip
-
-                    Toast toast = Toast.makeText(getApplicationContext(),
-                            "The IP address is invalid. Enter valid then save.", Toast.LENGTH_LONG);
-                    toast.show();
-                } else {
-                    // not connected to wifi
-
-                    Toast toast = Toast.makeText(getApplicationContext(),
-                            "You must first connect to WiFi.", Toast.LENGTH_LONG);
-                    toast.show();
-                }
+                AlertDialog.Builder initialInterval = generateIntervalSelector(INTERVAL_TITLE_1);
+                initialInterval.show();
             }
         });
 
-        /** saves updated user inroamation **/
+        /** saves updated user information **/
         submitBtn = (Button) findViewById(R.id.patientDataSubmitBtn);
         submitBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -205,7 +116,6 @@ public class PatientDataActivity extends Activity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
-
                         }
                     });
 
@@ -235,6 +145,148 @@ public class PatientDataActivity extends Activity {
                 toast.show();
             }
         });
+    }
+
+    /** handles logic associated with requesting patient data **/
+    private void requestHelper() {
+
+        // performs a network-capabilities AND IP check before attempting to send
+        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        boolean isValidIP = MainActivity.validIP(patientIP);
+
+        if (mWifi.isConnected()){// TODO - later validate IP && isValidIP) {
+
+            // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
+
+            // TODO - avoid this, don't delete here
+            MainActivity.datasource.deletePITEntry(patientUserID, "", patientIP);
+
+            // place entry into PIT for self; this is because if a request is
+            // received for same data, we won't send two identical PITs
+            if (MainActivity.datasource.getGeneralPITData(patientUserID, patientIP) == null) {
+
+                DBData selfPITEntry = new DBData();
+                selfPITEntry.setUserID(patientUserID);
+                selfPITEntry.setSensorID(ProcessID.NULL_FIELD); // TODO - rework
+                selfPITEntry.setTimeString(generateTimeString());
+                selfPITEntry.setProcessID(ProcessID.REQUEST_CACHE_DATA);
+
+                // deviceIP, because this device is the requester
+                selfPITEntry.setIpAddr(MainActivity.deviceIP);
+
+                MainActivity.datasource.addPITData(selfPITEntry);
+
+                // TODO - include real SENSOR_ID and TIMESTRING and PROCESS_ID
+
+                ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
+
+                for (int i = 0; i < allFIBEntries.size(); i++) {
+                    // send request to everyone in FIB; only send to users with actual ip
+
+                    // TODO - better ip validation
+                    if (!allFIBEntries.get(i).getIpAddr().equals(ProcessID.NULL_IP)) {
+
+                        InterestPacket interestPacket = new InterestPacket(
+                                patientUserID, ".", ".", ".", MainActivity.deviceIP);
+
+                        new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
+                                .execute(interestPacket.toString()); // send interest packet
+                    }
+                }
+            } else {
+                // user has already requested data, notify
+
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "You've already requested data. Wait a moment.", Toast.LENGTH_LONG);
+                toast.show();
+            }
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    // reload activity after 2 seconds, so to check if client data arrived
+                    // TODO - rework so that multiple instances of this activity aren't on stack
+                    finish();
+                    startActivity(getIntent());
+                }
+            }, 2000);
+        } else if (!isValidIP) {
+            // invalid ip
+
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "The IP address is invalid. Enter valid then save.", Toast.LENGTH_LONG);
+            toast.show();
+        } else {
+            // not connected to wifi
+
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "You must first connect to WiFi.", Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+
+    /** allows users to select date regarding interval of requested data **/
+    AlertDialog.Builder generateIntervalSelector(String title) {
+        final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
+        builder.setTitle(title);
+        builder.setView(intervalSelector);
+
+        builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                // get user input
+                int day = intervalSelector.getDayOfMonth();
+                int month = intervalSelector.getMonth() + 1; // offset required
+                int year = intervalSelector.getYear();
+
+                if (startYear == 0) {
+                    // this is the first input, store now and request again
+
+                    startYear = year;
+                    startMonth = month;
+                    startDay = day;
+
+                    // call again to get end interval
+                    AlertDialog.Builder secondInterval = generateIntervalSelector(INTERVAL_TITLE_2);
+                    secondInterval.show();
+                } else {
+
+                    // start input already set, now store end input
+                    endYear = year;
+                    endMonth = month;
+                    endDay = day;
+
+                    // now that interval has been entered, request data from patient via NDN/UDP
+                    requestHelper();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        return builder;
+    }
+
+    /** method generates UTC-compliant time string from user input **/
+    private String generateTimeString()
+    {
+        // minimal input validation; if years are valid, assume all date data is valid
+        if (startYear != 0 && endYear != 0) {
+            String timeString = "";
+
+            // TODO - generate real timestring
+
+            return timeString;
+        } else {
+            throw new NullPointerException("Cannot construct date! Data is bad.");
+        }
     }
 
     /**

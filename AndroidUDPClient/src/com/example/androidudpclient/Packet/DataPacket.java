@@ -3,14 +3,58 @@ package com.example.androidudpclient.Packet;
 
 public class DataPacket {
 
+    // TODO - only send certain portions of DataPacket (be able to avoid optional)
+        // TODO - do this through constructor, etc
+
+    // 3 content types are currently defined
+    public static final int CONTENT_TYPE_DEFAULT = 0;
+    public static final int CONTENT_TYPE_LINK = 1;
+    static final int CONTENT_TYPE_KEY = 2;
+
+    // 3 types of signatures are currently defined
+    public static final int SIGNATURE_DIGEST_SHA = 0;
+    public static final int SIGNATURE_SHA_WITH_RSA = 1;
+    public static final int SIGNATURE_SHA_WITH_ECDSA = 3;
+
+    public static final int DEFAULT_FRESH = 100000; // arbitrarily chosen
+
     private NameField nameField;
-    final int NON_NEG_INT_CONST = 0; // TODO - rework
     private String content;
+    private int contentType;
+    private int freshnessPeriod;
+    private int signatureType;
 
     public DataPacket(String userDataID, String sensorID,
-                      String timestring, String processID, String content) {
-        nameField = new NameField(userDataID, sensorID, timestring, processID, content);
+                      String timestring, String processID, String content, int contentType,
+                      int freshnessPeriod, int signatureType) {
+
+        this.nameField = new NameField(userDataID, sensorID, timestring, processID, content);
         this.content = content;
+
+        // perform input validation on content type
+        if (contentType == CONTENT_TYPE_KEY) {
+            this.contentType = CONTENT_TYPE_KEY;
+        } else if (contentType == CONTENT_TYPE_LINK) {
+            this.contentType = CONTENT_TYPE_LINK;
+        } else {
+            this.contentType = CONTENT_TYPE_DEFAULT; // if no others match, assign default
+        }
+
+        // perform input validation on signature type
+        if (signatureType == SIGNATURE_SHA_WITH_ECDSA) {
+            this.signatureType = SIGNATURE_SHA_WITH_ECDSA;
+        } else if (signatureType == SIGNATURE_SHA_WITH_RSA) {
+            this.signatureType = SIGNATURE_SHA_WITH_RSA;
+        } else {
+            this.signatureType = SIGNATURE_DIGEST_SHA; // if no others match, assign digest sha
+        }
+
+        // perform input validation on freshness period
+        if (freshnessPeriod >= 0) {
+            this.freshnessPeriod = freshnessPeriod;
+        } else {
+            this.freshnessPeriod = 0; // negatives aren't possible; assign 0
+        }
     }
 
     /**
@@ -23,11 +67,11 @@ public class DataPacket {
      --------------
      **/
     String createMetaInfo() {
-        //String content = createContentType();
-        // TODO - later content += " " + createFreshnessPeriod()
-        // TODO - later content += " " + createFinalBlockId()
+        String content = createContentType();
+        content += " " + createFreshnessPeriod();
+        content += " " + createFinalBlockId();
 
-        return "META-INFO-TYPE 0";
+        return "META-INFO-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -38,7 +82,7 @@ public class DataPacket {
      --------------
      **/
     String createContentType() {
-        String content = "";//Integer.parseInt(NON_NEG_INT_CONST);
+        String content = Integer.toString(contentType);
         return "CONTENT-TYPE-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
@@ -50,7 +94,16 @@ public class DataPacket {
      --------------
      **/
     String createFreshnessPeriod() {
-        String content = Integer.toString(NON_NEG_INT_CONST); // TODO - rework
+
+        /** the integer here specifies
+         *  "how long a node should wait after the arrival of this data before marking it stale"
+         *
+         *  NOTE: value is in milliseconds
+         *
+         *  NOTE: stale data is still valid data; stale just means producer may have updated data
+         *  **/
+
+        String content = Integer.toString(freshnessPeriod);
 
         return "FRESHNESS-PERIOD-TLV " + Integer.toString(content.length()) + " " + content;
     }
@@ -75,7 +128,7 @@ public class DataPacket {
      --------------
      **/
     String createContent() {
-        String content = this.content; // TODO - generate content
+        String content = this.content;
         return "CONTENT-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
@@ -86,9 +139,7 @@ public class DataPacket {
      --------------
      **/
     String createSignature() {
-
-        // TODO - rework
-        String signatureBits = " "; // TODO - rework
+        String signatureBits = "null"; // TODO - rework
         return createSignatureInfo() + " " + signatureBits;
     }
 
@@ -98,12 +149,24 @@ public class DataPacket {
      SIGNATURE-INFO-TYPE TLV-LENGTH
      SignatureType
      KeyLocator?
+     ... (SignatureType-specific TLVs)
      --------------
      **/
     String createSignatureInfo() {
         String content = createSignatureType();
-        // TODO - later content += " " + createKeyLocator()
+        content += " " + createKeyLocator();
         return "SIGNATURE-INFO-TYPE " + Integer.toString(content.length()) + " " + content;
+    }
+
+    /**
+     * KeyLocator ::=
+     * --------------
+     * KEY-LOCATOR-TYPE TLV-LENGTH (Name | KeyDigest)
+     * --------------
+     */
+    String createKeyLocator() {
+        String content = "null"; // TODO - rework
+        return "KEY-LOCATOR-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
@@ -114,7 +177,7 @@ public class DataPacket {
      --------------
      **/
     String createSignatureType() {
-        String content = "0"; // TODO - rework later
+        String content = Integer.toString(this.signatureType);
         return "SIGNATURE-TYPE-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 

@@ -9,8 +9,10 @@ import java.util.Random;
  */
 public class InterestPacket {
 
+    // TODO - only send certain portions of InterestPacket (be able to avoid optional)
+        // TODO - do this through constructor, etc
+
     private NameField nameField;
-    final int NON_NEG_INT_CONST = 0; // TODO - rework
 
     public InterestPacket(String userDataID, String sensorID,
                           String timestring, String processID, String ipAddr) {
@@ -70,7 +72,7 @@ public class InterestPacket {
      --------------
      */
     String createMinSuffixComponents() {
-        String content = "0"; // TODO - rework later
+        String content = "0"; // TODO - rework
         return "MIN-SUFFIX-COMPONENTS-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
@@ -82,7 +84,7 @@ public class InterestPacket {
      --------------
      */
     String createMaxSuffixComponents() {
-        String content = "0"; // TODO - rework later
+        String content = "0"; // TODO - rework
         return "MAX-SUFFIX-COMPONENTS-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
@@ -93,7 +95,7 @@ public class InterestPacket {
      --------------
      */
     String createPublisherPublicKeyLocator() {
-        return ""; // TODO - rework later
+        return "null"; // TODO - rework later
     }
 
     /**
@@ -113,7 +115,8 @@ public class InterestPacket {
      --------------
      */
     String createExclude() {
-        return "EXCLUDE-TYPE 0"; // TODO - rework later
+        String content = createAny(); // TODO - rework
+        return "EXCLUDE-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
     /**
