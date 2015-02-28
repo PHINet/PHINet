@@ -9,7 +9,7 @@ public class DataPacket {
     // 3 content types are currently defined
     public static final int CONTENT_TYPE_DEFAULT = 0;
     public static final int CONTENT_TYPE_LINK = 1;
-    static final int CONTENT_TYPE_KEY = 2;
+    public static final int CONTENT_TYPE_KEY = 2;
 
     // 3 types of signatures are currently defined
     public static final int SIGNATURE_DIGEST_SHA = 0;

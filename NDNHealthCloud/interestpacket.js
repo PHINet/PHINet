@@ -99,7 +99,7 @@ exports.InterestPacket = function () {
          --------------
          */
         createPublisherPublicKeyLocator: function () {
-            return ""; // TODO - rework later
+            return "null"; // TODO - rework later
         },
 
         /**
@@ -119,7 +119,8 @@ exports.InterestPacket = function () {
          --------------
          */
         createExclude: function () {
-            return "EXCLUDE-TYPE 0"; // TODO - rework later
+            var content = this.createAny();
+            return "EXCLUDE-TYPE 0 " + (content.length).toString() + " " + content; // TODO - rework later
         },
 
         /**

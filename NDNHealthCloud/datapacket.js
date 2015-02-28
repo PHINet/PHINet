@@ -10,11 +10,52 @@ exports.DataPacket = function () {
     	// NOTE: contents will be returned when 
     	// other modules "require" this 
 
-        DataPacket: function (userDataID, sensorID, timestring, processID, content) {
+        DataPacket: function (userDataID, sensorID, timestring, processID, content, 
+                    contentType, freshnessPeriod, signatureType) {
             
             this.nameField = NameField.NameField();
             this.nameField.NameField(userDataID, sensorID, timestring, processID, content);
             this.content = content;
+            this.contentType = contentType;
+            this.freshnessPeriod= freshnessPeriod;
+            this.SignatureType = signatureType;
+
+            // 3 content types are currently defined
+            this.CONTENT_TYPE_DEFAULT = 0;
+            this.CONTENT_TYPE_LINK = 1;
+            this.CONTENT_TYPE_KEY = 2;
+
+            // 3 types of signatures are currently defined
+            this.SIGNATURE_DIGEST_SHA = 0;
+            this.SIGNATURE_SHA_WITH_RSA = 1;
+            this.SIGNATURE_SHA_WITH_ECDSA = 3;
+
+            this.DEFAULT_FRESH = 100000; // arbitrarily chosen
+
+            // perform input validation on content type
+            if (contentType === this.CONTENT_TYPE_KEY) {
+                this.contentType = this.CONTENT_TYPE_KEY;
+            } else if (contentType === this.CONTENT_TYPE_LINK) {
+                this.contentType = this.CONTENT_TYPE_LINK;
+            } else {
+                this.contentType = this.CONTENT_TYPE_DEFAULT; // if no others match, assign default
+            }
+
+            // perform input validation on signature type
+            if (signatureType === this.SIGNATURE_SHA_WITH_ECDSA) {
+                this.signatureType = this.SIGNATURE_SHA_WITH_ECDSA;
+            } else if (signatureType === this.SIGNATURE_SHA_WITH_RSA) {
+                this.signatureType = this.SIGNATURE_SHA_WITH_RSA;
+            } else {
+                this.signatureType = this.SIGNATURE_DIGEST_SHA; // if no others match, assign digest sha
+            }
+
+            // perform input validation on freshness period
+            if (freshnessPeriod >= 0) {
+                this.freshnessPeriod = freshnessPeriod;
+            } else {
+                this.freshnessPeriod = 0; // negatives aren't possible; assign 0
+            }
         },
 
     	/**
@@ -27,11 +68,11 @@ exports.DataPacket = function () {
          --------------
          **/
         createMetaInfo: function () {
-            //String content = createContentType();
-            // TODO - later content += " " + createFreshnessPeriod()
-            // TODO - later content += " " + createFinalBlockId()
+            var content = this.createContentType();
+            content += " " + this.createFreshnessPeriod()
+            content += " " + this.createFinalBlockId()
 
-            return "META-INFO-TYPE 0";
+            return "META-INFO-TYPE 0 " + (content.length).toString() + " " + content;
         },
 
         /**
@@ -42,7 +83,7 @@ exports.DataPacket = function () {
          --------------
          **/
         createContentType: function () {
-            var content = "";//Integer.parseInt(NON_NEG_INT_CONST);
+            var content = (this.contentType).toString();
             return "CONTENT-TYPE-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -54,7 +95,7 @@ exports.DataPacket = function () {
          --------------
          **/
         createFreshnessPeriod: function () {
-            var content = Integer.toString(NON_NEG_INT_CONST); // TODO - rework
+            var content = (this.freshnessPeriod).toString(); 
 
             return "FRESHNESS-PERIOD-TLV " + (content.length).toString() + " " + content;
         },
@@ -79,7 +120,7 @@ exports.DataPacket = function () {
          --------------
          **/
         createContent: function () {
-            var content = this.content; // TODO - generate content
+            var content = this.content; 
             return "CONTENT-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -90,9 +131,7 @@ exports.DataPacket = function () {
          --------------
          **/
         createSignature: function () {
-
-            // TODO - rework
-            var signatureBits = " "; // TODO - rework
+            var signatureBits = "null"; // TODO - rework
             return this.createSignatureInfo() + " " + signatureBits;
         },
 
@@ -106,8 +145,19 @@ exports.DataPacket = function () {
          **/
         createSignatureInfo: function () {
             var content = this.createSignatureType();
-            // TODO - later content += " " + createKeyLocator()
+            content += " " + this.createKeyLocator()
             return "SIGNATURE-INFO-TYPE " + (content.length).toString() + " " + content;
+        },
+
+        /**
+         * KeyLocator ::=
+         * --------------
+         * KEY-LOCATOR-TYPE TLV-LENGTH (Name | KeyDigest)
+         * --------------
+         */
+         createKeyLocator: function() {
+            var content = "null"; // TODO - rework
+            return "KEY-LOCATOR-TYPE " + (content.length).toString() + " " + content;
         },
 
         /**
@@ -118,7 +168,7 @@ exports.DataPacket = function () {
          --------------
          **/
         createSignatureType: function () {
-            var content = "0"; // TODO - rework later
+            var content = (this.signatureType).toString(); 
             return "SIGNATURE-TYPE-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -144,5 +194,5 @@ exports.DataPacket = function () {
     	toString: function () {
             return this.createDATA();
         }
-    }
-};
+    };
+}

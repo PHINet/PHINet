@@ -20,33 +20,37 @@ var socket = dgram.createSocket('udp4');
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
 var myUserID = "SERVER"; // TODO - rework to find standard ID for server
 
-/*exports.udp_comm = function() {
+exports.UDPComm = function() {
 	
-}*/
+	return {
 
-socket.bind(NDN_SENSOR_NET_PORT);
-socket.on('message', function(msg, rinfo) {
-  
-  var message = msg.toString('utf8').split(" ");
+		initializeListener : function () {
+			socket.bind(NDN_SENSOR_NET_PORT);
+			socket.on('message', function(msg, rinfo) {
+			  
+			  var message = msg.toString('utf8').split(" ");
 
-  console.log("msg", message);
+			  console.log("msg", message);
 
-  if (message[0] === "INTEREST-TYPE") {
-  	
-  	console.log("handle interest");
-  	handleInterestPacket(message);
+			  if (message[0] === "INTEREST-TYPE") {
+			  	
+			  	console.log("handle interest");
+			  	handleInterestPacket(message);
 
-  } else if (message[0] === "DATA-TLV") {
-  	console.log('handle data');
-  	handleDataPacket(message);
+			  } else if (message[0] === "DATA-TLV") {
+			  	console.log('handle data');
+			  	handleDataPacket(message);
 
-  } else {
-  	// packet type not recognized, drop it
-  }
+			  } else {
+			  	// packet type not recognized, drop it
+			  }
 
-});
+			});
+		}
+	};
+}
 
-function sendMessage(message, ip) {
+function sendMessage (message, ip) {
 
 	console.log("outgoingmessage: ", message);
 	socket.send(message, 0, message.length, NDN_SENSOR_NET_PORT, 
@@ -59,7 +63,7 @@ function sendMessage(message, ip) {
 * 1. Do I have the data?
 * 2. Have I already sent an interest for this data?
 */
-function handleInterestPacket(packetDataArray) {
+function handleInterestPacket (packetDataArray) {
 	var nameComponent;
 	var i;
 
@@ -106,7 +110,7 @@ function handleInterestPacket(packetDataArray) {
 }
 
 /** returns entire FIB to user who requested it **/
-function handleInterestFIBRequest(packetUserID, packetSensorID, packetTimeString,
+function handleInterestFIBRequest (packetUserID, packetSensorID, packetTimeString,
                   packetProcessID, packetIP)
 {
 
@@ -151,7 +155,7 @@ function handleInterestFIBRequest(packetUserID, packetSensorID, packetTimeString
 }
 
 /** performs NDN logic on packet that requets data **/
-function handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString,
+function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeString,
                     packetProcessID, packetIP)
 {
 	// first, check CONTENT STORE (cache)
@@ -256,7 +260,7 @@ function handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeStri
 * Method parses packet then asks the following questions:
 * 1. Is this data for me?
 */
-function handleDataPacket(packetDataArray)
+function handleDataPacket (packetDataArray)
 {
 	var nameComponent = null;
 	var dataContents = null;
@@ -374,5 +378,7 @@ function handleDataPacket(packetDataArray)
 	    }
 	}
 }
+
+
 
 
