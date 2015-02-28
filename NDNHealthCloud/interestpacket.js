@@ -4,16 +4,15 @@
  * NDN-compliant interest packets
  **/
 
-var nameField = require('./namefield');
+var NameField = require('./namefield').NameField;
 
-exports.interestPacket = function() {
+exports.InterestPacket = {
    
 
-    // TODO - add more relevant params
-    function interestPacket(name) {
-        this.nameField = nameField.nameField(""); // TODO - pass real name
+    InterestPacket: function (userDataID, sensorID, timestring, processID, ipAddr) {
+        this.nameField = new NameField.NameField(userDataID, sensorID, timestring, processID, ipAddr);
         this.NON_NEG_INT_CONST = 0; // TODO - rework
-    }
+    },
 
     /**
     Nonce ::=
@@ -25,7 +24,7 @@ exports.interestPacket = function() {
      The combination of Name and Nonce should uniquely identify an Interest packet.
      This is used to detect looping Interests."
     **/
-    function createNonce() {
+    createNonce: function () {
 
         var max = 255; // 2^8 -1 (max 8 bit number)
         var min = 0; // min unsigned 8 bit number
@@ -43,7 +42,7 @@ exports.interestPacket = function() {
         content += randomInt.toString(); // fourth octet
 
         return "NONCE-TYPE " + (content.length).toString() + " " + content;    
-    }
+    },
     
     /**
     Selectors ::=
@@ -57,7 +56,7 @@ exports.interestPacket = function() {
      MustBeFresh?
     --------------
     **/
-    function createSelectors() {
+    createSelectors: function () {
         var content = createMinSuffixComponents();
         content += " " + createMaxSuffixComponents();
         content += " " + createPublisherPublicKeyLocator();
@@ -66,7 +65,7 @@ exports.interestPacket = function() {
         content += " " + createMustBeFresh();
 
         return "SELECTORS-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      MinSuffixComponents ::=
@@ -75,10 +74,10 @@ exports.interestPacket = function() {
      nonNegativeInteger
      --------------
      */
-    function createMinSuffixComponents() {
+    createMinSuffixComponents: function () {
         var content = "0"; // TODO - rework later
         return "MIN-SUFFIX-COMPONENTS-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      MaxSuffixComponents ::=
@@ -87,10 +86,10 @@ exports.interestPacket = function() {
      nonNegativeInteger
      --------------
      */
-    function createMaxSuffixComponents() {
+    createMaxSuffixComponents: function () {
         var content = "0"; // TODO - rework later
         return "MAX-SUFFIX-COMPONENTS-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      PublisherPublicKeyLocator ::=
@@ -98,9 +97,9 @@ exports.interestPacket = function() {
      KeyLocator
      --------------
      */
-    function createPublisherPublicKeyLocator() {
+    createPublisherPublicKeyLocator: function () {
         return ""; // TODO - rework later
-    }
+    },
 
     /**
      Any ::=
@@ -108,9 +107,9 @@ exports.interestPacket = function() {
      ANY-TYPE TLV-LENGTH(=0)
      --------------
      */
-    function createAny() {
+    createAny: function () {
         return "ANY-TYPE 0"; // TODO - rework
-    }
+    },
 
     /**
      Exclude ::=
@@ -118,9 +117,9 @@ exports.interestPacket = function() {
      EXCLUDE-TYPE TLV-LENGTH Any? (NameComponent (Any)?)+
      --------------
      */
-    function createExclude() {
+    createExclude: function () {
         return "EXCLUDE-TYPE 0"; // TODO - rework later
-    }
+    },
 
     /**
      ChildSelector ::=
@@ -129,10 +128,10 @@ exports.interestPacket = function() {
      nonNegativeInteger
      --------------
      */
-    function createChildSelector() {
+    createChildSelector: function () {
         var content = "0"; // TODO - rework
         return "CHILD-SELECTOR-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      MustBeFresh ::=
@@ -140,9 +139,9 @@ exports.interestPacket = function() {
      MUST-BE-FRESH-TYPE TLV-LENGTH(=0)
      --------------
      */
-    function createMustBeFresh() {
+    createMustBeFresh: function () {
         return "MUST-BE-FRESH-TYPE 0"; // TODO - rework
-    }
+    },
 
     /**
     InterestLifeTime ::=
@@ -150,10 +149,10 @@ exports.interestPacket = function() {
     INTEREST-LIFETIME-TYPE TLV-LENGTH nonNegativeInteger
     --------------
     **/
-    function createInterestLifetime() {
+    createInterestLifetime: function () {
         var content = "0"; // TODO - rework
         return "INTEREST-LIFETIME-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
     Scope ::=
@@ -161,10 +160,10 @@ exports.interestPacket = function() {
     SCOPE-TYPE TLV-LENGTH nonNegativeInteger
     --------------
     */
-    function createScope() {
+    createScope: function () {
         var content = "0"; // TODO - rework
         return "SCOPE-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      INTEREST ::=
@@ -177,7 +176,7 @@ exports.interestPacket = function() {
      Interest Lifetime?
      --------------
      **/
-    function createINTEREST() {
+    createINTEREST: function () {
         var content = nameField.createName();
         content += " " + createSelectors();
         content += " " +  createNonce();
@@ -185,9 +184,9 @@ exports.interestPacket = function() {
         content += " " + createInterestLifetime();
 
         return "INTEREST-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
-    function toString() {
+    toString: function () {
         return createINTEREST();
     }
-}
+};

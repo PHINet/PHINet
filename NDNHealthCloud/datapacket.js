@@ -4,19 +4,17 @@
  * NDN-compliant data packets
  **/
 
-var nameField = require('./namefield');
+var NameField = require('./namefield').NameField;
 
 
-exports.dataPacket = function() {
+exports.DataPacket = {
 	// NOTE: contents will be returned when 
 	// other modules "require" this 
 
-
-	function dataPacket(name, content) {
-    	this.nameField = nameField.nameField("");
-    	this.NON_NEG_INT_CONST = 0; // TODO - rework
-    	this.content = content; // TODO - rework
-    }
+    DataPacket: function (userDataID, sensorID, timestring, processID, content) {
+        this.nameField = new NameField.NameField(userDataID, sensorID, timestring, processID, content);
+        this.content = content;
+    },
 
 	/**
      MetaInfo ::=
@@ -27,13 +25,13 @@ exports.dataPacket = function() {
      FinalBlockId?
      --------------
      **/
-    function createMetaInfo() {
+    createMetaInfo: function () {
         //String content = createContentType();
         // TODO - later content += " " + createFreshnessPeriod()
         // TODO - later content += " " + createFinalBlockId()
 
         return "META-INFO-TYPE 0";
-    }
+    },
 
     /**
      ContentType ::=
@@ -42,10 +40,10 @@ exports.dataPacket = function() {
      nonNegativeInteger
      --------------
      **/
-    function createContentType() {
+    createContentType: function () {
         var content = "";//Integer.parseInt(NON_NEG_INT_CONST);
         return "CONTENT-TYPE-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      FreshnessPeriod ::=
@@ -54,11 +52,11 @@ exports.dataPacket = function() {
      nonNegativeInteger
      --------------
      **/
-    function createFreshnessPeriod() {
+    createFreshnessPeriod: function () {
         var content = Integer.toString(NON_NEG_INT_CONST); // TODO - rework
 
         return "FRESHNESS-PERIOD-TLV " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      FinalBlockId ::=
@@ -67,11 +65,11 @@ exports.dataPacket = function() {
      NameComponent
      --------------
      **/
-    function createFinalBlockId() {
+    createFinalBlockId: function () {
         var content = nameField.createNameComponent();
 
         return "FINAL-BLOCK-ID-TLV " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      Content ::=
@@ -79,10 +77,10 @@ exports.dataPacket = function() {
      CONTENT-TYPE TLV-LENGTH Byte*
      --------------
      **/
-    function createContent() {
+    createContent: function () {
         var content = this.content; // TODO - generate content
         return "CONTENT-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      Signature ::==
@@ -90,12 +88,12 @@ exports.dataPacket = function() {
      SignatureInfo SignatureBits
      --------------
      **/
-    function createSignature() {
+    createSignature: function () {
 
         // TODO - rework
         var signatureBits = " "; // TODO - rework
         return createSignatureInfo() + " " + signatureBits;
-    }
+    },
 
     /**
      SignatureInfo ::==
@@ -105,11 +103,11 @@ exports.dataPacket = function() {
      KeyLocator?
      --------------
      **/
-    function createSignatureInfo() {
+    createSignatureInfo: function () {
         var content = createSignatureType();
         // TODO - later content += " " + createKeyLocator()
         return "SIGNATURE-INFO-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      SignatureType ::==
@@ -118,10 +116,10 @@ exports.dataPacket = function() {
      nonNegativeInteger
      --------------
      **/
-    function createSignatureType() {
+    createSignatureType: function () {
         var content = "0"; // TODO - rework later
         return "SIGNATURE-TYPE-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      DATA ::=
@@ -133,17 +131,17 @@ exports.dataPacket = function() {
      Signature
      --------------
      **/
-    function createDATA() {
+    createDATA: function () {
         var content = nameField.createName();
         content += " " + createMetaInfo();
         content += " " + createContent();
         content += " " + createSignature();
 
         return "DATA-TLV " + (content.length).toString() + " " + content;
-    }
+    },
 
-	function toString() {
+	toString: function () {
         return createDATA();
     }
 
-}
+};

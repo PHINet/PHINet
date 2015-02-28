@@ -7,7 +7,6 @@ public class DataPacket {
     final int NON_NEG_INT_CONST = 0; // TODO - rework
     private String content;
 
-    // TODO - add more relevant params
     public DataPacket(String userDataID, String sensorID,
                       String timestring, String processID, String content) {
         nameField = new NameField(userDataID, sensorID, timestring, processID, content);

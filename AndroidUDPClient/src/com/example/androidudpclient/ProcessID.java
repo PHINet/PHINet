@@ -1,6 +1,10 @@
 package com.example.androidudpclient;
 
-
+/**
+ * File contains constant strings that are sent withing
+ * packets to identify what processing should be invoked;
+ * hence, ProcessID.
+ */
 public class ProcessID {
 
     // notify neighbor that fib is desired (sent in interest packet)

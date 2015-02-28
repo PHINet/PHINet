@@ -4,94 +4,100 @@
  **/
 
 
-exports.data = function() {
+exports.DATA = { 
 	// NOTE: contents will be returned when 
 	// other modules "require" this 
 
-	var CURRENT_TIME = "CURRENT_TIME";
+	CURRENT_TIME: "CURRENT_TIME",
 
 	// Data Cache Constructor
-	function cacheData(applicationName, sensorID, processID, timeString,
-                 userID, datafloat) {
-        this.applicationName = applicationName;
+	csData: function (userID, sensorID, processID, timeString,
+                 datafloat) {
         this.sensorID = sensorID;
         this.processID = processID;
         this.timeString = timeString;
         this.userID = userID;
         this.datafloat = datafloat;
-    }
+    },
 
     // PIT Entry Constructor
-    function pitData(applicationName, sensorID, processID, timeString,
-                userID, ipAddr) {
-        this.applicationName = applicationName;
+    pitData: function (userID, sensorID, processID, timeString,
+                ipAddr) {
         this.sensorID = sensorID;
         this.processID = processID;
         this.timeString = timeString;
         this.userID = userID;
         this.ipAddr = ipAddr;
-    }
+    },
 
-    function getApplicationName() {
+    // FIB entry constructor
+    fibData: function(userID, timeString, ipAddr) {
+        this.userID = userID;
+        this.timeString = timeString;
+        this.ipAddr = ipAddr;
+    },
+
+    getApplicationName: function () {
         return applicationName;
-    }
+    },
 
-    function setApplicationName(applicationName) {
+    setApplicationName: function (applicationName) {
         this.applicationName = applicationName;
-    }
+    },
 
-    function getSensorID() {
+    getSensorID: function () {
         return sensorID;
-    }
+    },
 
-    function setSensorID(sensorID) {
+    setSensorID: function (sensorID) {
         this.sensorID = sensorID;
-    }
+    },
 
-    function getProcessID() {
+    getProcessID: function () {
         return processID;
-    }
+    },
 
-    function setProcessID(processID) {
+    setProcessID: function (processID) {
         this.processID = processID;
-    }
+    },
 
-    function getTimeString() {
+    getTimeString: function () {
         return timeString;
-    }
+    },
 
-    function setTimeString(timeString) {
+    setTimeString: function (timeString) {
 
-        /*if (timeString.equals(CURRENT_TIME)) {
-            SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
-            formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-            timeString =  formatUTC.format(new Date()).toString();
-        }*/
+        if (timeString === CURRENT_TIME) {
+            var date = new Data();
+
+            timeString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDay()
+                + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+        }
 
         this.timeString = timeString;
-    }
+    },
 
-    function getUserID() {
+    getUserID: function () {
         return userID;
-    }
+    },
 
-    function setUserID(userID) {
+    setUserID: function (userID) {
         this.userID = userID;
-    }
+    },
 
-    function getIpAddr() {
+    getIpAddr: function () {
         return ipAddr;
-    }
+    },
 
-    function setIpAddr(ipAddr) {
+    setIpAddr: function (ipAddr) {
         this.ipAddr = ipAddr;
-    }
+    },
 
-    function getDatafloat() {
+    getDatafloat: function () {
         return datafloat;
-    }
+    },
 
-    function setDatafloat(datafloat) {
+    setDatafloat: function (datafloat) {
         this.datafloat = datafloat;
     }
-}
+};

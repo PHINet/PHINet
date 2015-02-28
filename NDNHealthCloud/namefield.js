@@ -7,15 +7,22 @@
     
 
 
-exports.nameField = function() {
+exports.NameField = {
 
     /**
      Our Name Format:
-     "/ndn/userID/sensorID/timestring/processID"
+     "/ndn/userID/sensorID/timestring/processID/ [datacontents] or [ip]"
+
+     The last field is specific to DATA and INTEREST packets, respectively.
      **/
-    function NameField(name) {
-        this.name = "/ndn/7/9/8/6"; // TODO - rework
-    }
+
+    NameField: function (userDataID, sensorID, timestring, processID, finalField) {
+        // NOTE: method assumes userID and sensorID are device specific
+                // meaning, no specification is needed; just get from memory
+
+        this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring
+                            + "/" + processID + "/" + finalField;
+    },
 
     /**
      NameComponent ::=
@@ -23,9 +30,9 @@ exports.nameField = function() {
      GenericNameComponent | ImplicitSha256DigestComponent
      --------------
      **/
-    function createNameComponent() {
+    createNameComponent: function () {
         return createGenericNameComponent() + " " + createImplicitSha256DigestComponent();
-    }
+    },
 
     /**
      GenericNameComponent ::=
@@ -33,10 +40,10 @@ exports.nameField = function() {
      NAME-COMPONENT-TYPE TLV-LENGTH Byte*
      --------------
      **/
-    function createGenericNameComponent() {
+    createGenericNameComponent: function () {
         var content = name;
         return "NAME-COMPONENT-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
     /**
      ImplicitSha256DigestComponent ::=
@@ -44,11 +51,11 @@ exports.nameField = function() {
      IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
      --------------
      **/
-    function createImplicitSha256DigestComponent() {
+    createImplicitSha256DigestComponent: function () {
         var exampleSha = "893259d98aca58c451453f29ec7dc38688e690dd0b59ef4f3b9d33738bff0b8d";
         return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + Integer.toString(exampleSha.length())
                 + " " + exampleSha;
-    }
+    },
 
     /**
      Name ::=
@@ -56,13 +63,13 @@ exports.nameField = function() {
      NAME-TYPE TLV-LENGTH NameComponent
      --------------
      **/
-    function createName() {
+    createName: function () {
         var content = createNameComponent();
 
         return "NAME-TYPE " + (content.length).toString() + " " + content;
-    }
+    },
 
-    function toString() {
+    toString: function () {
         return createName(); // TODO - rework
     }
-}
+};

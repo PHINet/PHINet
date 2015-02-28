@@ -3,171 +3,121 @@
  * specified in the NDN documentation
  **/
 
+ /** NOTE:
+ 	- code isn't fully functional; db intended
+ 	- future schema: ContentStore(USER_ID text, SENSOR_ID text, TIME_STRING, text, 
+ 			PROCESS_ID text, DATA_CONTENTS text, PRIMARY KEY(USER_ID, TIME_STRING))
+
+ */
+
+var DBDataClass = require('./data').DATA;
 
 
-exports.cs = function() {
+exports.CS = {
 	// NOTE: contents will be returned when 
 	// other modules "require" this 
-}
-/*
 
+	// NOTE: This fib entry is data only for testing
+	tempCSArray : [new DBDataClass.csData("serverTestUser", "serverTestSensor", 
+				"NOW", "testprocessID", "10,11,12,13,14,15")],
 
+	addCSData: function (DBDataObject) {
 
-// NOTE: this is the original server code 
-/*
-Handle UDP Socket
-*/
-/*
-var PORT = 1635;
-var HOST = '10.0.2.15';
+		// perform minimal input validation
 
-//Create Socket & Initialize Buffer
-var dgram = require('dgram');
-var server = dgram.createSocket('udp4');
-var buffer = new Buffer(1024); //buffersize
+		if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
+				&& DBDataObject.getTimeString() !== null) {
 
-//Error handler for socket creation
-server.on("error", function (err) {
-	console.log("server error:\n" + err.stack);
-	server.close();
-});
+			var i;
+			for (i = 0; i < this.tempCSArray; i++) {
+				if (DBDataObject.getUserID() === this.tempCSArray[i].getUserID() 
+					&& DBDataObject.getTimeString() === this.tempCSArray[i].getTimeString()) {
 
-//Listening event fired when server ready to recieve UDP packets
-server.on('listening', function() {
-	var address = server.address();
-	server.listen(PORT, HOST);
-	console.log('UDP server listening '+ PORT);
-});
+					console.log("CS entry already exists; cannot add");
+					return;
+				}
+ 			}
 
-//Message event fired when udp packet arrives
-server.on('message', function(message, remote) {
-	console.log(remote.address + ':' + remote.port +' - ' + message);
-	buffer.write(message);
-	console.log(message);	
-});
+ 			// entry passes input validation; now add
+			this.tempCSArray.append(DBDataObject);
+		} else {
+			console.log("Cannot add null entry to CS");
+		}
+	},
 
-server.bind(PORT);
+	deleteCSData: function (userid, timestring) {
 
-console.log(buffer.toString('utf8'));
+		var i; 
+		for (i = 0; i < this.tempCSArray.length; i++) {
+			if (userid === this.tempCSArray[i].getUserID() 
+					&& timestring ===  this.tempCSArray[i].getIpAddr()) {
 
+					this.tempCSArray.splice(i, 1); // remove element from CS
+					console.log("Element successfully removed from CS");
+					return;
+				}
+		}
 
-//Generate a new instance of express server
-var http = require('http'),
-	express = require('express'),
-	app = express();
-	sqlite3 = require('sqlite3').verbose(),
-	db = new sqlite3.Database('cozy');
+		console.log("Element couldn't be removed from CS; no matching entry found");
+	},
 
+	updateCSData: function (DBDataObject) {
+		// perform minimal input validation
 
-/*Configure directive to tell express to use jade for rendering templates*/
-	/*app.set('views', __dirname + '/public');
-	app.engine('.html', require('jade').__express);
+		if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
+				&& DBDataObject.getTimeString() !== null) {
 
-	//Allows express to get data from POST requests
-	app.use(express.bodyParser());
+			var i;
+			for (i = 0; i < this.tempCSArray; i++) {
+				if (DBDataObject.getUserID() === this.tempCSArray[i].getUserID() 
+					&& DBDataObject.getTimeString() === this.tempCSArray[i].getTimeString()) {
 
-//Database Initialization/*
-db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='data'", function(err, row) {
-	if(err !== null) {
-		console.log(err);
+					this.tempCSArray[i] = DBDataObject;
+
+					console.log("CS entry updated");
+					return;
+				}
+ 			}
+
+ 			console.log("wasn't able to find entry in CS; update unsuccessful")
+
+ 			
+		} else {
+			console.log("Cannot update null entry to CS");
+		}
+	},
+
+	// gets all data for specific user
+	getGeneralCSData: function (userid) {
+
+		var allUserData = [];
+
+		var i; 
+		for (i = 0; i < this.tempCSArray.length; i++) {
+			if (userid === this.tempCSArray[i].getUserID()) {
+
+					console.log("Element successfully returned from CS");
+					allUserData.append(this.tempCSArray[i]);
+				}
+		}
+
+		return allUserData;
+
+		console.log("Element couldn't be returned from CS; no entry found");
+	},
+
+	getSpecificCSData: function (userid, timestring) {
+		var i; 
+		for (i = 0; i < this.tempCSArray.length; i++) {
+			if (userid === this.tempCSArray[i].getUserID() 
+					&& ipaddr === this.tempCSArray[i].getTimeString()) {
+
+					console.log("Element successfully returned from CS");
+					return this.tempCSArray[i];
+				}
+		}
+
+		console.log("Element couldn't be returned from CS; no entry found");
 	}
-	else if(row == null) {
-		db.run('CREATE TABLE "data" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "name" VARCHAR(255), content VARCHAR(255))', function(err) {
-			if(err !== null) {
-				console.log(err);
-			}
-			else {
-				console.log("SQL Table 'data' initialized.");
-			}
-		});
-	}
-	else {
-		console.log("SQL Table 'data' already initialized.");
-	}
-});
+};
 
-//We render the templates with the data
-app.get('/', function(req, res) {
-	
-	db.all('SELECT * FROM data ORDER BY name', function(err, row) {
-		if(err !== null) {
-			res.send(500, "An error has occurred -- " + err);
-		}
-		else {
-			res.render('index.jade', {bookmarks: row}, function(err, html) {
-				res.send(200, html);
-			});
-		}
-	});
-});
-
-//Route to handle bookmark creation
-app.post('/add', function(req, res) {
-	name = req.body.name;
-	content = req.body.content;
-	sqlRequest = "INSERT INTO 'name' (name, content) VALUES('" + name + "', '" + content + "')"
-	db.run(sqlRequest, function(err) {
-		if(err !==null) {
-			res.send(500, "An error has occurred -- " + err);
-		}
-		else {
-			res.redirect('back');
-		}
-	});
-});
-
-//Route to handle bookmark deletion
-app.get('/delete/:id', function(req, res) {
-	db.run("DELETE FROM name WHERE id='" + req.params.id + "'", function(err) {
-		if(err!==null) {
-			res.send(500, "An error has occurred -- " + err);
-		}
-		else {
-			res.redirect('back');
-		}
-	});
-});
-*/
-
-
-//At the root of your website, we show the index.html page
-/*
-app.get('/', function(req, res) {
-	res.sendFile(path.join(__dirname, './public/', 'index.html'));
-});
-*/
-
-/*
-//Define Bookmarks
-var bookmarks = []
-bookmarks.push({name: "Cozycloud", content:
-	"http://cozycloud.cc"});
-bookmarks.push({name: "Cozy.io", content:
-	"http://cozy.io"});
-bookmarks.push({name: "My Cozy", content:
-	"http://localhost:9104/"});
-
-//Render Templates with data
-app.get('/', function(req, res) {
-	params = {
-		"bookmarks": bookmarks
-	}
-	res.render('public/index.jade', params, function(err, html) {
-		res.send(200, html);
-	});
-});
-*/
-
-
-
-/* This will allow Cozy to run your app smoothly but it won't break other execution environment */
-/*var port = process.env.PORT || 9250;
-var host = process.env.HOST || "127.0.0.1";
-
-//Starts the server itself
-var server = http.createServer(app).listen(port, host, function() {
-	console.log("Server listening to %s:%d within %s environment",
-		host, port, app.get('env'));
-});
-
-*/

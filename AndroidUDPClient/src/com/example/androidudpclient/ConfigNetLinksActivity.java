@@ -34,6 +34,8 @@ public class ConfigNetLinksActivity extends Activity {
                         InterestPacket interestPacket = new InterestPacket(
                                 neighbors.get(i).getUserID(), ".", ProcessID.REQUEST_FIB, ".", MainActivity.deviceIP);
 
+                        System.out.println("sent packet: " + interestPacket.toString());
+
                         new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr())
                                 .execute(interestPacket.toString()); // send interest packet
                     }

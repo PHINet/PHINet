@@ -52,9 +52,9 @@ public class UDPListener extends Thread {
                     packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
 
                     // NOTE; temporary debug print
-                    /*for (int i = 0; i < packetDataArray.length; i++) {
+                    for (int i = 0; i < packetDataArray.length; i++) {
                         System.out.println(packetDataArray[i]);
-                    }*/
+                    }
 
                     if (packetDataArray[0].equals("DATA-TLV")) {
                         handleDataPacket(packetDataArray);
