@@ -3,7 +3,6 @@
  * that enables UDP communication
  **/
 
-
 var InterestPacketClass = require('./interestpacket');
 var DataPacketClass = require('./datapacket');
 var DBDataClass = require('./data');
@@ -46,9 +45,26 @@ exports.UDPComm = function() {
 			  }
 
 			});
+		}, 
+
+		// TODO - rework so that it only appears once
+		// function appears twice; once for different scopes
+		sendMessage: function (message, ip) {
+
+			console.log("outgoingmessage: ", message);
+
+			var buffer = new Buffer(message, "utf-8");
+			console.log("buffer created!");
+			socket.send(buffer, 0, buffer.length, NDN_SENSOR_NET_PORT, 
+				ip, function(err) {
+					console.log("message sending error: ", err);
+			});
+
+			console.log("sent: ", buffer);
 		}
 	};
 }
+
 
 function sendMessage (message, ip) {
 
@@ -63,7 +79,7 @@ function sendMessage (message, ip) {
 * 1. Do I have the data?
 * 2. Have I already sent an interest for this data?
 */
-function handleInterestPacket (packetDataArray) {
+function handleInterestPacket(packetDataArray) {
 	var nameComponent;
 	var i;
 
@@ -110,7 +126,7 @@ function handleInterestPacket (packetDataArray) {
 }
 
 /** returns entire FIB to user who requested it **/
-function handleInterestFIBRequest (packetUserID, packetSensorID, packetTimeString,
+function handleInterestFIBRequest(packetUserID, packetSensorID, packetTimeString,
                   packetProcessID, packetIP)
 {
 
@@ -378,6 +394,8 @@ function handleDataPacket (packetDataArray)
 	    }
 	}
 }
+
+
 
 
 

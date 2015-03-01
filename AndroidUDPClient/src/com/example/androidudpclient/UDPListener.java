@@ -43,7 +43,10 @@ public class UDPListener extends Thread {
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                 try {
+
                     clientSocket.receive(receivePacket);
+
+                    System.out.println("sender IP: " + receivePacket.getAddress());
 
                     String packetData = new String(receivePacket.getData());
                     String [] packetDataArray;
@@ -304,11 +307,11 @@ public class UDPListener extends Thread {
                 .getGeneralPITData(packetUserID, packetTimeString);
 
         // TODO - fix this logic, redo later
-        if (false) {//allValidPITEntries == null || allValidPITEntries.size() == 0) {
-
+        if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
 
             // no one requested the data, merely drop it
         } else {
+
             // data was requested; second, update cache with new packet
             DBData data = new DBData();
 

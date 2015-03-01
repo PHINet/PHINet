@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="shortcut icon" href="/static/favicon.ico">
+		<link type="text/css" rel="stylesheet" href="public/static/bootstrap/css/main.css">
+		<meta charset="utf-8">
+		<title>NDN-Health | TEST</title>
+	</head>
+	<body>
+    <h1 class="midform"><a href="/">NDN-Health</a></h1>
+        <hr>
+        </header>
+        <p class="with_background">
+            Enter your IP to be send these numbers: 99,100,101,102.
+            <br>
+            Numbers will be sent over UDP and to port 50056.
+
+
+        </p>
+
+      <form method="post" action="/submitIP">
+    <input type="text" name="user[ipAddr]">
+    <input type="submit" value="Submit">
+</form>
+	</body>
+</html>

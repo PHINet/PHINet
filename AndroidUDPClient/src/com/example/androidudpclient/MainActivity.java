@@ -117,6 +117,7 @@ public class MainActivity extends Activity {
             selfBeatBtn.setVisibility(View.GONE);
             patientText.setVisibility(View.GONE);
             doctorText.setVisibility(View.GONE);
+            tempDeletePITBtn.setVisibility(View.GONE);
 
         } else {
             // user has entered credentials, remove warning

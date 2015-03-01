@@ -6,8 +6,8 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "4.8.0",
-    "jade": "*",
-    "aws-sdk": "*"
+    "aws-sdk": "*",
+    "express": "^4.8.0",
+    "jade": "*"
   }
 }
