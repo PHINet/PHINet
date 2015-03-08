@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.app.Activity;
 import android.content.Context;
@@ -103,15 +103,8 @@ public class RecordHeartbeatActivity extends Activity {
                     DBData data = new DBData();
                     data.setUserID(myUserID);
                     data.setSensorID(mySensorID);
-
-                    // TODO - use actual "current time"
-                            // NOTE: this causes problem with parsing data packet
-                                    // the space in time format is an issue
-                    data.setTimeString("NOW");
-
-                    // TODO - rework with real process id
-
-                    data.setProcessID("NULL");
+                    data.setTimeString(DBData.CURRENT_TIME);
+                    data.setProcessID(StringConst.NULL_FIELD); // no valid process id, set to null
                     data.setDataFloat(Integer.toString(currentBeatInt));
 
                     MainActivity.datasource.addCSData(data);

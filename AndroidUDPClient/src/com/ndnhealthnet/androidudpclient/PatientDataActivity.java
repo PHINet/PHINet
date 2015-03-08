@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,7 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -103,7 +103,8 @@ public class PatientDataActivity extends Activity {
 
                 // check before save AND notify user if invalid ip
                 if (!MainActivity.validIP(ipEditText.getText().toString())) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
+
                     builder.setTitle("Invalid IP entered. Submit anyways?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -138,11 +139,13 @@ public class PatientDataActivity extends Activity {
         deleteBtn = (Button) findViewById(R.id.deletePatientBtn);
         deleteBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                // TODO - rework with cache
 
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Feature isn't currently functional.", Toast.LENGTH_LONG);
-                toast.show();
+                // TODO - rework with actual Patient/Doctor relationship
+
+                // delete from FIB
+                MainActivity.datasource.deleteFIBEntry(patientUserID);
+
+                finish();
             }
         });
     }
@@ -155,62 +158,72 @@ public class PatientDataActivity extends Activity {
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         boolean isValidIP = MainActivity.validIP(patientIP);
 
-        if (mWifi.isConnected()){// TODO - later validate IP && isValidIP) {
+        if (mWifi.isConnected()) {
 
-            // TODO - pass real TIMESTRING, PROCESS_ID, and IP_ADDR
-
-            // TODO - avoid this, don't delete here
-            MainActivity.datasource.deletePITEntry(patientUserID, "", patientIP);
+            ArrayList<DBData> pitEntries = MainActivity.datasource.getGeneralPITData(patientUserID, patientIP);
 
             // place entry into PIT for self; this is because if a request is
             // received for same data, we won't send two identical PITs
-            if (MainActivity.datasource.getGeneralPITData(patientUserID, patientIP) == null) {
+            if (pitEntries == null) {
 
                 DBData selfPITEntry = new DBData();
                 selfPITEntry.setUserID(patientUserID);
-                selfPITEntry.setSensorID(ProcessID.NULL_FIELD); // TODO - rework
+
+                // sensor id is currently irrelevant
+                // TODO - rework sensorID with server
+                selfPITEntry.setSensorID(StringConst.NULL_FIELD);
+
                 selfPITEntry.setTimeString(generateTimeString());
-                selfPITEntry.setProcessID(ProcessID.REQUEST_CACHE_DATA);
+                selfPITEntry.setProcessID(StringConst.REQUEST_CACHE_DATA);
 
                 // deviceIP, because this device is the requester
                 selfPITEntry.setIpAddr(MainActivity.deviceIP);
 
                 MainActivity.datasource.addPITData(selfPITEntry);
 
-                // TODO - include real SENSOR_ID and TIMESTRING and PROCESS_ID
-
-                ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
-
-                for (int i = 0; i < allFIBEntries.size(); i++) {
-                    // send request to everyone in FIB; only send to users with actual ip
-
-                    // TODO - better ip validation
-                    if (!allFIBEntries.get(i).getIpAddr().equals(ProcessID.NULL_IP)) {
-
-                        InterestPacket interestPacket = new InterestPacket(
-                                patientUserID, ".", ".", ".", MainActivity.deviceIP);
-
-                        new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
-                                .execute(interestPacket.toString()); // send interest packet
-                    }
-                }
             } else {
-                // user has already requested data, notify
+                // user has already requested data, update PIT entries
+                for (int i = 0; i < pitEntries.size(); i++) {
 
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "You've already requested data. Wait a moment.", Toast.LENGTH_LONG);
-                toast.show();
+                    pitEntries.get(i).setTimeString(DBData.CURRENT_TIME);
+                    MainActivity.datasource.updatePITData(pitEntries.get(i));
+                }
             }
 
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    // reload activity after 2 seconds, so to check if client data arrived
-                    // TODO - rework so that multiple instances of this activity aren't on stack
-                    finish();
-                    startActivity(getIntent());
+            ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
+
+            int fibRequestsSent = 0;
+
+            for (int i = 0; i < allFIBEntries.size(); i++) {
+                // send request to everyone in FIB; only send to users with actual ip
+                if (MainActivity.validIP(allFIBEntries.get(i).getIpAddr())) {
+
+                    InterestPacket interestPacket = new InterestPacket(
+                            patientUserID, StringConst.NULL_FIELD, generateTimeString(),
+                            StringConst.REQUEST_CACHE_DATA, MainActivity.deviceIP);
+
+                    new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
+                            .execute(interestPacket.toString()); // send interest packet
+
+                    fibRequestsSent ++;
                 }
-            }, 2000);
+            }
+
+            if (fibRequestsSent == 0) {
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
+                toast.show();
+            } else {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        // reload activity after 2 seconds, so to check if client data arrived
+                        finish();
+                        startActivity(getIntent());
+                    }
+                }, 2000);
+            }
+
         } else if (!isValidIP) {
             // invalid ip
 
@@ -281,7 +294,11 @@ public class PatientDataActivity extends Activity {
         if (startYear != 0 && endYear != 0) {
             String timeString = "";
 
-            // TODO - generate real timestring
+            // TIME_STRING FORMAT: "yyyy-MM-dd||yyyy-MM-dd"; the former is start, latter is end
+
+            timeString += Integer.toString(startYear) + "-" + Integer.toString(startMonth) + "-";
+            timeString += Integer.toString(startDay) + "||" + Integer.toString(endYear) + "-";
+            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay);
 
             return timeString;
         } else {
@@ -299,12 +316,6 @@ public class PatientDataActivity extends Activity {
         updatedFIBEntry.setTimeString(DBData.CURRENT_TIME);
         updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
         updatedFIBEntry.setUserID(patientUserID);
-
-        /* TODO - allow name modification
-        if (!patientUserID.equals(nameEditText.getText().toString())) {
-            // patient updated id, delete FIB entry
-            // rework other tables as well
-        }*/
 
         MainActivity.datasource.updateFIBData(updatedFIBEntry);
 

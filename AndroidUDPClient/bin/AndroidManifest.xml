@@ -29,7 +29,7 @@
         
         <activity 
             android:name="RetrieveHeartbeatActivity"
-            android:parentActivityName="com.example.androidudpclient.MainActivity">
+            android:parentActivityName="com.ndnhealthnet.androidudpclient.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.anroidudpclient.MainActivity"/>

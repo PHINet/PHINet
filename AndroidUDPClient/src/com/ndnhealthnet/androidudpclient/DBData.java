@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,12 +71,10 @@ public class DBData {
     public void setTimeString(String timeString) {
 
         if (timeString.equals(CURRENT_TIME)) {
-            SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
+            SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd");
             formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-            // removes space from string
-            // TODO - does this resolve parsing issue?
-            timeString =  formatUTC.format(new Date()).replace(" ", "");
+            timeString =  formatUTC.format(new Date());
         }
 
         this.timeString = timeString;

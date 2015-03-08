@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 /**
  * This abstract class is used to process images.

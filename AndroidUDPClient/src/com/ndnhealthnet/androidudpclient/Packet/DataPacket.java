@@ -1,5 +1,4 @@
-package com.example.androidudpclient.Packet;
-
+package com.ndnhealthnet.androidudpclient.Packet;
 
 public class DataPacket {
 

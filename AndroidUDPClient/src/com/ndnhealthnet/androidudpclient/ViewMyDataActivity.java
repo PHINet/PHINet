@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.app.Activity;
 import android.os.Bundle;

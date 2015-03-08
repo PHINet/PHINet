@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 import android.graphics.Bitmap;

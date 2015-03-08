@@ -1,4 +1,4 @@
-package com.example.androidudpclient.Packet;
+package com.ndnhealthnet.androidudpclient.Packet;
 
 import java.util.Random;
 
@@ -13,6 +13,7 @@ public class InterestPacket {
         // TODO - do this through constructor, etc
 
     private NameField nameField;
+    final private int LIFETIME_CONST = 100;
 
     public InterestPacket(String userDataID, String sensorID,
                           String timestring, String processID, String ipAddr) {
@@ -105,7 +106,7 @@ public class InterestPacket {
      --------------
      */
     String createAny() {
-        return "ANY-TYPE 0"; // TODO - rework
+        return "ANY-TYPE 0";
     }
 
     /**
@@ -138,7 +139,7 @@ public class InterestPacket {
      --------------
      */
     String createMustBeFresh() {
-        return "MUST-BE-FRESH-TYPE 0"; // TODO - rework
+        return "MUST-BE-FRESH-TYPE 0";
     }
 
     /**
@@ -148,7 +149,7 @@ public class InterestPacket {
     --------------
     **/
     String createInterestLifetime() {
-        String content = "0"; // TODO - rework
+        String content = Integer.toString(LIFETIME_CONST); // TODO - add user-selected interval
         return "INTEREST-LIFETIME-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 

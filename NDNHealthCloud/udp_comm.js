@@ -68,8 +68,10 @@ exports.UDPComm = function() {
 
 function sendMessage (message, ip) {
 
+	var buffer = new Buffer(message, "utf-8");
+			
 	console.log("outgoingmessage: ", message);
-	socket.send(message, 0, message.length, NDN_SENSOR_NET_PORT, 
+	socket.send(buffer, 0, buffer.length, NDN_SENSOR_NET_PORT, 
 		ip, function(err) {
 	});
 }
@@ -304,7 +306,7 @@ function handleDataPacket (packetDataArray)
 	// the indexes used are position + 1 (+1 is due to properties)
 	packetUserID = nameComponent[2].trim();
 	packetSensorID = nameComponent[3].trim();
-	packetTimevar= nameComponent[4].trim();
+	packetTimeString= nameComponent[4].trim();
 	packetProcessID = nameComponent[5].trim();
 
 	// TODO - packet structure (floatContent inclusion, specifically)
@@ -313,8 +315,7 @@ function handleDataPacket (packetDataArray)
 	// first, determine who wants the data
 	var allValidPITEntries = PIT.getGeneralPITData(packetUserID, packetTimeString);
 
-	// TODO - fix this logic, redo later
-	if (false) {//allValidPITEntries == null || allValidPITEntries.length == 0) {
+	if (allValidPITEntries === null) {
 
 
 	    // no one requested the data, merely drop it

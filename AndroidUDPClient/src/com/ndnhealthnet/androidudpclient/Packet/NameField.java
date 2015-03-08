@@ -1,4 +1,4 @@
-package com.example.androidudpclient.Packet;
+package com.ndnhealthnet.androidudpclient.Packet;
 
 /**
  * Class creates an NDN-compliant name for use within packets.

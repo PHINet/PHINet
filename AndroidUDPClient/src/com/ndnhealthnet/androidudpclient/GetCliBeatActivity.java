@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -85,7 +85,7 @@ public class GetCliBeatActivity extends ListActivity {
                         boolean ipEntered = false;
                         try { // try/catch attempts input validation
 
-                            if (patientInput.getText().toString().indexOf(",") == -1) {
+                            if (!patientInput.getText().toString().contains(",")) {
                                 // this means there was no comma; user likely didn't enter IP
                                 ipEntered = false;
 
@@ -118,8 +118,8 @@ public class GetCliBeatActivity extends ListActivity {
                             if (!ipEntered) {
 
                                 data.setUserID(patientInput.getText().toString());
-                                data.setTimeString("NOW"); // TODO _ use real
-                                data.setIpAddr(ProcessID.NULL_IP);
+                                data.setTimeString(DBData.CURRENT_TIME);
+                                data.setIpAddr(StringConst.NULL_IP);
 
                                 MainActivity.datasource.addFIBData(data);
                             } else {
@@ -143,6 +143,7 @@ public class GetCliBeatActivity extends ListActivity {
 
                             adapter.add(data);
                             adapter.notifyDataSetChanged();
+                            emptyListTextView.setVisibility(View.GONE); // hide "no patients" text
                         } else {
                             Toast toast = Toast.makeText(GetCliBeatActivity.this,
                                     "Invalid IP or name length (3-15 characters).", Toast.LENGTH_LONG);
@@ -206,8 +207,7 @@ public class GetCliBeatActivity extends ListActivity {
 
                             Intent intent = new Intent(GetCliBeatActivity.this, PatientDataActivity.class);
 
-                            // TODO - create/define/pass valid patient ID
-
+                            // through intent, pass patient information to activity
                             intent.putExtra(PATIENT_IP, dbData.getIpAddr());
                             intent.putExtra(PATIENT_USER_ID, dbData.getUserID());
                             startActivity(intent);

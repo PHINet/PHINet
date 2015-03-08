@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -80,7 +80,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private void addData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        boolean tableFound = true;
 
         if (tableName.equals(PIT_DB)) {
 
@@ -359,7 +358,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
         } else {
-            // TODO - throw exception
+            throw new NullPointerException("Cannot update data in DB; param was bad");
         }
 
         // updating row

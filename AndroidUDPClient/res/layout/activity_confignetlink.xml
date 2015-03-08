@@ -2,7 +2,8 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
     android:background="@color/background"
     android:baselineAligned="false"
     android:orientation="vertical" >
@@ -29,16 +30,24 @@
         android:layout_gravity="center|bottom"
         android:textSize="25sp" />
 
-    <Button
-        android:id="@+id/configNetBackBtn"
-        android:layout_width="180dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/backBtnText"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="25sp"
-        android:layout_marginTop="0dp" />
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:orientation="vertical"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:id="@+id/configNetBackBtn"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:text="@string/backBtnText"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:layout_gravity="center|bottom"
+            android:textSize="25sp" />
+    </LinearLayout>
 
 
 

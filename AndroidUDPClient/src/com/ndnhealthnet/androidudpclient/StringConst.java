@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 /**
  * File contains constant strings that are sent withing
@@ -7,7 +7,7 @@ package com.example.androidudpclient;
  *
  * Also contained are other useful string constants.
  */
-public class ProcessID {
+public class StringConst {
 
     // notify neighbor that fib is desired (sent in interest packet)
     static public final String REQUEST_FIB = "ReturnFIB";

@@ -1,4 +1,4 @@
-package com.example.androidudpclient;
+package com.ndnhealthnet.androidudpclient;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -160,7 +160,6 @@ public class MainActivity extends Activity {
         // get the device's ip
         wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-        ;
 
         // create thread to receive all incoming packets expected after request to patient
         return new UDPListener(deviceIP, getApplicationContext());
