@@ -174,7 +174,7 @@ public class PatientDataActivity extends Activity {
                 selfPITEntry.setSensorID(StringConst.NULL_FIELD);
 
                 selfPITEntry.setTimeString(generateTimeString());
-                selfPITEntry.setProcessID(StringConst.REQUEST_CACHE_DATA);
+                selfPITEntry.setProcessID(StringConst.DATA_CACHE);
 
                 // deviceIP, because this device is the requester
                 selfPITEntry.setIpAddr(MainActivity.deviceIP);
@@ -185,7 +185,7 @@ public class PatientDataActivity extends Activity {
                 // user has already requested data, update PIT entries
                 for (int i = 0; i < pitEntries.size(); i++) {
 
-                    pitEntries.get(i).setTimeString(DBData.CURRENT_TIME);
+                    pitEntries.get(i).setTimeString(StringConst.CURRENT_TIME);
                     MainActivity.datasource.updatePITData(pitEntries.get(i));
                 }
             }
@@ -200,9 +200,9 @@ public class PatientDataActivity extends Activity {
 
                     InterestPacket interestPacket = new InterestPacket(
                             patientUserID, StringConst.NULL_FIELD, generateTimeString(),
-                            StringConst.REQUEST_CACHE_DATA, MainActivity.deviceIP);
+                            StringConst.DATA_CACHE, MainActivity.deviceIP);
 
-                    new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr())
+                    new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(interestPacket.toString()); // send interest packet
 
                     fibRequestsSent ++;
@@ -217,11 +217,11 @@ public class PatientDataActivity extends Activity {
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     public void run() {
-                        // reload activity after 2 seconds, so to check if client data arrived
+                        // reload activity after 3 seconds, so to check if client data arrived
                         finish();
                         startActivity(getIntent());
                     }
-                }, 2000);
+                }, 3000);
             }
 
         } else if (!isValidIP) {
@@ -313,7 +313,7 @@ public class PatientDataActivity extends Activity {
 
         // updates patient data
         DBData updatedFIBEntry = new DBData();
-        updatedFIBEntry.setTimeString(DBData.CURRENT_TIME);
+        updatedFIBEntry.setTimeString(StringConst.CURRENT_TIME);
         updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
         updatedFIBEntry.setUserID(patientUserID);
 

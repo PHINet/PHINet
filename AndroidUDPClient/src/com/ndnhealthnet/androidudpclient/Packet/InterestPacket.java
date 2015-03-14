@@ -1,5 +1,8 @@
 package com.ndnhealthnet.androidudpclient.Packet;
 
+import com.ndnhealthnet.androidudpclient.StringConst;
+import com.ndnhealthnet.androidudpclient.Utils;
+
 import java.util.Random;
 
 /**
@@ -17,6 +20,12 @@ public class InterestPacket {
 
     public InterestPacket(String userDataID, String sensorID,
                           String timestring, String processID, String ipAddr) {
+
+        // if current time requested, provide it
+        if (timestring.equals(StringConst.CURRENT_TIME)) {
+            timestring = Utils.getCurrentTime();
+        }
+
         nameField = new NameField(userDataID, sensorID, timestring, processID, ipAddr);
     }
 

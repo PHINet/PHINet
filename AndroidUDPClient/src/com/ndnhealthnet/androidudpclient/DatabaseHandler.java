@@ -3,6 +3,7 @@ package com.ndnhealthnet.androidudpclient;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -104,9 +105,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
            throw new NullPointerException("Cannot add data to DB; param was bad");
         }
 
-        // Inserting Row
-        db.insert(tableName, null, values);
-        db.close(); // Closing database connection
+        try {
+            // Inserting Row
+            db.insert(tableName, null, values);
+            db.close(); // Closing database connection
+        } catch (SQLiteConstraintException e) {
+
+        }
+
     }
 
     public void addPITData(DBData data) {

@@ -2,43 +2,74 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.os.AsyncTask;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
- * Class handles outbound UDP packets.
+ * Class handles outbound UDP packets and listens when reply expected.
  */
 class UDPSocket extends AsyncTask<String, Void, Void> {
 
-    String destAddr;
+    String destAddr, messageType;
     int destPort;
 
-    UDPSocket(int port, String addr){
+    UDPSocket(int port, String addr, String type){
         destPort = port;
         destAddr = addr;
+        messageType = type;
     }
 
     @Override
     protected Void doInBackground(String... message) {
 
-        DatagramSocket clientSocket = null;
-
         try {
-            clientSocket = new DatagramSocket();
+            final DatagramSocket clientSocket = new DatagramSocket();
             InetAddress IPAddress = InetAddress.getByName(destAddr);
             byte[] sendData = message[0].getBytes();
 
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
 
-            clientSocket.close();
+            /**
+             * method must listen for incoming packet if INTEREST_TYPE, otherwise
+             * we cannot detect incoming, requested packets from the server
+             */
+            if (messageType.equals(StringConst.INTEREST_TYPE)) {
+
+                // create listener in new thread, listen for 2 seconds
+                Timer t = new Timer();
+                t.schedule(new TimerTask() {
+
+                    @Override
+                    public void run() {
+
+                        byte[] receiveData = new byte[1024];
+                        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+                        try {
+                            clientSocket.receive(receivePacket);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        final String packetData = new String(receivePacket.getData());
+                        UDPListener.handleIncomingNDNPacket(packetData);
+
+                        clientSocket.close();
+                        this.cancel();
+
+                    }
+                }, 2000L); // keep listener open for 2 seconds
+            } else {
+                clientSocket.close(); // DATA_TYPE sent, no return expected; close socket
+            }
+
         } catch (Exception e) {
             System.out.println(e.toString());
-        } finally {
-            if (clientSocket != null) {
-                clientSocket.close();
-            }
         }
 
         return null;

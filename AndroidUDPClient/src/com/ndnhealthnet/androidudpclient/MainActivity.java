@@ -15,32 +15,35 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1;
 
-    Button tempDeletePITBtn;
-
-	Button userCredentialBtn, netLinkBtn, selfBeatBtn, getAvgBtn, cliBeatBtn;
+	Button tempDeletePITBtn, userCredentialBtn, netLinkBtn, selfBeatBtn, getAvgBtn, cliBeatBtn;
 	TextView credentialWarningText, doctorText, patientText;
 	UDPListener receiverThread;
+
+    // used to specify when listener "receiverThread" should actively listen for packets
     static boolean continueReceiverExecution = true;
 
-
-    /** used to notify sender of this device's address **/
-    static final int devicePort = 50056; // chosen arbitrarily
+    static final int devicePort = 50056; // port used by all NDN-HealthNet applications
     static String deviceIP;
-    WifiManager wm;
-    /** used to notify sender of this device's address **/
 
-    static DatabaseHandler datasource;
+    static DatabaseHandler datasource; // data source that is accessed through application
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // get ip of phone
+        // get the device's ip
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         // create tables
         datasource = new DatabaseHandler(getApplicationContext());
+
+        DBData dbData = new DBData();
+        dbData.setIpAddr("52.11.79.46");
+        dbData.setUserID("CLOUD-SERVER");
+
+        datasource.addFIBData(dbData); // add cloud-server to FIB
+
         receiverThread = initializeReceiver();
         receiverThread.start(); // begin listening for interest packets
 
@@ -64,7 +67,6 @@ public class MainActivity extends Activity {
         userCredentialBtn = (Button) findViewById(R.id.userCredentialBtn);
         userCredentialBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
                 startActivityForResult(new Intent(MainActivity.this, UserCredentialActivity.class),
                         CREDENTIAL_RESULT_CODE);
             }
@@ -98,6 +100,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        // NOTE: temporary debugging method that allows user to clear the database
         tempDeletePITBtn = (Button) findViewById(R.id.deletePITBtn);
         tempDeletePITBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -120,11 +123,13 @@ public class MainActivity extends Activity {
             tempDeletePITBtn.setVisibility(View.GONE);
 
         } else {
+
             // user has entered credentials, remove warning
             credentialWarningText.setVisibility(View.GONE);
         }
     }
 
+    /** should be invoked automatically after user enters credentials **/
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if (requestCode == CREDENTIAL_RESULT_CODE) {
@@ -134,11 +139,11 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** tests validity of IP input **/
     static boolean validIP(String ip) {
         boolean validIP;
-        try {
-            // tests validity of IP input
 
+        try {
             InetAddress.getByName(ip);
             validIP = true;
         } catch (Exception e) {
@@ -157,11 +162,8 @@ public class MainActivity extends Activity {
 
     /** create and return receiver thread **/
     UDPListener initializeReceiver() {
-        // get the device's ip
-        wm = (WifiManager) getSystemService(WIFI_SERVICE);
-        deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         // create thread to receive all incoming packets expected after request to patient
-        return new UDPListener(deviceIP, getApplicationContext());
+        return new UDPListener(getApplicationContext());
     }
 }

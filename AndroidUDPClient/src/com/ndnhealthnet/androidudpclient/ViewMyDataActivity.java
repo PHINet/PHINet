@@ -36,7 +36,7 @@ public class ViewMyDataActivity extends Activity {
         // display graph is data is present
         graph = (GraphView) findViewById(R.id.graph);
 
-        // get user id for quering db
+        // get user id for querying db
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 Utils.PREFS_LOGIN_USER_ID_KEY, "");
 

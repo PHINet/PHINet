@@ -118,14 +118,14 @@ public class GetCliBeatActivity extends ListActivity {
                             if (!ipEntered) {
 
                                 data.setUserID(patientInput.getText().toString());
-                                data.setTimeString(DBData.CURRENT_TIME);
+                                data.setTimeString(StringConst.CURRENT_TIME);
                                 data.setIpAddr(StringConst.NULL_IP);
 
                                 MainActivity.datasource.addFIBData(data);
                             } else {
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);
-                                data.setTimeString(DBData.CURRENT_TIME);
+                                data.setTimeString(StringConst.CURRENT_TIME);
 
                                 if (MainActivity.datasource.getFIBData(patientInputString[0]) == null) {
                                     // user entered valid patient, now add to fib

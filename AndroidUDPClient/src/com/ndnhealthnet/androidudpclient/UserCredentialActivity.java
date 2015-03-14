@@ -85,7 +85,6 @@ public class UserCredentialActivity extends Activity {
         // TODO - perform sophisticated input validation
 
         return userID.length() > 5 && userID.length() < 15;
-
     }
 
     /** attempts to determine whether sensorID input is valid

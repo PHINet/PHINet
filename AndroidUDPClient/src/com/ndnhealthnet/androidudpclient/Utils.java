@@ -4,10 +4,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
- * Class facilitates user credential storage, which is necessary for NDN communication
+ * Class facilitates user credential storage, which is necessary for NDN communication -
+ * as well as numerous other helpful, miscellaneous features.
  *
  * TODO - encrypt
  */
@@ -64,5 +68,13 @@ public class Utils {
         }
 
         return myFloatData;
+    }
+
+    /** Method returns the current time **/
+    public static String getCurrentTime() {
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd");
+        formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return formatUTC.format(new Date());
     }
 }

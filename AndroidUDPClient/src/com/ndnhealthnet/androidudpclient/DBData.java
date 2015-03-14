@@ -1,20 +1,13 @@
 package com.ndnhealthnet.androidudpclient;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
 public class DBData {
 
-    private String applicationName;
     private String sensorID;
     private String processID;
     private String timeString;
     private String userID;
     private String ipAddr;
     private String dataFloat;
-
-    static final String CURRENT_TIME = "CURRENT_TIME"; // const notifies current time should be given
 
     public DBData() {}
 
@@ -40,14 +33,6 @@ public class DBData {
         this.ipAddr = ipAddr;
     }*/
 
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
     public String getSensorID() {
         return sensorID;
     }
@@ -70,11 +55,8 @@ public class DBData {
 
     public void setTimeString(String timeString) {
 
-        if (timeString.equals(CURRENT_TIME)) {
-            SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd");
-            formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-            timeString =  formatUTC.format(new Date());
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
         }
 
         this.timeString = timeString;

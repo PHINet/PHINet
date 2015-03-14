@@ -44,27 +44,27 @@ public class ConfigNetLinksActivity extends Activity {
                         for (int j = 0; j < pitsForNeighbor.size(); j++) {
 
                             // true if FIB previously requested
-                            pitEntryFound |= pitsForNeighbor.get(i).getProcessID().equals(StringConst.REQUEST_FIB);
+                            pitEntryFound |= pitsForNeighbor.get(i).getProcessID().equals(StringConst.INTEREST_FIB);
                         }
 
                         if (!pitEntryFound) {
                             InterestPacket interestPacket = new InterestPacket(
                                     neighbors.get(i).getUserID(), StringConst.NULL_FIELD,
-                                    StringConst.REQUEST_FIB, StringConst.NULL_FIELD, MainActivity.deviceIP);
+                                    StringConst.INTEREST_FIB, StringConst.NULL_FIELD, MainActivity.deviceIP);
 
                             // NOTE: temporary debugging output
                             System.out.println("sent packet: " + interestPacket.toString());
 
                             // send interest to each neighbor; ask for fib
-                            new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr())
+                            new UDPSocket(MainActivity.devicePort, neighbors.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                                     .execute(interestPacket.toString()); // send interest packet
 
                             // put FIB request in PIT
                             DBData selfPITEntry = new DBData();
                             selfPITEntry.setUserID(neighbors.get(i).getUserID());
                             selfPITEntry.setSensorID(StringConst.NULL_FIELD);
-                            selfPITEntry.setTimeString(DBData.CURRENT_TIME);
-                            selfPITEntry.setProcessID(StringConst.REQUEST_FIB);
+                            selfPITEntry.setTimeString(StringConst.CURRENT_TIME);
+                            selfPITEntry.setProcessID(StringConst.INTEREST_FIB);
 
                             // deviceIP, because this device is the requester
                             selfPITEntry.setIpAddr(MainActivity.deviceIP);

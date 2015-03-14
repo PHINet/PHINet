@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -21,21 +20,19 @@ import java.util.Date;
  */
 public class UDPListener extends Thread {
 
-    DatagramSocket clientSocket = null;
-    String deviceIP;
-    Context context;
+    static  DatagramSocket clientSocket = null;
+    static Context context;
 
-    public UDPListener(String ip, Context context) {
-        this.deviceIP = ip;
+    public UDPListener(Context context) {
         this.context = context;
     }
 
     @Override
     public void run() {
         try {
-            clientSocket = new DatagramSocket(null);
-            InetSocketAddress address = new InetSocketAddress(deviceIP, MainActivity.devicePort);
+            InetSocketAddress address = new InetSocketAddress(MainActivity.deviceIP, MainActivity.devicePort);
 
+            clientSocket = new DatagramSocket(null);
             clientSocket.bind(address); // give receiver static address
 
             // set timeout so to force thread to check whether its execution is valid
@@ -50,29 +47,9 @@ public class UDPListener extends Thread {
                 try {
                     clientSocket.receive(receivePacket);
 
-                    // NOTE; temporary debug print
-                    System.out.println("sender IP: " + receivePacket.getAddress());
+                    // process incoming packet
+                    handleIncomingNDNPacket(new String(receivePacket.getData()));
 
-                    String packetData = new String(receivePacket.getData());
-                    String [] packetDataArray;
-
-                    // remove "null" unicode characters
-                    packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
-
-                    // NOTE; temporary debug print
-                    for (int i = 0; i < packetDataArray.length; i++) {
-                        System.out.println(packetDataArray[i]);
-                    }
-
-                    if (packetDataArray[0].equals("DATA-TLV")) {
-
-                        handleDataPacket(packetDataArray);
-                    } else if (packetDataArray[0].equals("INTEREST-TYPE")) {
-
-                        handleInterestPacket(packetDataArray);
-                    } else {
-                        // throw away, packet is neither INTEREST nor DATA
-                    }
                 } catch (SocketTimeoutException e) {
                     continue;
                 }
@@ -86,16 +63,46 @@ public class UDPListener extends Thread {
         }
     }
 
+    /**
+     * Helper method that handles all incoming packets;
+     * may be invoked from elsewhere in code (namely, UDPSocket)
+     * **/
+    static void handleIncomingNDNPacket(String packetData) {
+
+        String [] packetDataArray;
+
+        // remove "null" unicode characters
+        packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
+
+        // NOTE; temporary debug print
+        for (int i = 0; i < packetDataArray.length; i++) {
+            System.out.println(packetDataArray[i]);
+        }
+
+        if (packetDataArray[0].equals(StringConst.DATA_TYPE)) {
+
+            handleDataPacket(packetDataArray);
+        } else if (packetDataArray[0].equals(StringConst.INTEREST_TYPE)) {
+
+            handleInterestPacket(packetDataArray);
+        } else {
+            // throw away, packet is neither INTEREST nor DATA
+        }
+    }
+
     /** handles INTEREST packet as per NDN specification
      * Method parses packet then asks the following questions:
      * 1. Do I have the data?
      * 2. Have I already sent an interest for this data?
      */
-    void handleInterestPacket(String[] packetDataArray) {
+    static void handleInterestPacket(String[] packetDataArray) {
         String [] nameComponent = null;
 
         for (int i = 0; i < packetDataArray.length; i++) {
             if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
+
+                // NOTE: temporary debugging print
+                System.out.println("INTEREST NAME: " +  packetDataArray[i+2]);
 
                 // i+2 corresponds name as per NDN standard
                 // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
@@ -115,22 +122,20 @@ public class UDPListener extends Thread {
         String packetProcessID = nameComponent[5];
         String packetIP = nameComponent[6];
 
-        if (packetProcessID.equals(StringConst.REQUEST_FIB)) {
+        if (packetProcessID.equals(StringConst.INTEREST_FIB)) {
 
-            handleInterestFIBRequest(packetUserID, packetSensorID, packetTimeString,
+            handleInterestFIBRequest(packetUserID, packetSensorID, packetIP);
+        } else if (packetProcessID.equals(StringConst.INTEREST_CACHE_DATA)) {
+
+            handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString,
                     packetProcessID, packetIP);
         } else {
-            // otherwise, assume cache data is requested
-            // TODO - rework so that others can be specified
-
-            handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
-                    packetIP);
+            // unknown process id; drop packet
         }
     }
 
     /** returns entire FIB to user who requested it **/
-    void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetTimeString,
-                          String packetProcessID, String packetIP)
+    static void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
     {
         ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
 
@@ -139,12 +144,10 @@ public class UDPListener extends Thread {
 
         if (allFIBData == null || allFIBData.size() == 0) {
 
-            // TODO - rework with timestring
             DataPacket dataPacket = new DataPacket(packetUserID, packetSensorID,
-                    "NOW", StringConst.FIB_DATA, MainActivity.deviceIP, DataPacket.CONTENT_TYPE_DEFAULT,
-                    DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
+                    StringConst.CURRENT_TIME, StringConst.DATA_FIB, MainActivity.deviceIP);
 
-            new UDPSocket(MainActivity.devicePort, packetIP)
+            new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
                     .execute(dataPacket.toString()); // reply to interest with DATA from cache*/
         } else {
 
@@ -156,28 +159,24 @@ public class UDPListener extends Thread {
                     // content returned in format: "userID,userIP"
                     String fibContent = allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr();
 
-                    // TODO - use real time string
                     DataPacket dataPacket = new DataPacket(myUserID, mySensorID,
-                            "NOW",  StringConst.FIB_DATA, fibContent, DataPacket.CONTENT_TYPE_DEFAULT,
-                            DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
+                            StringConst.CURRENT_TIME,  StringConst.DATA_FIB, fibContent);
 
-                    new UDPSocket(MainActivity.devicePort, packetIP)
+                    new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
                             .execute(dataPacket.toString()); // send interest packet
                 }
             }
         }
     }
 
-    /** performs NDN logic on packet that requets data **/
-    void handleInterestCacheRequest(String packetUserID, String packetSensorID, String packetTimeString,
+    /** performs NDN logic on packet that requests data **/
+    static void handleInterestCacheRequest(String packetUserID, String packetSensorID, String packetTimeString,
                             String packetProcessID, String packetIP)
     {
         // first, check CONTENT STORE (cache)
-
         ArrayList<DBData> csDATA = MainActivity.datasource.getGeneralCSData(packetUserID);
 
         if (csDATA != null) {
-            // NOTE: params list = Context context, String timestring, String processID, String content
 
             for (int i = 0; i < csDATA.size(); i++) {
 
@@ -185,11 +184,9 @@ public class UDPListener extends Thread {
                 if (isValidForTimeInterval(packetTimeString, csDATA.get(i).getTimeString())) {
 
                     DataPacket dataPacket = new DataPacket(csDATA.get(i).getUserID(), csDATA.get(i).getSensorID(),
-                            csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat()
-                            , DataPacket.CONTENT_TYPE_DEFAULT,
-                            DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
+                            csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
 
-                    new UDPSocket(MainActivity.devicePort, packetIP)
+                    new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
                             .execute(dataPacket.toString()); // reply to interest with DATA from cache
                 }
             }
@@ -226,7 +223,7 @@ public class UDPListener extends Thread {
                             InterestPacket interestPacket = new InterestPacket(packetUserID, packetSensorID,
                                     packetTimeString,  packetProcessID, packetIP);
 
-                            new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr())
+                            new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                                     .execute(interestPacket.toString()); // send interest packet
                         }
                     }
@@ -247,7 +244,7 @@ public class UDPListener extends Thread {
     }
 
     /** Method returns true if the data interval is within request interval **/
-    private boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
+    static  boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
 
         String [] requestIntervals = requestInterval.split("||"); // split interval into start/end
 
@@ -277,10 +274,10 @@ public class UDPListener extends Thread {
     }
 
     /** handles DATA packet as per NDN specification
-     * Method parses packet then asks the following questions:
-     * 1. Is this data for me?
+     * Method parses packet then stores in cache if requested,
+     * and sends out to satisfy any potential Interests.
      */
-    void handleDataPacket(String[] packetDataArray)
+    static void handleDataPacket(String[] packetDataArray)
     {
         String [] nameComponent = null;
         String dataContents = null;
@@ -292,6 +289,7 @@ public class UDPListener extends Thread {
 
                 // NOTE: debugging print only
                 System.out.println("name component: " + nameComponent);
+
                 nameComponent = packetDataArray[i+2].trim().split("/"); // split into various components
 
             } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
@@ -303,9 +301,6 @@ public class UDPListener extends Thread {
                 // TODO - inspect other packet elements
             }
         }
-
-        // NOTE: debugging print only
-        System.out.println("nameComponent array: " + Arrays.toString(nameComponent));
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"
@@ -325,21 +320,33 @@ public class UDPListener extends Thread {
             // no one requested the data, merely drop it
         } else {
 
-            if (packetProcessID.equals(StringConst.FIB_DATA)) {
+            // determine if data packet's time interval matches any requests
 
-                handleFIBData(packetFloatContent);
+            int requestCount = 0;
+            for (int i = 0; i < allValidPITEntries.size(); i++) {
+                if (isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
+                    requestCount++;
+                }
+            }
 
-            } else {
-                // TODO - rework assumption that data is CACHE DATA
+            if (requestCount > 0) { // positive request count, process packet now
+                if (packetProcessID.equals(StringConst.DATA_FIB)) {
 
-                handleCacheData(packetUserID, packetSensorID, packetTimeString, packetProcessID,
-                        packetFloatContent, allValidPITEntries);
+                    handleFIBData(packetFloatContent);
+
+                } else if (packetProcessID.equals(StringConst.DATA_CACHE)) {
+
+                    handleCacheData(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                            packetFloatContent, allValidPITEntries);
+                } else {
+                    // unknown process id; drop packet
+                }
             }
         }
     }
 
     /** Method handles incoming Non-FIB data**/
-    void handleCacheData(String packetUserID,String  packetSensorID,String  packetTimeString,
+    static void handleCacheData(String packetUserID,String  packetSensorID,String  packetTimeString,
                          String  packetProcessID,String  packetFloatContent,
                          ArrayList<DBData> allValidPITEntries) {
 
@@ -370,31 +377,25 @@ public class UDPListener extends Thread {
             MainActivity.datasource.deletePITEntry(allValidPITEntries.get(i).getUserID(),
                     allValidPITEntries.get(i).getTimeString(), allValidPITEntries.get(i).getIpAddr());
 
-            if (allValidPITEntries.get(i).getIpAddr().equals(deviceIP)) {
-                // this device requested the data, notify
-                // TODO - notify of reception of requested data
-
-            } else {
+            // another device requested the data, send reply as Datapacket
+            if (!allValidPITEntries.get(i).getIpAddr().equals(MainActivity.deviceIP))  {
 
                 // NOTE: params list = Context context, String timestring, String processID, String content
                 DataPacket dataPacket = new DataPacket(packetUserID,
-                        packetSensorID, packetTimeString, packetProcessID, packetFloatContent,
-                        DataPacket.CONTENT_TYPE_DEFAULT,
-                        DataPacket.DEFAULT_FRESH, DataPacket.SIGNATURE_DIGEST_SHA);
+                        packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
 
-                new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr())
+                new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr(), StringConst.DATA_TYPE)
                         .execute(dataPacket.toString()); // send DATA packet
             }
         }
     }
 
     /** Method handles incoming FIB data**/
-    void handleFIBData(String packetFloatContent) {
+    static void handleFIBData(String packetFloatContent) {
 
         DBData data = new DBData();
 
         // data packet contains requested fib data, store in fib now
-
         String myUserID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_USER_ID_KEY, "");
 
         // expected format: "userID,userIP"
@@ -402,7 +403,7 @@ public class UDPListener extends Thread {
 
         data.setUserID(packetFIBContent[0].trim());
         data.setIpAddr(packetFIBContent[1].trim());
-        data.setTimeString(DBData.CURRENT_TIME);
+        data.setTimeString(StringConst.CURRENT_TIME);
 
         // don't add data for self here
         if (!data.getUserID().equals(myUserID)) {

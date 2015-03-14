@@ -18,6 +18,9 @@ public class NameField {
         // NOTE: method assumes userID and sensorID are device specific
                 // meaning, no specification is needed; just get from memory
 
+
+
+
         this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring
                             + "/" + processID + "/" + finalField;
     }

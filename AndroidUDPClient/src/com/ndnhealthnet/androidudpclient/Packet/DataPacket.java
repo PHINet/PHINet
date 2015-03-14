@@ -1,5 +1,8 @@
 package com.ndnhealthnet.androidudpclient.Packet;
 
+import com.ndnhealthnet.androidudpclient.StringConst;
+import com.ndnhealthnet.androidudpclient.Utils;
+
 public class DataPacket {
 
     // TODO - only send certain portions of DataPacket (be able to avoid optional)
@@ -23,9 +26,15 @@ public class DataPacket {
     private int freshnessPeriod;
     private int signatureType;
 
+    /** constructor allows specified freshnessPeriod, signatureType, and contentType **/
     public DataPacket(String userDataID, String sensorID,
                       String timestring, String processID, String content, int contentType,
                       int freshnessPeriod, int signatureType) {
+
+        // if current time requested, provide it
+        if (timestring.equals(StringConst.CURRENT_TIME)) {
+            timestring = Utils.getCurrentTime();
+        }
 
         this.nameField = new NameField(userDataID, sensorID, timestring, processID, content);
         this.content = content;
@@ -54,6 +63,23 @@ public class DataPacket {
         } else {
             this.freshnessPeriod = 0; // negatives aren't possible; assign 0
         }
+    }
+
+    /** constructor assigns defaults to params **/
+    public DataPacket(String userDataID, String sensorID,
+                      String timestring, String processID, String content) {
+
+        // if current time requested, provide it
+        if (timestring.equals(StringConst.CURRENT_TIME)) {
+            timestring = Utils.getCurrentTime();
+        }
+
+        this.nameField = new NameField(userDataID, sensorID, timestring, processID, content);
+        this.content = content;
+
+        this.contentType = CONTENT_TYPE_DEFAULT;
+        this.signatureType = SIGNATURE_DIGEST_SHA;
+        this.freshnessPeriod = 0;
     }
 
     /**
