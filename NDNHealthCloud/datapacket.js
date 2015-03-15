@@ -4,15 +4,27 @@
  **/
 
 var NameField = require('./namefield');
+var StringConst = require('./string_const').StringConst;
+var Utils = require('./utils').Utils;
 
 exports.DataPacket = function () {
     return {
-    	// NOTE: contents will be returned when 
-    	// other modules "require" this 
 
+        /** constructor allows specified freshnessPeriod, signatureType, and contentType **/
         DataPacket: function (userDataID, sensorID, timestring, processID, content, 
                     contentType, freshnessPeriod, signatureType) {
             
+            console.log("TOIMESTRING: " + timestring);
+            console.log("string const current time: " + StringConst.CURRENT_TIME);
+
+             // if current time requested, provide it
+            if (timestring === StringConst.CURRENT_TIME) {
+                console.log("if");
+                timestring = Utils.getCurrentTime();
+            } else {
+                console.log("else");
+            }
+
             this.nameField = NameField.NameField();
             this.nameField.NameField(userDataID, sensorID, timestring, processID, content);
             this.content = content;
@@ -95,6 +107,15 @@ exports.DataPacket = function () {
          --------------
          **/
         createFreshnessPeriod: function () {
+
+            /** the integer here specifies
+             *  "how long a node should wait after the arrival of this data before marking it stale"
+             *
+             *  NOTE: value is in milliseconds
+             *
+             *  NOTE: stale data is still valid data; stale just means producer may have updated data
+             *  **/
+
             var content = (this.freshnessPeriod).toString(); 
 
             return "FRESHNESS-PERIOD-TLV " + (content.length).toString() + " " + content;

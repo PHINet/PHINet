@@ -37,8 +37,7 @@ public class ConfigNetLinksActivity extends Activity {
 
                         // check to see if PIT table already has entry for neighbor's FIB
                         ArrayList<DBData> pitsForNeighbor = MainActivity.datasource
-                                .getGeneralPITData(neighbors.get(i).getUserID(),
-                                        neighbors.get(i).getIpAddr());
+                                .getGeneralPITData(neighbors.get(i).getUserID());
 
                         boolean pitEntryFound = false;
                         for (int j = 0; j < pitsForNeighbor.size(); j++) {

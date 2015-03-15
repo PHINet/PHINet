@@ -7,17 +7,18 @@
  	- code isn't fully functional; db intended
  	- future schema: PendingInterestTable(USER_ID text, SENSOR_ID text, TIME_STRING, text, 
  			PROCESS_ID text, IP_ADDR text, PRIMARY KEY(USER_ID, TIME_STRING, IP_ADDR))
-
  */
 
 var DBDataClass = require('./data');
+var StringConst = require('./string_const');
 
 exports.PIT = function () {
 
 	// NOTE: temp var
 	var tempDBData = DBDataClass.DATA();
 	tempDBData.pitData("serverTestUser", "serverTestSensor", 
-					"NOW", "testprocessID", "10.11.12.13");
+					StringConst.INTEREST_CACHE_DATA, StringConst.CURRENT_TIME, 
+					 "10.11.12.13");
 
 	return {
 		// NOTE: This fib entry is data only for testing
@@ -33,8 +34,7 @@ exports.PIT = function () {
 				var i;
 				for (i = 0; i < this.tempPITArray; i++) {
 					if (DBDataObject.getUserID() === this.tempPITArray[i].getUserID() 
-						&& DBDataObject.getIpAddr() ===  this.tempPITArray[i].getIpAddr()
-						&& DBDataObject.getTimeString() === this.tempPITArray[i].getTimeString()) {
+						&& DBDataObject.getIpAddr() ===  this.tempPITArray[i].getIpAddr()) {
 
 						console.log("PIT entry already exists; cannot add");
 						return;
@@ -53,8 +53,7 @@ exports.PIT = function () {
 			var i; 
 			for (i = 0; i < this.tempPITArray.length; i++) {
 				if (userid === this.tempPITArray[i].getUserID() 
-						&& timestring ===  this.tempPITArray[i].getIpAddr()
-						&& ipaddr === this.tempPITArray[i].getTimeString()) {
+						&& ipaddr ===  this.tempPITArray[i].getIpAddr()) {
 
 						this.tempPITArray.splice(i, 1); // remove element from PIT
 						console.log("Element successfully removed from PIT");
@@ -92,12 +91,11 @@ exports.PIT = function () {
 			}
 		},
 
-		getPITData: function (userid, timestring, ipaddr) {
+		getPITData: function (userid, ipaddr) {
 			var i; 
 			for (i = 0; i < this.tempPITArray.length; i++) {
 				if (userid === this.tempPITArray[i].getUserID() 
-						&& timestring ===  this.tempPITArray[i].getIpAddr()
-						&& ipaddr === this.tempPITArray[i].getTimeString()) {
+						&& ipaddr ===  this.tempPITArray[i].getIpAddr()) {
 
 						console.log("Element successfully returned from PIT");
 						return this.tempPITArray[i];
@@ -112,8 +110,7 @@ exports.PIT = function () {
 			var allUserData = [];
 			var i; 
 			for (i = 0; i < this.tempPITArray.length; i++) {
-				if (userid === this.tempPITArray[i].getUserID() 
-						&& ipaddr === this.tempPITArray[i].getTimeString()) {
+				if (userid === this.tempPITArray[i].getUserID()) {
 
 						allUserData.push(this.tempPITArray[i]);
 					}

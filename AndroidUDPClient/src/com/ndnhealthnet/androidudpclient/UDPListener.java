@@ -69,6 +69,9 @@ public class UDPListener extends Thread {
      * **/
     static void handleIncomingNDNPacket(String packetData) {
 
+        // NOTE: temporary debugging print
+        System.out.println("incoming packet: " + packetData);
+
         String [] packetDataArray;
 
         // remove "null" unicode characters
@@ -194,7 +197,7 @@ public class UDPListener extends Thread {
         } else {
             // second, check PIT
 
-            if (MainActivity.datasource.getGeneralPITData(packetUserID, packetIP) == null) {
+            if (MainActivity.datasource.getGeneralPITData(packetUserID) == null) {
 
                 // add new request to PIT, then look into FIB before sending request
                 DBData newPITEntry = new DBData();
@@ -246,7 +249,7 @@ public class UDPListener extends Thread {
     /** Method returns true if the data interval is within request interval **/
     static  boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
 
-        String [] requestIntervals = requestInterval.split("||"); // split interval into start/end
+        String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
 
         // TIME_STRING FORMAT: "yyyy-MM-dd||yyyy-MM-dd"; the former is start, latter is end
 
@@ -257,6 +260,7 @@ public class UDPListener extends Thread {
 
         try {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);
             dataDate = df.parse(dataInterval);
@@ -270,7 +274,7 @@ public class UDPListener extends Thread {
         }
 
         // if dataInterval is not before start and not after end, then its with interval
-        return !beforeStartDate && !afterEndDate;
+        return (!beforeStartDate && !afterEndDate) || requestInterval.equals(dataInterval);
     }
 
     /** handles DATA packet as per NDN specification
@@ -279,6 +283,7 @@ public class UDPListener extends Thread {
      */
     static void handleDataPacket(String[] packetDataArray)
     {
+
         String [] nameComponent = null;
         String dataContents = null;
 
@@ -313,17 +318,16 @@ public class UDPListener extends Thread {
 
         // first, determine who wants the data
         ArrayList<DBData> allValidPITEntries = MainActivity.datasource
-                .getGeneralPITData(packetUserID, packetTimeString);
+                .getGeneralPITData(packetUserID);
 
         if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
-
             // no one requested the data, merely drop it
         } else {
 
             // determine if data packet's time interval matches any requests
-
             int requestCount = 0;
             for (int i = 0; i < allValidPITEntries.size(); i++) {
+
                 if (isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
                     requestCount++;
                 }
@@ -360,9 +364,6 @@ public class UDPListener extends Thread {
         data.setDataFloat(packetFloatContent);
 
         // if data exists in cache, just update
-
-        // TODO - again, rework for specific CS data once TIMESTRING is valid
-
         if (MainActivity.datasource.getGeneralCSData(packetUserID) != null) {
             MainActivity.datasource.updateCSData(data);
         } else {

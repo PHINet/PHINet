@@ -146,12 +146,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Data is queried without ipAddr specification; multiple entries may be found.
      * **/
-    public ArrayList<DBData> getGeneralPITData(String userID, String timeString) {
+    public ArrayList<DBData> getGeneralPITData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        // TODO - rework with real timestring
-
-        String whereSelection = "_userID=\"" + userID + "\"";// AND timestring=\"" + timeString + "\"";
+        String whereSelection = "_userID=\"" + userID + "\"";
 
         Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
@@ -387,9 +385,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // TODO - use PARAM TIME_STRING
-        String whereSelection = "_userID= \"" + userID + "\"" // AND timestring=\"" + timeString
-                + " AND ipAddress= \"" + ipAddr + "\"";
+        String whereSelection = "_userID= \"" + userID + "\"" + "AND timestring=\"" + timeString
+                + "\" AND ipAddress= \"" + ipAddr + "\"";
 
         return db.delete(PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }

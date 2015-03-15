@@ -160,7 +160,7 @@ public class PatientDataActivity extends Activity {
 
         if (mWifi.isConnected()) {
 
-            ArrayList<DBData> pitEntries = MainActivity.datasource.getGeneralPITData(patientUserID, patientIP);
+            ArrayList<DBData> pitEntries = MainActivity.datasource.getGeneralPITData(patientUserID);
 
             // place entry into PIT for self; this is because if a request is
             // received for same data, we won't send two identical PITs
@@ -174,7 +174,7 @@ public class PatientDataActivity extends Activity {
                 selfPITEntry.setSensorID(StringConst.NULL_FIELD);
 
                 selfPITEntry.setTimeString(generateTimeString());
-                selfPITEntry.setProcessID(StringConst.DATA_CACHE);
+                selfPITEntry.setProcessID(StringConst.INTEREST_CACHE_DATA);
 
                 // deviceIP, because this device is the requester
                 selfPITEntry.setIpAddr(MainActivity.deviceIP);
@@ -183,11 +183,15 @@ public class PatientDataActivity extends Activity {
 
             } else {
                 // user has already requested data, update PIT entries
-                for (int i = 0; i < pitEntries.size(); i++) {
+
+                // TODO - rework the way PIT entries are updated
+                //  TODO - (the request interval should not be changed but rather sent time)
+
+                /*for (int i = 0; i < pitEntries.size(); i++) {
 
                     pitEntries.get(i).setTimeString(StringConst.CURRENT_TIME);
                     MainActivity.datasource.updatePITData(pitEntries.get(i));
-                }
+                }*/
             }
 
             ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
@@ -200,7 +204,7 @@ public class PatientDataActivity extends Activity {
 
                     InterestPacket interestPacket = new InterestPacket(
                             patientUserID, StringConst.NULL_FIELD, generateTimeString(),
-                            StringConst.DATA_CACHE, MainActivity.deviceIP);
+                            StringConst.INTEREST_CACHE_DATA, MainActivity.deviceIP);
 
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(interestPacket.toString()); // send interest packet

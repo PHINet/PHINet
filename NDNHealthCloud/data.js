@@ -3,15 +3,28 @@
  * used to handle patient information
  **/
 
+var StringConst = require('./string_const').StringConst;
+var Utils = require('./utils').Utils;
+
 exports.DATA = function () { 
 
     return {
     	
-    	CURRENT_TIME: "CURRENT_TIME",
-
     	// Data Cache Constructor
     	csData: function (userID, sensorID, processID, timeString,
                      datafloat) {
+
+            console.log("TOIMESTRING: " + timeString);
+            console.log("string const current time: " + StringConst.CURRENT_TIME);
+
+             // if current time requested, provide it
+            if (timeString === StringConst.CURRENT_TIME) {
+                console.log("if");
+                timeString = Utils.getCurrentTime();
+            } else {
+                console.log("else");
+            }
+
             this.sensorID = sensorID;
             this.processID = processID;
             this.timeString = timeString;
@@ -22,6 +35,12 @@ exports.DATA = function () {
         // PIT Entry Constructor
         pitData: function (userID, sensorID, processID, timeString,
                     ipAddr) {
+
+            // if current time requested, provide it
+            if (timeString === StringConst.CURRENT_TIME) {
+                timeString = Utils.getCurrentTime();
+            }
+
             this.sensorID = sensorID;
             this.processID = processID;
             this.timeString = timeString;
@@ -31,17 +50,15 @@ exports.DATA = function () {
 
         // FIB entry constructor
         fibData: function(userID, timeString, ipAddr) {
+
+            // if current time requested, provide it
+            if (timeString === StringConst.CURRENT_TIME) {
+                timeString = Utils.getCurrentTime();
+            }
+            
             this.userID = userID;
             this.timeString = timeString;
             this.ipAddr = ipAddr;
-        },
-
-        getApplicationName: function () {
-            return this.applicationName;
-        },
-
-        setApplicationName: function (applicationName) {
-            this.applicationName = applicationName;
         },
 
         getSensorID: function () {
@@ -66,11 +83,8 @@ exports.DATA = function () {
 
         setTimeString: function (timeString) {
 
-            if (timeString === this.CURRENT_TIME) {
-                var date = new Data();
-
-                timeString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDay()
-                    + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+            if (timeString === StringConst.CURRENT_TIME) {
+                timeString = Utils.getCurrentTime();
             }
 
             this.timeString = timeString;

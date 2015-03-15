@@ -49,6 +49,9 @@ exports.NameField = function () {
          --------------
          **/
         createImplicitSha256DigestComponent: function () {
+
+            // TODO - create real component
+
             var exampleSha = "893259d98aca58c451453f29ec7dc38688e690dd0b59ef4f3b9d33738bff0b8d";
             return "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + exampleSha.length.toString()
                     + " " + exampleSha;

@@ -31,6 +31,9 @@ class UDPSocket extends AsyncTask<String, Void, Void> {
             InetAddress IPAddress = InetAddress.getByName(destAddr);
             byte[] sendData = message[0].getBytes();
 
+            // NOTE: temporary debugging print
+            System.out.println("sent packet: " + message[0]);
+
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
 

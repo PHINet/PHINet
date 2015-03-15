@@ -3,6 +3,7 @@
  * segment of execution for this web application
  **/
 
+var StringConst = require('./string_const').StringConst;
 var express = require('express')
 var udp_comm = require('./udp_comm').UDPComm();
 var http = require('http');
@@ -17,7 +18,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-app.set('port', process.env.PORT || 3000);
+app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
 app.get('/', function (req, res) {
@@ -34,18 +35,54 @@ app.get('/signup', function (req, res) {
 
 // ---- Code Tests UDP Functionality ---
 var DataPacketClass = require('./datapacket');
+var InterestPacketClass = require('./interestpacket');
 app.get('/test', function (req, res) {
   res.sendFile('/public/templates/test.html', { root: __dirname })
 })
 
+/** method allows user to test networking functionality **/
 app.post('/submitIP', function(req, res) {
-   console.log(req.body.user.ipAddr);
 
-   var dataPacket = new DataPacketClass.DataPacket();
-			    dataPacket.DataPacket("SERVER", "null",
-			            "NOW", "CACHE_DATA", "99,100,101,102");
+  if (req.body.user.ipAddrPing !== undefined) {
+    // user requested ping
+  
+    var sys = require('sys')
+    var exec = require('child_process').exec;
 
-   udp_comm.sendMessage(dataPacket.createDATA(), req.body.user.ipAddr);
+    function puts(error, stdout, stderr) { 
+      console.log(stdout);
+    }
+
+    exec("ping -c 3 " + req.body.user.ipAddrPing, puts);
+
+  } else if (req.body.user.ipAddrTrace !== undefined) {
+    // user requested traceroute
+
+    var traceroute = require('traceroute');
+
+    traceroute.trace(req.body.user.ipAddrTrace, 
+      function (err,hops) {
+          if (!err) { 
+            console.log(hops); 
+          } else {
+            console.log("error: " + err);
+          }
+    });
+
+  } else {
+    // user requested fake packets sent to them
+
+    var dataPacket = new DataPacketClass.DataPacket();
+    dataPacket.DataPacket("CLOUD-SERVER", StringConst.NULL_FIELD, StringConst.CURRENT_TIME, 
+        StringConst.DATA_CACHE, "0,99,100,101,102");
+
+    var interestPacket = new InterestPacketClass.InterestPacket();
+    interestPacket.InterestPacket("CLOUD-SERVER", StringConst.NULL_FIELD, 
+      StringConst.CURRENT_TIME, StringConst.INTEREST_CACHE_DATA, "0,99,100,101,102");
+
+    udp_comm.sendMessage(dataPacket.createDATA(), req.body.user.ipAddr);
+    udp_comm.sendMessage(interestPacket.createINTEREST(), req.body.user.ipAddr);
+  }
 
 });
 // ---- Code Tests UDP Functionality ---

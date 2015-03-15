@@ -4,12 +4,28 @@
  **/
 
 var NameField = require('./namefield');
+var StringConst = require('./string_const').StringConst;
+var Utils = require('./utils').Utils;
 
 exports.InterestPacket = function () {
    
    return { 
 
+        LIFETIME_CONST : 100,
+
         InterestPacket: function (userDataID, sensorID, timestring, processID, ipAddr) {
+
+            console.log("TOIMESTRING: " + timestring);
+            console.log("string const current time: " + StringConst.CURRENT_TIME);
+
+             // if current time requested, provide it
+            if (timestring === StringConst.CURRENT_TIME) {
+                console.log("if");
+                timestring = Utils.getCurrentTime();
+            } else {
+                console.log("else");
+            }
+
             this.nameField = NameField.NameField();
             this.nameField.NameField(userDataID, sensorID, timestring, processID, ipAddr);
             this.NON_NEG_INT_CONST = 0; // TODO - rework
@@ -152,7 +168,7 @@ exports.InterestPacket = function () {
         --------------
         **/
         createInterestLifetime: function () {
-            var content = "0"; // TODO - rework
+            var content = this.LIFETIME_CONST.toString(); // TODO - add user-selected interval
             return "INTEREST-LIFETIME-TYPE " + (content.length).toString() + " " + content;
         },
 

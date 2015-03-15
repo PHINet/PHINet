@@ -21,6 +21,26 @@
       <form method="post" action="/submitIP">
     <input type="text" name="user[ipAddr]">
     <input type="submit" value="Submit">
-</form>
+    </form>
+
+    <p class="with_background">
+        Enter your IP to have the server ping you and the results posted here.
+        </p>
+        <form method="post" action="/submitIP">
+    <input type="text" name="user[ipAddrPing]">
+
+    <input id="pingButton" value="submit" type="submit">
+    </form>
+
+    <p class="with_background">
+        Enter your IP to have the server traceroute you and the results posted here.
+        </p>
+        <form method="post" action="/submitIP">
+    <input type="text" name="user[ipAddrTrace]">
+
+    <input id="pingButton" value="submit" type="submit">
+    </form>
+
+    <div id="results"></div>
 	</body>
 </html>

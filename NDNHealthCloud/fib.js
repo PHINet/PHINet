@@ -11,11 +11,12 @@
  */
 
 var DBDataClass = require('./data');
+var StringConst = require('./string_const').StringConst;
 
 exports.FIB =  function () {
 
 	var tempDBData = DBDataClass.DATA();
-		tempDBData.fibData("serverTestUser", "NOW", "10.11.12.13");
+		tempDBData.fibData("serverTestUser", StringConst.CURRENT_TIME, "10.11.12.13");
 
 	return {
 		

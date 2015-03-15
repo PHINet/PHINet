@@ -11,18 +11,19 @@
  */
 
 var DBDataClass = require('./data');
+var StringConst = require('./string_const').StringConst;
 
 exports.CS = function () {
 
 	// NOTE: This fib entry is data only for testing
 	var tempDBData1 = DBDataClass.DATA();
 		tempDBData1.csData("serverTestUser", "serverTestSensor", 
-					"NOW", "testprocessID", "10,11,12,13,14,15");
+					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
 
 	// NOTE: This fib entry is data only for testing
 	var tempDBData2 = DBDataClass.DATA();
-		tempDBData2.csData("SERVER", "serverTestSensor", 
-					"NOW", "testprocessID", "10,11,12,13,14,15,99,99,99");
+		tempDBData2.csData("CLOUD-SERVER", "serverTestSensor", 
+					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,77");
 
 	return {
 
@@ -58,7 +59,7 @@ exports.CS = function () {
 			var i; 
 			for (i = 0; i < this.tempCSArray.length; i++) {
 				if (userid === this.tempCSArray[i].getUserID() 
-						&& timestring ===  this.tempCSArray[i].getIpAddr()) {
+						&& timestring ===  this.tempCSArray[i].getTimeString()) {
 
 						this.tempCSArray.splice(i, 1); // remove element from CS
 						console.log("Element successfully removed from CS");
@@ -114,8 +115,6 @@ exports.CS = function () {
 				return allUserData;
 			}
 
-			
-
 			console.log("Element couldn't be returned from CS; no entry found");
 		},
 
@@ -123,7 +122,7 @@ exports.CS = function () {
 			var i; 
 			for (i = 0; i < this.tempCSArray.length; i++) {
 				if (userid === this.tempCSArray[i].getUserID() 
-						&& ipaddr === this.tempCSArray[i].getTimeString()) {
+						&& timestring === this.tempCSArray[i].getTimeString()) {
 
 						console.log("Element successfully returned from CS");
 						return this.tempCSArray[i];
