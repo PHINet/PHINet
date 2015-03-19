@@ -3,19 +3,29 @@
  * specified in the NDN documentation
  **/
 
- /** NOTE:
- 	- code isn't fully functional; db intended
- 	- future schema: ContentStore(USER_ID text, SENSOR_ID text, TIME_STRING, text, 
- 			PROCESS_ID text, DATA_CONTENTS text, PRIMARY KEY(USER_ID, TIME_STRING))
-
- */
-
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
+var pg = require('pg');
+
+var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+client.connect(function(err) {
+  if(err) {
+    return console.error('could not connect to postgres', err);
+  } 
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log("the time: " + result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
+  });
+});
+
 exports.CS = function () {
 
-	// NOTE: This fib entry is data only for testing
+	/*// NOTE: This fib entry is data only for testing
 	var tempDBData1 = DBDataClass.DATA();
 		tempDBData1.csData("serverTestUser", "serverTestSensor", 
 					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
@@ -24,112 +34,96 @@ exports.CS = function () {
 	var tempDBData2 = DBDataClass.DATA();
 		tempDBData2.csData("CLOUD-SERVER", "serverTestSensor", 
 					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,77");
-
+*/
 	return {
-
-		// NOTE: This fib entry is data only for testing
-		tempCSArray : [tempDBData1, tempDBData2],
-
-		addCSData: function (DBDataObject) {
-
-			// perform minimal input validation
-
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
-
-				var i;
-				for (i = 0; i < this.tempCSArray; i++) {
-					if (DBDataObject.getUserID() === this.tempCSArray[i].getUserID() 
-						&& DBDataObject.getTimeString() === this.tempCSArray[i].getTimeString()) {
-
-						console.log("CS entry already exists; cannot add");
-						return;
-					}
-	 			}
-
-	 			// entry passes input validation; now add
-				this.tempCSArray.push(DBDataObject);
-			} else {
-				console.log("Cannot add null entry to CS");
-			}
-		},
 
 		deleteCSData: function (userid, timestring) {
 
-			var i; 
-			for (i = 0; i < this.tempCSArray.length; i++) {
-				if (userid === this.tempCSArray[i].getUserID() 
-						&& timestring ===  this.tempCSArray[i].getTimeString()) {
 
-						this.tempCSArray.splice(i, 1); // remove element from CS
-						console.log("Element successfully removed from CS");
-						return;
-					}
-			}
+            client.query( "DELETE FROM ContentStore WHERE "
+            + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\' AND " +
+                StringConst.KEY_TIME_STRING + " = \'" + timestring + "\'", function(err, result) {
 
-			console.log("Element couldn't be removed from CS; no matching entry found");
+                if (err) {
+                    // table doesn't exist
+
+                    console.log("error: " + err);
+                } else {
+
+                    // TODO - perform some check
+                }
+            });
 		},
 
 		updateCSData: function (DBDataObject) {
-			// perform minimal input validation
+            // perform minimal input validation
 
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
+            if (DBDataObject.getUserID() !== null && DBDataObject.getDataFloat() !== null
+                && DBDataObject.getTimeString() !== null) {
 
-				var i;
-				for (i = 0; i < this.tempCSArray; i++) {
-					if (DBDataObject.getUserID() === this.tempCSArray[i].getUserID() 
-						&& DBDataObject.getTimeString() === this.tempCSArray[i].getTimeString()) {
+                client.query( "SELECT * FROM ContentStore WHERE "
+                + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
 
-						this.tempCSArray[i] = DBDataObject;
+                    if (err) {
+                        // table doesn't exist
 
-						console.log("CS entry updated");
-						return;
-					}
-	 			}
+                        console.log("error: " + err);
+                    } else {
 
-	 			console.log("wasn't able to find entry in CS; update unsuccessful")
+                        // TODO - update data and timestamp
+                    }
+                });
 
-	 		} else {
-				console.log("Cannot update null entry to CS");
-			}
+
+            } else {
+                console.log("Cannot update null entry to FIB");
+            }
 		},
 
 		// gets all data for specific user
 		getGeneralCSData: function (userid) {
 
-			var allUserData = [];
+			var allCSEntries = [];
+            client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userid + "\'",
+                function(err, result) {
 
-			var i; 
-			for (i = 0; i < this.tempCSArray.length; i++) {
-				if (userid === this.tempCSArray[i].getUserID()) {
+                if (err) {
+                    // table doesn't exist
 
-						console.log("Element successfully returned from CS");
-						allUserData.push(this.tempCSArray[i]);
-					}
-			}
+                    console.log("error: " + err);
+                } else {
+                    for (var i = 0; i < result.rows.length; i++) {
+                        // TODO - create db object for all and return
+                    }
+                }
 
-			if (allUserData.length === 0) {
-				return null;
-			} else {
-				return allUserData;
-			}
+                return allCSEntries;
+            });
 
-			console.log("Element couldn't be returned from CS; no entry found");
+            return null;
 		},
 
 		getSpecificCSData: function (userid, timestring) {
-			var i; 
-			for (i = 0; i < this.tempCSArray.length; i++) {
-				if (userid === this.tempCSArray[i].getUserID() 
-						&& timestring === this.tempCSArray[i].getTimeString()) {
+            client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
+                user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timestring + "\'", function(err, result) {
 
-						console.log("Element successfully returned from CS");
-						return this.tempCSArray[i];
-					}
-			}
+                if (err) {
+                    // table doesn't exist
 
-			console.log("Element couldn't be returned from CS; no entry found");
+                    console.log("error: " + err);
+                } else {
+                   // TODO - if matching entry found, return
+                }
+
+            });
+		}, 
+
+		addCSData: function(dbDataObject)  {
+			client.query("INSERT INTO ContentStore(" + StringConst.KEY_USER_ID 
+			    + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + "," 
+			    + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
+			    +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
+                dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()]);
 		}
 	}
 };

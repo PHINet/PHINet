@@ -21,54 +21,37 @@
       <div id="menubar">
         <ul id="menu">
           <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
+          
           <li><a href="/">Home</a></li>
           <li><a href="/document">Document</a></li>
-          <li><a href="/contact">Contact Us</a></li>
-          <li  class="current"><a href="/profile">Profile</a></li>
+          <li class="current"><a href="/contact">Contact Us</a></li>
+          <li><a href="/profile">Profile</a></li>
           <li><a href="/login">Login</a></li>
           <li><a href="/signup">Sign Up</a></li>
         </ul>
       </div>
     </div>
     <div id="site_content">
-      <div id="sidebar_container"></div>
       <div id="content">
         <!-- insert the page content here -->
-        <h1>Profile</h1>
-        <p>&nbsp;</p>
-        <table id="content">
-
-            	<tr>
-            		<td colspan="2">
-					<p align="center"><strong>Personal information</strong></p>
-            		</td>
-                 </tr>
-                 <tr>
-                 <td><br>
-               	   <p>First name: TRUNG  </p>
-				   <p>Last name: DO   </p>
-				   <p>Email: tdo105086h@troy.edu       </p>
-				   <p>Address: 409A South Brundidge Street  </p>
-				   <p>User type: ADMIN   </p>
-				</td>
-                <td>
-                (Statistic Picture)
-                </td>
-   				</tr>
-
-		</table>
-        <p>&nbsp;</p>
-
-        
+        <h1>Contact Us</h1>
+        <p>&nbsp; </p>
+        <form action="#" method="post">
+          <div class="form_settings">
+            <p><span>Name</span><input class="contact" type="text" name="your_name" value="" /></p>
+            <p><span>Email Address</span><input class="contact" type="text" name="your_email" value="" /></p>
+            <p><span>Message</span><textarea class="contact textarea" rows="8" cols="50" name="your_enquiry"></textarea></p>
+            <p style="padding-top: 15px"><span>&nbsp;</span><input class="submit" type="submit" name="contact_submitted" value="submit" /></p>
+          </div>
+        </form>
+        <p><br /><br /></p>
       </div>
     </div>
     <div id="footer">
-    <p id="footer_time" align="center" ></p>
+       <p id="footer_time" align="center" ></p>
 			<script>
 				document.getElementById("footer_time").innerHTML = Date();
 			</script>
-
-      <p></p>
     </div>
   </div>
 </body>

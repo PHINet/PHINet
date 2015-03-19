@@ -4,61 +4,47 @@
  **/
 
 
- /** NOTE:
- 	- code isn't fully functional; db intended
- 	- future schema: ForwardingInformationBase(USER_ID text PRIMARY KEY, 
- 				TIME_STRING, text, IP_ADDR text)
- */
-
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
+var pg = require('pg');
+
+var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+client.connect(function(err) {
+  if(err) {
+    return console.error('could not connect to postgres', err);
+  } 
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log("the time: " + result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
+  });
+});
+
 exports.FIB =  function () {
 
-	var tempDBData = DBDataClass.DATA();
-		tempDBData.fibData("serverTestUser", StringConst.CURRENT_TIME, "10.11.12.13");
+	/*var tempDBData = DBDataClass.DATA();
+		tempDBData.fibData("serverTestUser", StringConst.CURRENT_TIME, "10.11.12.13");*/
 
 	return {
-		
-		// NOTE: This fib entry is data only for testing
-		tempFIBArray : [tempDBData],
-
-		addFIBData: function (DBDataObject) {
-
-			// perform minimal input validation
-
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
-
-				var i;
-				for (i = 0; i < this.tempFIBArray; i++) {
-					if (DBDataObject.getUserID() === this.tempFIBArray[i].getUserID()) {
-
-						console.log("FIB entry already exists; cannot add");
-						return;
-					}
-	 			}
-
-	 			// entry passes input validation; now add
-				this.tempFIBArray.push(DBDataObject);
-			} else {
-				console.log("Cannot add null entry to FIB");
-			}
-		},
 
 		deleteFIBData: function (userid) {
 
-			var i; 
-			for (i = 0; i < this.tempFIBArray.length; i++) {
-				if (userid === this.tempFIBArray[i].getUserID()) {
+            client.query( "DELETE FROM ForwardingInformationBase WHERE "
+            + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'", function(err, result) {
 
-						this.tempFIBArray.splice(i, 1); // remove element from FIB
-						console.log("Element successfully removed from FIB");
-						return;
-					}
-			}
+                if (err) {
+                    // table doesn't exist
 
-			console.log("Element couldn't be removed from FIB; no matching entry found");
+                    console.log("error: " + err);
+                } else {
+
+                    // TODO - perform some check
+                }
+            });
 		},
 
 		updateFIBData: function (DBDataObject) {
@@ -67,18 +53,18 @@ exports.FIB =  function () {
 			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
 					&& DBDataObject.getTimeString() !== null) {
 
-				var i;
-				for (i = 0; i < this.tempFIBArray; i++) {
-					if (DBDataObject.getUserID() === this.tempFIBArray[i].getUserID()) {
+                client.query( "SELECT * FROM ForwardingInformationBase WHERE "
+                + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
 
-						this.tempFIBArray[i] = DBDataObject;
+                    if (err) {
+                        // table doesn't exist
 
-						console.log("FIB entry updated");
-						return;
-					}
-	 			}
+                        console.log("error: " + err);
+                    } else {
 
-	 			console.log("wasn't able to find entry in FIB; update unsuccessful")
+                        // TODO - update IP and timestamp
+                    }
+                });
 
 	 			
 			} else {
@@ -87,25 +73,51 @@ exports.FIB =  function () {
 		},
 
 		getFIBData: function (userid) {
-			var i; 
-			for (i = 0; i < this.tempFIBArray.length; i++) {
-				if (userid === this.tempFIBArray[i].getUserID()) {
 
-						console.log("Element successfully returned from FIB");
-						return this.tempFIBArray[i];
-					}
-			}
+            client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
 
-			console.log("Element couldn't be returned from FIB; no entry found");
+                if (err) {
+                    // table doesn't exist
+
+                    console.log("error: " + err);
+                } else {
+
+                    for (var i = 0; i < result.rows.length; i++) {
+                        if (result.rows[i].userid === userid) {
+
+                            // TODO - create db object and return
+
+                        }
+                    }
+                }
+            });
+
+            return null;
 		},
 
 		getAllFIBData: function () {
 
-			if (this.tempFIBArray.length === 0) {
-				return null;
-			} else {
-				return this.tempFIBArray;
-			}	
+            var allFIBEntries = [];
+            client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
+
+                if (err) {
+                    // table doesn't exist
+
+                    console.log("error: " + err);
+                } else {
+                    for (var i = 0; i < result.rows.length; i++) {
+                        // TODO - create db object for all and return
+                    }
+                }
+
+                return allFIBEntries;
+            });
+		}, 
+
+		insertFIBData: function(dbDataObject)  {
+			client.query("INSERT INTO ForwardingInformationBase(" + StringConst.KEY_USER_ID 
+			 + "," + StringConst.KEY_TIME_STRING + ","  + StringConst.KEY_IP_ADDRESS
+			 +") values($1, $2, $3)", [dbDataObject.getUserID(), dbDataObject.getTimeString(), dbDataObject.getIpAddr()]);
 		}
 	}
 };

@@ -269,12 +269,12 @@ public class UDPListener extends Thread {
             afterEndDate = dataDate.after(endDate);
 
         } catch (ParseException e) {
-
             return false; // some problem occurred, default return is false
         }
 
         // if dataInterval is not before start and not after end, then its with interval
-        return (!beforeStartDate && !afterEndDate) || requestInterval.equals(dataInterval);
+        return (!beforeStartDate && !afterEndDate) || requestInterval.equals(dataInterval)
+                || requestIntervals[1].equals(dataInterval);
     }
 
     /** handles DATA packet as per NDN specification

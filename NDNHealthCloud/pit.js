@@ -3,124 +3,111 @@
  * Table specified in the NDN documentation
  **/
 
- /** NOTE:
- 	- code isn't fully functional; db intended
- 	- future schema: PendingInterestTable(USER_ID text, SENSOR_ID text, TIME_STRING, text, 
- 			PROCESS_ID text, IP_ADDR text, PRIMARY KEY(USER_ID, TIME_STRING, IP_ADDR))
- */
 
 var DBDataClass = require('./data');
-var StringConst = require('./string_const');
+var StringConst = require('./string_const').StringConst;
+
+var pg = require('pg');
+
+var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+client.connect(function(err) {
+  if(err) {
+    return console.error('could not connect to postgres', err);
+  } 
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log("the time: " + result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
+  });
+});
 
 exports.PIT = function () {
 
 	// NOTE: temp var
-	var tempDBData = DBDataClass.DATA();
+	/*var tempDBData = DBDataClass.DATA();
 	tempDBData.pitData("serverTestUser", "serverTestSensor", 
 					StringConst.INTEREST_CACHE_DATA, StringConst.CURRENT_TIME, 
-					 "10.11.12.13");
+					 "10.11.12.13");*/
 
 	return {
-		// NOTE: This fib entry is data only for testing
-		tempPITArray : [tempDBData],
-
-		addPITData: function (DBDataObject) {
-
-			// perform minimal input validation
-
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
-
-				var i;
-				for (i = 0; i < this.tempPITArray; i++) {
-					if (DBDataObject.getUserID() === this.tempPITArray[i].getUserID() 
-						&& DBDataObject.getIpAddr() ===  this.tempPITArray[i].getIpAddr()) {
-
-						console.log("PIT entry already exists; cannot add");
-						return;
-					}
-	 			}
-
-	 			// entry passes input validation; now add
-				this.tempPITArray.push(DBDataObject);
-			} else {
-				console.log("Cannot add null entry to PIT");
-			}
-		},
 
 		deletePITData: function (userid, timestring, ipaddr) {
 
-			var i; 
-			for (i = 0; i < this.tempPITArray.length; i++) {
-				if (userid === this.tempPITArray[i].getUserID() 
-						&& ipaddr ===  this.tempPITArray[i].getIpAddr()) {
+            client.query( "DELETE FROM PendingInterestTable WHERE "
+            + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\' AND " +
+            StringConst.KEY_TIME_STRING + " = \'" + timestring + "\' AND " + StringConst.KEY_TIME_STRING +
+                " = \'" + ipaddr + "\'", function(err, result) {
 
-						this.tempPITArray.splice(i, 1); // remove element from PIT
-						console.log("Element successfully removed from PIT");
-						return;
-					}
-			}
+                if (err) {
+                    // table doesn't exist
 
-			console.log("Element couldn't be removed from pit; no matching entry found");
+                    console.log("error: " + err);
+                } else {
+
+                    // TODO - perform some check
+                }
+            });
 		},
 
 		updatePITData: function (DBDataObject) {
 			// perform minimal input validation
 
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
+            if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null
+                && DBDataObject.getTimeString() !== null) {
 
-				var i;
-				for (i = 0; i < this.tempPITArray; i++) {
-					if (DBDataObject.getUserID() === this.tempPITArray[i].getUserID() 
-						&& DBDataObject.getIpAddr() ===  this.tempPITArray[i].getIpAddr()
-						&& DBDataObject.getTimeString() === this.tempPITArray[i].getTimeString()) {
+                client.query( "SELECT * FROM PendingInterestTable WHERE "
 
-						this.tempPITArray[i] = DBDataObject;
+                    // TODO - also check other params
 
-						console.log("PIT entry updated");
-						return;
-					}
-	 			}
+                + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
 
-	 			console.log("wasn't able to find entry in pit; update unsuccessful")
+                    if (err) {
+                        // table doesn't exist
 
-	 			
-			} else {
-				console.log("Cannot update null entry to PIT");
-			}
+                        console.log("error: " + err);
+                    } else {
+
+                        // TODO - update timestamp
+                    }
+                });
+
+
+            } else {
+                console.log("Cannot update null entry to FIB");
+            }
 		},
-
-		getPITData: function (userid, ipaddr) {
-			var i; 
-			for (i = 0; i < this.tempPITArray.length; i++) {
-				if (userid === this.tempPITArray[i].getUserID() 
-						&& ipaddr ===  this.tempPITArray[i].getIpAddr()) {
-
-						console.log("Element successfully returned from PIT");
-						return this.tempPITArray[i];
-					}
-			}
-
-			console.log("Element couldn't be returned from pit; no entry found");
-		}, 
 
 		// gets all data requested for specific id/ip combination
 		getGeneralPITData: function (userid,  ipaddr) {
-			var allUserData = [];
-			var i; 
-			for (i = 0; i < this.tempPITArray.length; i++) {
-				if (userid === this.tempPITArray[i].getUserID()) {
+            var allPITEntries = [];
+            client.query( "SELECT * FROM PendingInterestTable WHERE " + StringConst.KEY_USER_ID +
+                " =\'" + userid + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'" + ipaddr + "\'"
+                , function(err, result) {
 
-						allUserData.push(this.tempPITArray[i]);
-					}
-			}
+                if (err) {
+                    // table doesn't exist
 
-			if (allUserData.length === 0) {
-				return null;
-			} else {
-				return allUserData;
-			}
+                    console.log("error: " + err);
+                } else {
+                    for (var i = 0; i < result.rows.length; i++) {
+                        // TODO - create db object for all and return
+                    }
+                }
+
+                return allPITEntries;
+            });
+		}, 
+
+		addPITData: function(dbDataObject)  {
+			client.query("INSERT INTO PendingInterestTable(" + StringConst.KEY_USER_ID
+			    + "," + StringConst.KEY_SENSOR_ID + "," +StringConst. KEY_TIME_STRING + ","
+			    + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_IP_ADDRESS
+			    +") values($1, $2, $3, $4, $5)", 
+				[dbDataObject.getUserID(), dbDataObject.getSensorID(), dbDataObject.getTimeString(),
+                    dbDataObject.getProcessID(), dbDataObject.getIpAddr()]);
 		}
 	}
 };

@@ -113,15 +113,18 @@ function handleInterestPacket(packetDataArray, replyIP, replyPort) {
 	var packetProcessID = nameComponent[5];
 	var packetIP = nameComponent[6];
 
+	console.log("name: " + nameComponent);
+
    if (packetProcessID === StringConst.INTEREST_FIB) {
 		
 	    handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, replyIP, replyPort);
 
 	} else if (packetProcessID === StringConst.INTEREST_CACHE_DATA) {
-	
+		console.log("interest cache data");
 	    handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
 	            packetIP, replyIP, replyPort);
 	} else {
+		console.log("else");
 	    // unknown process id; drop packet
 	}
 }
@@ -174,8 +177,7 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 	var csDATA = CS.getGeneralCSData(packetUserID);//, packetTimeString);
 
 	if (csDATA !== null) {
-	    // NOTE: params list = Context context, vartimestring, processID, varcontent
-
+	    console.log("if statement, cache request");
 	    for (i = 0; i < csDATA.length; i++) {
 
 	        // TODO - again, rework with specific date once TIMEvaris valid

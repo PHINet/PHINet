@@ -22,15 +22,27 @@ app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
 app.get('/', function (req, res) {
-  res.sendFile('/public/templates/main.html', { root: __dirname })
+  res.sendFile('/public/templates/index.html', { root: __dirname })
 })
 
 app.get('/login', function (req, res) {
-  res.sendFile('/public/templates/loginForm.html', { root: __dirname })
+  res.sendFile('/public/templates/login.html', { root: __dirname })
 })
 
 app.get('/signup', function (req, res) {
-  res.sendFile('/public/templates/signupForm.html', { root: __dirname })
+  res.sendFile('/public/templates/signup.html', { root: __dirname })
+})
+
+app.get('/document', function (req, res) {
+  res.sendFile('/public/templates/document.html', { root: __dirname })
+})
+
+app.get('/contact', function (req, res) {
+  res.sendFile('/public/templates/contact.html', { root: __dirname })
+})
+
+app.get('/profile', function (req, res) {
+  res.sendFile('/public/templates/profile.html', { root: __dirname })
 })
 
 // ---- Code Tests UDP Functionality ---
@@ -86,6 +98,67 @@ app.post('/submitIP', function(req, res) {
 
 });
 // ---- Code Tests UDP Functionality ---
+
+// --- Code Handles DB Creation ---
+
+var pg = require('pg');
+
+var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+client.connect(function(err) {
+  if(err) {
+    return console.error('1could not connect to postgres', err);
+  } 
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log("the time: " + result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
+  });
+});
+
+function ifNonexistentCreateDB(dbName, dbCreationQuery) {
+  client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
+
+    if (err) {
+      var errWords = toString(err).split(" ");
+      var naiveCheckPasses = true;
+      // create table
+        
+      naiveCheckPasses &= errWords.indexOf("does") === -1;
+      naiveCheckPasses &= errWords.indexOf("not") === -1;
+      naiveCheckPasses &= errWords.indexOf("exist") === -1;
+
+      if (naiveCheckPasses) {
+        
+        client.query(dbCreationQuery);
+      }
+    } 
+  });
+}
+
+function createPIT() {
+
+  ifNonexistentCreateDB(StringConst.PIT_DB, StringConst.createPITQuery);
+}
+
+function createCS() {
+  
+  ifNonexistentCreateDB(StringConst.CS_DB, StringConst.createCSQuery);
+}
+
+function createFIB() {
+
+  ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery);
+}
+
+createFIB();
+createCS();
+createPIT();
+
+// --- Code Handles DB Creation ---
+
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));

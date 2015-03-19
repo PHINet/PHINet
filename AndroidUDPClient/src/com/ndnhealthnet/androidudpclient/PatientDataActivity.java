@@ -267,17 +267,37 @@ public class PatientDataActivity extends Activity {
                     startDay = day;
 
                     // call again to get end interval
+                    final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
                     AlertDialog.Builder secondInterval = generateIntervalSelector(INTERVAL_TITLE_2);
+                    secondInterval.setView(intervalSelector);
+
+                    // TODO - rework this sloppy nesting
+
+                    secondInterval.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            // get user input
+                            int day = intervalSelector.getDayOfMonth();
+                            int month = intervalSelector.getMonth() + 1; // offset required
+                            int year = intervalSelector.getYear();
+
+                            // start input already set, now store end input
+                            endYear = year;
+                            endMonth = month;
+                            endDay = day;
+
+                            // now that interval has been entered, request data from patient via NDN/UDP
+                            requestHelper();
+                        }
+                    }); secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
                     secondInterval.show();
-                } else {
-
-                    // start input already set, now store end input
-                    endYear = year;
-                    endMonth = month;
-                    endDay = day;
-
-                    // now that interval has been entered, request data from patient via NDN/UDP
-                    requestHelper();
                 }
             }
         });
