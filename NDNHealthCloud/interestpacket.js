@@ -15,15 +15,9 @@ exports.InterestPacket = function () {
 
         InterestPacket: function (userDataID, sensorID, timestring, processID, ipAddr) {
 
-            console.log("TOIMESTRING: " + timestring);
-            console.log("string const current time: " + StringConst.CURRENT_TIME);
-
              // if current time requested, provide it
             if (timestring === StringConst.CURRENT_TIME) {
-                console.log("if");
                 timestring = Utils.getCurrentTime();
-            } else {
-                console.log("else");
             }
 
             this.nameField = NameField.NameField();

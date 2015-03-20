@@ -31,93 +31,157 @@ exports.FIB =  function () {
 
 	return {
 
+        /**
+         *
+         */
 		deleteFIBData: function (userid) {
 
-            client.query( "DELETE FROM ForwardingInformationBase WHERE "
-            + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'", function(err, result) {
+            try {
 
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
+                if (userid === null || userid === undefined) {
+                    return false;
                 } else {
+                    client.query( "DELETE FROM ForwardingInformationBase WHERE "
+                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'", function(err, result) {
 
-                    // TODO - perform some check
+                        if (err) {
+                            // table doesn't exist
+
+                            console.log("error: " + err);
+                        } else {
+
+                            // TODO - perform some check
+                        }
+                    });
+
+                    return true;
                 }
-            });
-		},
 
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.deleteFIBData(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         *
+         */
 		updateFIBData: function (DBDataObject) {
 			// perform minimal input validation
 
-			if (DBDataObject.getUserID() !== null && DBDataObject.getIpAddr() !== null 
-					&& DBDataObject.getTimeString() !== null) {
+            try {
+                if (DBDataObject.getUserID() === undefined || DBDataObject === null || DBDataObject === undefined) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM ForwardingInformationBase WHERE "
+                    + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
 
-                client.query( "SELECT * FROM ForwardingInformationBase WHERE "
-                + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
+                        if (err) {
+                            // table doesn't exist
+
+                            console.log("error: " + err);
+                        } else {
+
+                            // TODO - update IP and timestamp
+                        }
+                    });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.updateFIBData(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         *
+         */
+		getFIBData: function (userid) {
+
+            try {
+                if (userid === null || userid === undefined) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
+
+                        if (err) {
+                            // table doesn't exist
+
+                            // TODO - return false if no entry found
+                            console.log("error: " + err);
+                        } else {
+
+                            for (var i = 0; i < result.rows.length; i++) {
+                                if (result.rows[i].userid === userid) {
+
+                                    // TODO - create db object and return
+
+                                }
+                            }
+                        }
+                    });
+
+                    return true;
+                }
+
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.getFIBData(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         *
+         */
+		getAllFIBData: function () {
+
+            try {
+                var allFIBEntries = [];
+                client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
 
                     if (err) {
                         // table doesn't exist
 
+                        // TODO - return false if nothing found
+
                         console.log("error: " + err);
                     } else {
-
-                        // TODO - update IP and timestamp
-                    }
-                });
-
-	 			
-			} else {
-				console.log("Cannot update null entry to FIB");
-			}
-		},
-
-		getFIBData: function (userid) {
-
-            client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
-
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
-                } else {
-
-                    for (var i = 0; i < result.rows.length; i++) {
-                        if (result.rows[i].userid === userid) {
-
-                            // TODO - create db object and return
-
+                        for (var i = 0; i < result.rows.length; i++) {
+                            // TODO - create db object for all and return
                         }
                     }
-                }
-            });
 
-            return null;
+                    return allFIBEntries;
+                });
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.getAllFIBData(): " + err);
+                return false;
+            }
 		},
 
-		getAllFIBData: function () {
-
-            var allFIBEntries = [];
-            client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
-
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
-                } else {
-                    for (var i = 0; i < result.rows.length; i++) {
-                        // TODO - create db object for all and return
-                    }
-                }
-
-                return allFIBEntries;
-            });
-		}, 
-
+        /**
+         *
+         */
 		insertFIBData: function(dbDataObject)  {
-			client.query("INSERT INTO ForwardingInformationBase(" + StringConst.KEY_USER_ID 
-			 + "," + StringConst.KEY_TIME_STRING + ","  + StringConst.KEY_IP_ADDRESS
-			 +") values($1, $2, $3)", [dbDataObject.getUserID(), dbDataObject.getTimeString(), dbDataObject.getIpAddr()]);
+
+            try {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                    return false;
+                } else {
+                    client.query("INSERT INTO ForwardingInformationBase(" + StringConst.KEY_USER_ID
+                    + "," + StringConst.KEY_TIME_STRING + ","  + StringConst.KEY_IP_ADDRESS
+                    +") values($1, $2, $3)", [dbDataObject.getUserID(), dbDataObject.getTimeString(), dbDataObject.getIpAddr()],
+                    function(err, result) {
+                        // TODO - utilize this function
+                    });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.getSpecificFIBData(): " + err);
+                return false;
+            }
 		}
 	}
 };

@@ -14,9 +14,6 @@ exports.DataPacket = function () {
         DataPacket: function (userDataID, sensorID, timestring, processID, content, 
                     contentType, freshnessPeriod, signatureType) {
             
-            console.log("TOIMESTRING: " + timestring);
-            console.log("string const current time: " + StringConst.CURRENT_TIME);
-
              // if current time requested, provide it
             if (timestring === StringConst.CURRENT_TIME) {
                 console.log("if");

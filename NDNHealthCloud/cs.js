@@ -35,96 +35,159 @@ exports.CS = function () {
 		tempDBData2.csData("CLOUD-SERVER", "serverTestSensor", 
 					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,77");
 */
-	return {
 
+    return {
+
+        /**
+         * Method performs minimal input validation then, on pass, deletes entry from the ContentStore.
+         */
 		deleteCSData: function (userid, timestring) {
 
-
-            client.query( "DELETE FROM ContentStore WHERE "
-            + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\' AND " +
-                StringConst.KEY_TIME_STRING + " = \'" + timestring + "\'", function(err, result) {
-
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
+            try {
+                if (userid === undefined || userid === null || timestring == undefined || timestring == null) {
+                    return false;
                 } else {
+                    client.query( "DELETE FROM ContentStore WHERE "
+                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\' AND " +
+                    StringConst.KEY_TIME_STRING + " = \'" + timestring + "\'", function(err, result) {
 
-                    // TODO - perform some check
+                        if (err) {
+                            // table doesn't exist
+
+                            console.log("error: " + err);
+                        } else {
+
+                            // TODO - perform some check
+                        }
+                    });
+
+                    return true;
                 }
-            });
-		},
+            } catch (err) {
+                console.log("!!Error in ContentStore.deleteCSData(): " + err);
+                return false;
+            }
+        },
 
+        /**
+         * Method performs minimal input validation then, on pass, updates entry in the ContentStore.
+         */
 		updateCSData: function (DBDataObject) {
-            // perform minimal input validation
+            try {
+                // perform minimal input validation
+                if (DBDataObject === null || DBDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM ContentStore WHERE "
+                    + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
 
-            if (DBDataObject.getUserID() !== null && DBDataObject.getDataFloat() !== null
-                && DBDataObject.getTimeString() !== null) {
+                        if (err) {
+                            // table doesn't exist
 
-                client.query( "SELECT * FROM ContentStore WHERE "
-                + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
+                            console.log("error: " + err);
+                        } else {
 
-                    if (err) {
-                        // table doesn't exist
+                            // TODO - update data and timestamp
+                        }
+                    });
 
-                        console.log("error: " + err);
-                    } else {
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in ContentStore.updateCSData(): " + err);
+                return false;
+            }
+        },
 
-                        // TODO - update data and timestamp
-                    }
-                });
+        /**
+         * Method returns all data associated with a specific userID or false if data not found or userID invalid.
+         */
+		getGeneralCSData: function (userid) {
 
+            try {
+                if (userid === null || userid === undefined) {
+                    return false;
+                } else {
+                    var allCSEntries = [];
+                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userid + "\'",
+                        function(err, result) {
 
-            } else {
-                console.log("Cannot update null entry to FIB");
+                            // TODO - return false if no rows found
+                            if (err) {
+                                // table doesn't exist
+
+                                console.log("error: " + err);
+                            } else {
+                                for (var i = 0; i < result.rows.length; i++) {
+                                    // TODO - create db object for all and return
+                                }
+                            }
+
+                            return allCSEntries;
+                        });
+                }
+            } catch (err) {
+                console.log("!!Error in ContentStore.getGeneralCSData(): " + err);
+                return false;
             }
 		},
 
-		// gets all data for specific user
-		getGeneralCSData: function (userid) {
-
-			var allCSEntries = [];
-            client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userid + "\'",
-                function(err, result) {
-
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
-                } else {
-                    for (var i = 0; i < result.rows.length; i++) {
-                        // TODO - create db object for all and return
-                    }
-                }
-
-                return allCSEntries;
-            });
-
-            return null;
-		},
-
+        /**
+         * Method returns specific row associated with a userID and timeString
+         * or false if data not found or userID/timestring invalid.
+         */
 		getSpecificCSData: function (userid, timestring) {
-            client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
-                user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timestring + "\'", function(err, result) {
-
-                if (err) {
-                    // table doesn't exist
-
-                    console.log("error: " + err);
+            try {
+                if (userid === undefined || userid === null || timestring === undefined || timestring == null) {
+                    return false;
                 } else {
-                   // TODO - if matching entry found, return
+                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
+                    user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timestring + "\'", function(err, result) {
+
+                        if (err) {
+                            // table doesn't exist
+                            // TODO - return false if no entry was found
+                            console.log("error: " + err);
+                        } else {
+                            // TODO - if matching entry found, return
+                        }
+
+                    });
                 }
+            } catch (err) {
+                console.log("!!Error in ContentStore.getSpecificCSData(): " + err);
+                return false;
+            }
+        },
 
-            });
-		}, 
-
+        /**
+         * Method performs minimal input validation then, on pass, adds entry to the ContentStore.
+         */
 		addCSData: function(dbDataObject)  {
-			client.query("INSERT INTO ContentStore(" + StringConst.KEY_USER_ID 
-			    + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + "," 
-			    + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
-			    +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
-                dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()]);
-		}
+
+           try {
+               if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                   console.log('returning false');
+                   return false;
+               } else {
+                   client.query("INSERT INTO ContentStore(" + StringConst.KEY_USER_ID
+                   + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + ","
+                   + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
+                   +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
+                       dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()],
+
+                       function(err, result) {
+
+                           // TODO - utilize this function
+                   });
+
+                   return true;
+               }
+           } catch (err) {
+               console.log("!!Error in ContentStore.addCSData(): " + err);
+               return false;
+           }
+        }
 	}
 };
 
