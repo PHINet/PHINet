@@ -32,4 +32,10 @@ public class StringConst {
 
     // notifies current time should be given
     static public final String CURRENT_TIME = "CURRENT_TIME";
+
+    // the names of database tables
+    public static final String CS_DB = "ContentStore";
+    public static final String PIT_DB = "PendingInterestTable";
+    public static final String FIB_DB = "ForwardingInformationBase";
+
 }

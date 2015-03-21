@@ -11,27 +11,30 @@ public class DBData {
 
     public DBData() {}
 
-   /* // TODO - later use and specify constructors // Data Cache Constructor
-    public DBData(String applicationName, String sensorID, String processID, String timeString,
-                  String userID, String datafloat) {
-        this.applicationName = applicationName;
+    // constructor for either pit/cs
+    public DBData(String type, String sensorID, String processID, String timeString,
+                  String userID, String fifthField) {
         this.sensorID = sensorID;
         this.processID = processID;
         this.timeString = timeString;
         this.userID = userID;
-        this.dataFloat = datafloat;
+
+        // assigns fifth field based upon type of db data
+        if (type.equals(StringConst.PIT_DB)) {
+            this.ipAddr = fifthField; // PIT, by nature, gets IP
+        } else if (type.equals(StringConst.CS_DB)) {
+            this.dataFloat = fifthField; // ContentStore, by nature, gets data float
+        } else {
+            throw new NullPointerException("Error creating DBData object: unknown type.");
+        }
     }
 
-    // PIT Entry Constructor
-    public DBData(String applicationName, String sensorID, String processID, String timeString,
-                  String userID, String ipAddr) {
-        this.applicationName = applicationName;
-        this.sensorID = sensorID;
-        this.processID = processID;
-        this.timeString = timeString;
+    // unambiguous FIB DBData constructor
+    public DBData(String userID, String timestring, String ipAddr) {
         this.userID = userID;
+        this.timeString = timestring;
         this.ipAddr = ipAddr;
-    }*/
+    }
 
     public String getSensorID() {
         return sensorID;

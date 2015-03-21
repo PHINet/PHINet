@@ -4,6 +4,18 @@ import junit.framework.TestCase;
 
 public class UDPListenerTest extends TestCase {
 
+    public void runTests() throws Exception {
+        testRun();
+        testHandleIncomingNDNPacket();
+        testHandleInterestPacket();
+        testHandleInterestFIBRequest();
+        testHandleInterestCacheRequest();
+        testIsValidForTimeInterval();
+        testHandleDataPacket();
+        testHandleCacheData();
+        testHandleFIBData();
+    }
+
     public void testRun() throws Exception {
 
     }

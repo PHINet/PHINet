@@ -16,10 +16,6 @@ import java.util.ArrayList;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-    private static final String CS_DB = "ContentStore";
-    private static final String PIT_DB = "PendingInterestTable";
-    private static final String FIB_DB = "ForwardingInformationBase";
-
     private static final String DATABASE_NAME = "NDNHealthNet7";
     private static final int DATABASE_VERSION = 7;
 
@@ -39,7 +35,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         // keys are USER_ID and TIME_STRING - only one piece of data per user per time instant
-        String CREATE_DATABASE_TABLE = "CREATE TABLE " + CS_DB + "("
+        String CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.CS_DB + "("
                 + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
                 " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + "))";
@@ -48,7 +44,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // keys are USER_ID, TIME_STRING, and IP_ADDRESS
                     // - only one piece of requested data per user per time instant
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + PIT_DB + "("
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.PIT_DB + "("
                 +KEY_USER_ID + " TEXT ," + KEY_SENSOR_ID + " TEXT," +
                KEY_TIME_STRING + " TEXT," +KEY_PROCESS_ID + " TEXT," +KEY_IP_ADDRESS + " TEXT,"
                 + "PRIMARY KEY(" + KEY_USER_ID + "," + KEY_TIME_STRING + ", "
@@ -57,7 +53,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_DATABASE_TABLE); // create PIT
 
         // keys are USER_ID - only location per user
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + FIB_DB + "("
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.FIB_DB + "("
                 +KEY_USER_ID + " TEXT PRIMARY KEY," + KEY_TIME_STRING +
                 " TEXT, " +KEY_IP_ADDRESS + " TEXT)";
 
@@ -67,9 +63,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Upgrading database
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + PIT_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + FIB_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + CS_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + StringConst.PIT_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + StringConst.FIB_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + StringConst.CS_DB);
 
         // Create tables again
         onCreate(db);
@@ -78,80 +74,85 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * All CRUD(Create, Read, Update, Delete) Operations
      */
-    private void addData(DBData data, String tableName) {
+    private boolean addData(DBData data, String tableName) {
+
+        if (data == null) {
+            return false;
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (tableName.equals(PIT_DB)) {
+        if (tableName.equals(StringConst.PIT_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
-        } else if (tableName.equals(CS_DB)) {
+        } else if (tableName.equals(StringConst.CS_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_DATA_CONTENTS, data.getDataFloat());
-        } else if (tableName.equals(FIB_DB)) {
+        } else if (tableName.equals(StringConst.FIB_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
         } else {
-           throw new NullPointerException("Cannot add data to DB; param was bad");
+           throw new NullPointerException("Cannot add data to DB: param was bad");
         }
 
         try {
             // Inserting Row
-            db.insert(tableName, null, values);
+            db.insertWithOnConflict(tableName, null, values, SQLiteDatabase.CONFLICT_FAIL);
             db.close(); // Closing database connection
+
+            System.out.println("returning true");
+            return true;
         } catch (SQLiteConstraintException e) {
 
-        }
+            // only PIT allows duplicate entries (many may request same data)
+            if (tableName.equals(StringConst.PIT_DB)) {
+                db.insert(tableName, null, values);
+                db.close();
+                return true;
+            }
 
-    }
-
-    public void addPITData(DBData data) {
-        addData(data, PIT_DB);
-    }
-
-    public void addCSData(DBData data) {
-
-        /* TODO - rework (currently only "updating" string rather than storing multiple entries
-                 with multiple time strings */
-        ArrayList<DBData> csDATA = getGeneralCSData(data.getUserID());
-
-        if (csDATA != null) {
-
-            // append data to current entry
-            // TODO - again, rework this
-
-            // NOTE: there should only be one in array list, we'll rely on this
-                    // horrible assumption for now
-            csDATA.get(0).setDataFloat(csDATA.get(0).getDataFloat() + "," + data.getDataFloat());
-            updateCSData(csDATA.get(0));
-        } else {
-            addData(data, CS_DB);
+            System.out.println("returning false");
+            return false;
         }
     }
 
-    public void addFIBData(DBData data) {
-        addData(data, FIB_DB);
+    public boolean addPITData(DBData data) {
+        return addData(data, StringConst.PIT_DB);
+    }
+
+    public boolean addCSData(DBData data) {
+        return addData(data, StringConst.CS_DB);
+    }
+
+    public boolean addFIBData(DBData data) {
+        return addData(data, StringConst.FIB_DB);
     }
 
     /**
      * Data is queried without ipAddr specification; multiple entries may be found.
      * **/
     public ArrayList<DBData> getGeneralPITData(String userID) {
+
+        if (userID == null) {
+            return null; // return empty array list
+        }
+
         SQLiteDatabase db = this.getReadableDatabase();
 
         String whereSelection = "_userID=\"" + userID + "\"";
 
-        Cursor cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
+        Cursor cursor = db.query(StringConst.PIT_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
                 whereSelection, null, null, null, null);
 
@@ -183,15 +184,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Data is queried with ipAddr specification; at most one entry is found.
      * **/
-    public DBData getSpecificPITData(String userID, String timeString, String ipAddr) {
+    public DBData getSpecificPITData(String userID, String ipAddr) {
+
+        if (userID == null || ipAddr == null) {
+            return null;
+        }
+
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
-                + "\" AND ipAddress= \"" + ipAddr + "\"";
+        String whereSelection = "_userID= \"" + userID + "\" AND ipAddress= \"" + ipAddr + "\"";
 
         Cursor cursor;
         try {
-            cursor = db.query(PIT_DB, new String[] {KEY_USER_ID,
+            cursor = db.query(StringConst.PIT_DB, new String[] {KEY_USER_ID,
                             KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
                     whereSelection, null, null, null, null);
         } catch (SQLiteException e) {
@@ -220,9 +225,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public DBData getFIBData(String userID) {
+
+        if (userID == null) {
+            return null;
+        }
+
         SQLiteDatabase db = this.getReadableDatabase();
         String whereSelection = "_userID=\"" + userID + "\"";
-        Cursor cursor = db.query(FIB_DB, new String[] {KEY_USER_ID,
+        Cursor cursor = db.query(StringConst.FIB_DB, new String[] {KEY_USER_ID,
                         KEY_TIME_STRING,KEY_IP_ADDRESS},
                 whereSelection, null, null, null, null);
 
@@ -255,7 +265,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor;
 
         try {
-            cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
+            cursor = db.query(StringConst.CS_DB, new String[] {KEY_USER_ID,
                             KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
                     whereSelection, null, null, null, null);
         } catch (SQLiteException e) {
@@ -290,7 +300,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<DBData> getAllFIBData() {
         ArrayList<DBData> allFIBData = new ArrayList<DBData>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * from " + FIB_DB, null);
+        Cursor cursor = db.rawQuery("SELECT * from " + StringConst.FIB_DB, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             return null;
@@ -315,7 +325,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String whereSelection = "_userID=\"" + userID + "\" AND timestring=\"" + timeString + "\"";
 
-        Cursor cursor = db.query(CS_DB, new String[] {KEY_USER_ID,
+        Cursor cursor = db.query(StringConst.CS_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
                 whereSelection, null, null, null, null);
 
@@ -340,23 +350,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return data;
     }
 
-    private int updateData(DBData data, String tableName) {
+    private boolean updateData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (tableName.equals(PIT_DB)) {
+        if (tableName.equals(StringConst.PIT_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
-        } else if (tableName.equals(CS_DB)) {
+        } else if (tableName.equals(StringConst.CS_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_DATA_CONTENTS, data.getDataFloat());
-        } else if (tableName.equals(FIB_DB)) {
+        } else if (tableName.equals(StringConst.FIB_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
@@ -366,63 +376,95 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         // updating row
-        return db.update(tableName, values,KEY_USER_ID + " = ?",
+        db.update(tableName, values,KEY_USER_ID + " = ?",
                 new String[] { data.getUserID() });
+
+        return true;
     }
 
-    public int updateFIBData(DBData data) {
-        return updateData(data, FIB_DB);
+    public boolean updateFIBData(DBData data) {
+
+        if (data == null) {
+            return false;
+        }
+
+        return updateData(data, StringConst.FIB_DB);
     }
 
-    public int updatePITData(DBData data) {
-        return updateData(data, PIT_DB);
+    public boolean updatePITData(DBData data) {
+
+        if (data == null) {
+            return false;
+        }
+
+        return updateData(data, StringConst.PIT_DB);
     }
 
-    public int updateCSData(DBData data) {
-        return updateData(data, CS_DB);
+    public boolean updateCSData(DBData data) {
+
+        if (data == null) {
+            return false;
+        }
+
+        return updateData(data, StringConst.CS_DB);
     }
 
     public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
+
+        if (userID == null || timeString == null || ipAddr == null) {
+            return false;
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         String whereSelection = "_userID= \"" + userID + "\"" + "AND timestring=\"" + timeString
                 + "\" AND ipAddress= \"" + ipAddr + "\"";
 
-        return db.delete(PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(StringConst.PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     public boolean deleteFIBEntry(String userID) {
+
+        if (userID == null) {
+            return false;
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         String whereSelection = "_userID= \"" + userID + "\"";
 
-        return db.delete(FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(StringConst.FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     public boolean deleteCSEntry(String userID, String timeString) {
+
+        if (userID == null || timeString == null) {
+            return false;
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
                 + "\"";
 
-        return db.delete(CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(StringConst.CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     public void deleteEntirePIT() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(PIT_DB, null, null);
+        db.delete(StringConst.PIT_DB, null, null);
     }
 
     public void deleteEntireCS() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(CS_DB, null, null);
+        db.delete(StringConst.CS_DB, null, null);
     }
 
     public void deleteEntireFIB() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(FIB_DB, null, null);
+        db.delete(StringConst.FIB_DB, null, null);
     }
 }

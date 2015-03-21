@@ -1,13 +1,26 @@
 package com.ndnhealthnet.androidudpclient;
 
 import android.app.Application;
+import android.content.Context;
 import android.test.ApplicationTestCase;
 
-/**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
- */
 public class ApplicationTest extends ApplicationTestCase<Application> {
     public ApplicationTest() {
         super(Application.class);
     }
+
+    @Override
+    protected void setUp() throws Exception {
+        Context context = getContext();
+
+        DatabaseHandlerTest dbHandlerTest = new DatabaseHandlerTest(context);
+        dbHandlerTest.runTests();
+
+        UtilsTest utilsTest = new UtilsTest();
+        utilsTest.runTests();
+
+        UDPListenerTest udpListenerTest = new UDPListenerTest();
+        udpListenerTest.runTests();
+    }
+
 }
