@@ -72,7 +72,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * All CRUD(Create, Read, Update, Delete) Operations
+     * @param data data object to be entered
+     * @param tableName name of table where data should be entered
+     * @return true if data was successfully entered into DB, false otherwise
      */
     private boolean addData(DBData data, String tableName) {
 
@@ -127,21 +129,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * @param data data object to be entered
+     * @return true if data was successfully entered into DB, false otherwise
+     */
     public boolean addPITData(DBData data) {
         return addData(data, StringConst.PIT_DB);
     }
 
+    /**
+     * @param data data object to be entered
+     * @return true if data was successfully entered into DB, false otherwise
+     */
     public boolean addCSData(DBData data) {
         return addData(data, StringConst.CS_DB);
     }
 
+    /**
+     * @param data data object to be entered
+     * @return true if data was successfully entered into DB, false otherwise
+     */
     public boolean addFIBData(DBData data) {
         return addData(data, StringConst.FIB_DB);
     }
 
     /**
      * Data is queried without ipAddr specification; multiple entries may be found.
-     * **/
+     *
+     * @param userID specifies which PIT entries should be returned
+     * @return ArrayList of data for userID param
+     */
     public ArrayList<DBData> getGeneralPITData(String userID) {
 
         if (userID == null) {
@@ -183,7 +200,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     /**
      * Data is queried with ipAddr specification; at most one entry is found.
-     * **/
+     *
+     * @param userID specifies which PIT entries should be returned, together with ipAddr
+     * @param ipAddr specifies which PIT entries should be returned
+     * @return single db entry associated with ip/id combination
+     */
     public DBData getSpecificPITData(String userID, String ipAddr) {
 
         if (userID == null || ipAddr == null) {
@@ -224,6 +245,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return data;
     }
 
+    /**
+     *
+     * @param userID
+     * @return
+     */
     public DBData getFIBData(String userID) {
 
         if (userID == null) {
@@ -258,7 +284,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     /**
      * Data is queried without timestring specification; multiple entries may be found.
-     * **/
+     *
+     * @param userID
+     * @return
+     */
     public ArrayList<DBData> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
         String whereSelection = "_userID=\"" + userID + "\"";
@@ -296,7 +325,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return allValidCSEntries;
     }
 
-    /** Method used to query entire FIB table; useful when multi-casting interests **/
+    /**
+     * Method used to query entire FIB table; useful when multi-casting interests
+     *
+     * @return
+     */
     public ArrayList<DBData> getAllFIBData() {
         ArrayList<DBData> allFIBData = new ArrayList<DBData>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -320,6 +353,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return allFIBData;
     }
 
+    /**
+     *
+     *
+     * @param userID
+     * @param timeString
+     * @return
+     */
     public DBData getSpecificCSData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -350,6 +390,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return data;
     }
 
+    /**
+     *
+     * @param data
+     * @param tableName
+     * @return
+     */
     private boolean updateData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -382,6 +428,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return true;
     }
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public boolean updateFIBData(DBData data) {
 
         if (data == null) {
@@ -391,6 +442,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return updateData(data, StringConst.FIB_DB);
     }
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public boolean updatePITData(DBData data) {
 
         if (data == null) {
@@ -400,6 +456,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return updateData(data, StringConst.PIT_DB);
     }
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public boolean updateCSData(DBData data) {
 
         if (data == null) {
@@ -409,6 +470,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return updateData(data, StringConst.CS_DB);
     }
 
+    /**
+     *
+     * @param userID
+     * @param timeString
+     * @param ipAddr
+     * @return
+     */
     public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
 
         if (userID == null || timeString == null || ipAddr == null) {
@@ -423,6 +491,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return db.delete(StringConst.PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
+    /**
+     *
+     * @param userID
+     * @return
+     */
     public boolean deleteFIBEntry(String userID) {
 
         if (userID == null) {
@@ -436,6 +509,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return db.delete(StringConst.FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
+    /**
+     *
+     * @param userID
+     * @param timeString
+     * @return
+     */
     public boolean deleteCSEntry(String userID, String timeString) {
 
         if (userID == null || timeString == null) {
@@ -450,18 +529,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return db.delete(StringConst.CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
+    /**
+     *
+     */
     public void deleteEntirePIT() {
         SQLiteDatabase db = this.getWritableDatabase();
 
         db.delete(StringConst.PIT_DB, null, null);
     }
 
+    /**
+     *
+     */
     public void deleteEntireCS() {
         SQLiteDatabase db = this.getWritableDatabase();
 
         db.delete(StringConst.CS_DB, null, null);
     }
 
+    /**
+     *
+     */
     public void deleteEntireFIB() {
         SQLiteDatabase db = this.getWritableDatabase();
 

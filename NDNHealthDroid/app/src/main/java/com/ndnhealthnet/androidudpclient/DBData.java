@@ -1,5 +1,9 @@
 package com.ndnhealthnet.androidudpclient;
 
+/**
+ *
+ */
+
 public class DBData {
 
     private String sensorID;
@@ -11,7 +15,16 @@ public class DBData {
 
     public DBData() {}
 
-    // constructor for either pit/cs
+    /**
+     * constructor for either pit/cs
+     *
+     * @param type
+     * @param sensorID
+     * @param processID
+     * @param timeString
+     * @param userID
+     * @param fifthField
+     */
     public DBData(String type, String sensorID, String processID, String timeString,
                   String userID, String fifthField) {
         this.sensorID = sensorID;
@@ -29,33 +42,64 @@ public class DBData {
         }
     }
 
-    // unambiguous FIB DBData constructor
+    /**
+     * unambiguous FIB DBData constructor
+     *
+     * @param userID
+     * @param timestring
+     * @param ipAddr
+     */
     public DBData(String userID, String timestring, String ipAddr) {
         this.userID = userID;
         this.timeString = timestring;
         this.ipAddr = ipAddr;
     }
 
+    /**
+     *
+     *
+     * @return
+     */
     public String getSensorID() {
         return sensorID;
     }
 
+    /**
+     *
+     * @param sensorID
+     */
     public void setSensorID(String sensorID) {
         this.sensorID = sensorID;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getProcessID() {
         return processID;
     }
 
+    /**
+     *
+     * @param processID
+     */
     public void setProcessID(String processID) {
         this.processID = processID;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getTimeString() {
         return timeString;
     }
 
+    /**
+     *
+     * @param timeString
+     */
     public void setTimeString(String timeString) {
 
         if (timeString.equals(StringConst.CURRENT_TIME)) {
@@ -65,26 +109,50 @@ public class DBData {
         this.timeString = timeString;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getUserID() {
         return userID;
     }
 
+    /**
+     *
+     * @param userID
+     */
     public void setUserID(String userID) {
         this.userID = userID;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getIpAddr() {
         return ipAddr;
     }
 
+    /**
+     *
+     * @param ipAddr
+     */
     public void setIpAddr(String ipAddr) {
         this.ipAddr = ipAddr;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDataFloat() {
         return dataFloat;
     }
 
+    /**
+     *
+     * @param dataFloat
+     */
     public void setDataFloat(String dataFloat) {
         this.dataFloat = dataFloat;
     }

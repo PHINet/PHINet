@@ -100,7 +100,7 @@ public class GetCliBeatActivity extends ListActivity {
                                 patientInputString[0] = patientInputString[0].trim(); // name input
                                 patientInputString[1] = patientInputString[1].trim(); // ip input
 
-                                isValidInput = MainActivity.validIP(patientInputString[0]);
+                                isValidInput = Utils.validIP(patientInputString[0]);
 
                                 // NOTE: name-length constraints were chosen somewhat arbitrarily
                                 isValidInput &= patientInputString[1].length() >= 3; // min. name requirement

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,8 +17,6 @@ import java.util.TimeZone;
  * TODO - encrypt
  */
 public class Utils {
-    public static final String PREFS_LOGIN_USER_ID_KEY = "__USER_ID__" ;
-    public static final String PREFS_LOGIN_SENSOR_ID_KEY = "__SENSOR_ID__" ;
 
     /**
      * Code from stackoverflow user umair.ali @ http://stackoverflow.com/users/1334114/umair-ali
@@ -27,11 +26,20 @@ public class Utils {
      * @param key Key of value to save against
      * @param value Value to save
      */
-    public static void saveToPrefs(Context context, String key, String value) {
+    public static boolean saveToPrefs(Context context, String key, String value) {
+
+        if (context == null || key == null || value == null
+                || (!key.equals(StringConst.PREFS_LOGIN_SENSOR_ID_KEY) // key must equal either one
+                && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
+            return false;
+        }
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         final SharedPreferences.Editor editor = prefs.edit();
         editor.putString(key,value);
         editor.commit();
+
+        return true;
     }
 
     /**
@@ -45,6 +53,13 @@ public class Utils {
      * @return Return the value found against given key, default if not found or any error occurs
      */
     public static String getFromPrefs(Context context, String key, String defaultValue) {
+
+        if (context == null || key == null || defaultValue == null
+                || (!key.equals(StringConst.PREFS_LOGIN_SENSOR_ID_KEY) // key must equal either one
+                && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
+            return null;
+        }
+
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         try {
             return sharedPrefs.getString(key, defaultValue);
@@ -54,7 +69,12 @@ public class Utils {
         }
     }
 
-    /** Method takes query results and converts to a format that can be presented via graph **/
+    /**
+     * Method takes query results and converts to a format that can be presented via graph
+     *
+     * @param myData
+     * @return
+     */
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData) {
         // TODO - improve display accuracy (order chronologically, etc)
 
@@ -70,11 +90,39 @@ public class Utils {
         return myFloatData;
     }
 
-    /** Method returns the current time **/
+    /**
+     * Method returns the current time
+     *
+     * @return
+     */
     public static String getCurrentTime() {
         SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd");
         formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         return formatUTC.format(new Date());
+    }
+
+    /**
+     * tests validity of IP input
+     *
+     * @param ip
+     * @return
+     */
+    public static boolean validIP(String ip) {
+
+        if (ip == null) {
+            return false;
+        }
+
+        boolean validIP;
+
+        try {
+            InetAddress.getByName(ip);
+            validIP = true;
+        } catch (Exception e) {
+            validIP = false;
+        }
+
+        return validIP;
     }
 }

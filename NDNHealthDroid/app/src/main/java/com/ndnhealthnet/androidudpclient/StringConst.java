@@ -38,4 +38,8 @@ public class StringConst {
     public static final String PIT_DB = "PendingInterestTable";
     public static final String FIB_DB = "ForwardingInformationBase";
 
+    // use to store/retrieve/identify user login credentials
+    public static final String PREFS_LOGIN_USER_ID_KEY = "__USER_ID__" ;
+    public static final String PREFS_LOGIN_SENSOR_ID_KEY = "__SENSOR_ID__" ;
+
 }

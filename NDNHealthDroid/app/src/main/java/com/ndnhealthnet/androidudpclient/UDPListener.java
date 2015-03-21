@@ -66,7 +66,9 @@ public class UDPListener extends Thread {
     /**
      * Helper method that handles all incoming packets;
      * may be invoked from elsewhere in code (namely, UDPSocket)
-     * **/
+     *
+     * @param packetData
+     */
     static void handleIncomingNDNPacket(String packetData) {
 
         // NOTE: temporary debugging print
@@ -93,10 +95,13 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** handles INTEREST packet as per NDN specification
+    /**
+     * handles INTEREST packet as per NDN specification
      * Method parses packet then asks the following questions:
      * 1. Do I have the data?
      * 2. Have I already sent an interest for this data?
+     *
+     * @param packetDataArray
      */
     static void handleInterestPacket(String[] packetDataArray) {
         String [] nameComponent = null;
@@ -137,13 +142,19 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** returns entire FIB to user who requested it **/
+    /**
+     * returns entire FIB to user who requested it
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetIP
+     */
     static void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
     {
         ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
 
-        String mySensorID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
-        String myUserID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_USER_ID_KEY, "");
+        String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+        String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
         if (allFIBData == null || allFIBData.size() == 0) {
 
@@ -172,7 +183,15 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** performs NDN logic on packet that requests data **/
+    /**
+     * performs NDN logic on packet that requests data
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetTimeString
+     * @param packetProcessID
+     * @param packetIP
+     */
     static void handleInterestCacheRequest(String packetUserID, String packetSensorID, String packetTimeString,
                             String packetProcessID, String packetIP)
     {
@@ -246,7 +265,13 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** Method returns true if the data interval is within request interval **/
+    /**
+     * Method returns true if the data interval is within request interval
+     *
+     * @param requestInterval
+     * @param dataInterval
+     * @return
+     */
     static  boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
 
         String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
@@ -277,9 +302,12 @@ public class UDPListener extends Thread {
                 || requestIntervals[1].equals(dataInterval);
     }
 
-    /** handles DATA packet as per NDN specification
+    /**
+     * handles DATA packet as per NDN specification
      * Method parses packet then stores in cache if requested,
      * and sends out to satisfy any potential Interests.
+     *
+     * @param packetDataArray
      */
     static void handleDataPacket(String[] packetDataArray)
     {
@@ -349,7 +377,16 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** Method handles incoming Non-FIB data**/
+    /**
+     * Method handles incoming Non-FIB data
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetTimeString
+     * @param packetProcessID
+     * @param packetFloatContent
+     * @param allValidPITEntries
+     */
     static void handleCacheData(String packetUserID,String  packetSensorID,String  packetTimeString,
                          String  packetProcessID,String  packetFloatContent,
                          ArrayList<DBData> allValidPITEntries) {
@@ -391,13 +428,17 @@ public class UDPListener extends Thread {
         }
     }
 
-    /** Method handles incoming FIB data**/
+    /**
+     * Method handles incoming FIB data
+     *
+     * @param packetFloatContent
+     */
     static void handleFIBData(String packetFloatContent) {
 
         DBData data = new DBData();
 
         // data packet contains requested fib data, store in fib now
-        String myUserID = Utils.getFromPrefs(context, Utils.PREFS_LOGIN_USER_ID_KEY, "");
+        String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
         // expected format: "userID,userIP"
         String [] packetFIBContent = packetFloatContent.split(","); // TODO - don't rely on this assumption

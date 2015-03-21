@@ -3,6 +3,13 @@ package com.ndnhealthnet.androidudpclient.Packet;
 import com.ndnhealthnet.androidudpclient.StringConst;
 import com.ndnhealthnet.androidudpclient.Utils;
 
+/**
+ * Class creates an NDN-Compliant Data packet in the form of a string.
+ *
+ * Each component of a packet has its own creation method.
+ *
+ * Specification found here: http://named-data.net/doc/ndn-tlv/data.html
+ */
 public class DataPacket {
 
     // TODO - only send certain portions of DataPacket (be able to avoid optional)
@@ -26,17 +33,29 @@ public class DataPacket {
     private int freshnessPeriod;
     private int signatureType;
 
-    /** constructor allows specified freshnessPeriod, signatureType, and contentType **/
+    /**
+     * Constructor allows specified freshnessPeriod, signatureType,
+     * and contentType - all params that user may tune for their benefit.
+     *
+     * @param userDataID specifies data producer
+     * @param sensorID specifies health-sensor type (e.g., heart sensor)
+     * @param timeString specifies when packet was created
+     * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
+     * @param content packet content payload
+     * @param contentType type of content (see NDN specification)
+     * @param freshnessPeriod time until data "expires" (see NDN specification)
+     * @param signatureType type of signature used on packet (see NDN specification)
+     */
     public DataPacket(String userDataID, String sensorID,
-                      String timestring, String processID, String content, int contentType,
+                      String timeString, String processID, String content, int contentType,
                       int freshnessPeriod, int signatureType) {
 
         // if current time requested, provide it
-        if (timestring.equals(StringConst.CURRENT_TIME)) {
-            timestring = Utils.getCurrentTime();
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
         }
 
-        this.nameField = new NameField(userDataID, sensorID, timestring, processID, content);
+        this.nameField = new NameField(userDataID, sensorID, timeString, processID, content);
         this.content = content;
 
         // perform input validation on content type
@@ -65,16 +84,24 @@ public class DataPacket {
         }
     }
 
-    /** constructor assigns defaults to params **/
+    /**
+     * Constructor assigns defaults to params
+     *
+     * @param userDataID specifies data producer
+     * @param sensorID specifies health-sensor type (e.g., heart sensor)
+     * @param timeString specifies when packet was created
+     * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
+     * @param content packet content payload
+     */
     public DataPacket(String userDataID, String sensorID,
-                      String timestring, String processID, String content) {
+                      String timeString, String processID, String content) {
 
         // if current time requested, provide it
-        if (timestring.equals(StringConst.CURRENT_TIME)) {
-            timestring = Utils.getCurrentTime();
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
         }
 
-        this.nameField = new NameField(userDataID, sensorID, timestring, processID, content);
+        this.nameField = new NameField(userDataID, sensorID, timeString, processID, content);
         this.content = content;
 
         this.contentType = CONTENT_TYPE_DEFAULT;
@@ -83,14 +110,16 @@ public class DataPacket {
     }
 
     /**
-     MetaInfo ::=
-     --------------
-     META-INFO-TYPE TLV-LENGTH
-     ContentType?
-     FreshnessPeriod?
-     FinalBlockId?
-     --------------
-     **/
+     * MetaInfo ::=
+     * --------------
+     * META-INFO-TYPE TLV-LENGTH
+     * ContentType?
+     * FreshnessPeriod?
+     * FinalBlockId?
+     * --------------
+     *
+     * @return MetaInfo as definition above shows (see NDN specification)
+     */
     String createMetaInfo() {
         String content = createContentType();
         content += " " + createFreshnessPeriod();
@@ -100,11 +129,13 @@ public class DataPacket {
     }
 
     /**
-     ContentType ::=
-     --------------
-     CONTENT-TYPE-TYPE TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * ContentType ::=
+     * --------------
+     * CONTENT-TYPE-TYPE TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return ContentType as definition above shows (see NDN specification)
      **/
     String createContentType() {
         String content = Integer.toString(contentType);
@@ -112,11 +143,13 @@ public class DataPacket {
     }
 
     /**
-     FreshnessPeriod ::=
-     --------------
-     FRESHNESS-PERIOD-TLV TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * FreshnessPeriod ::=
+     * --------------
+     * FRESHNESS-PERIOD-TLV TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return FreshnessPeriod as definition above shows (see NDN specification)
      **/
     String createFreshnessPeriod() {
 
@@ -134,11 +167,13 @@ public class DataPacket {
     }
 
     /**
-     FinalBlockId ::=
-     --------------
-     FINAL-BLOCK-ID-TLV TLV-LENGTH
-     NameComponent
-     --------------
+     * FinalBlockId ::=
+     * --------------
+     * FINAL-BLOCK-ID-TLV TLV-LENGTH
+     * NameComponent
+     * --------------
+     *
+     * @return FinalBlockId as definition above shows (see NDN specification)
      **/
     String createFinalBlockId() {
         String content = nameField.createNameComponent();
@@ -147,10 +182,12 @@ public class DataPacket {
     }
 
     /**
-     Content ::=
-     --------------
-     CONTENT-TYPE TLV-LENGTH Byte*
-     --------------
+     * Content ::=
+     * --------------
+     * CONTENT-TYPE TLV-LENGTH Byte*
+     * --------------
+     *
+     * @return Content as definition above shows (see NDN specification)
      **/
     String createContent() {
         String content = this.content;
@@ -158,10 +195,12 @@ public class DataPacket {
     }
 
     /**
-     Signature ::==
-     --------------
-     SignatureInfo SignatureBits
-     --------------
+     * Signature ::==
+     * --------------
+     * SignatureInfo SignatureBits
+     * --------------
+     *
+     * @return Signature as definition above shows (see NDN specification)
      **/
     String createSignature() {
         String signatureBits = "null"; // TODO - rework
@@ -169,13 +208,15 @@ public class DataPacket {
     }
 
     /**
-     SignatureInfo ::==
-     --------------
-     SIGNATURE-INFO-TYPE TLV-LENGTH
-     SignatureType
-     KeyLocator?
-     ... (SignatureType-specific TLVs)
-     --------------
+     * SignatureInfo ::==
+     * --------------
+     * SIGNATURE-INFO-TYPE TLV-LENGTH
+     * SignatureType
+     * KeyLocator?
+     * ... (SignatureType-specific TLVs)
+     * --------------
+     *
+     * @return SignatureInfo as definition above shows (see NDN specification)
      **/
     String createSignatureInfo() {
         String content = createSignatureType();
@@ -188,6 +229,8 @@ public class DataPacket {
      * --------------
      * KEY-LOCATOR-TYPE TLV-LENGTH (Name | KeyDigest)
      * --------------
+     *
+     * @return KeyLocator as definition above shows (see NDN specification)
      */
     String createKeyLocator() {
         String content = "null"; // TODO - rework
@@ -195,11 +238,13 @@ public class DataPacket {
     }
 
     /**
-     SignatureType ::==
-     --------------
-     SIGNATURE-TYPE-TYPE TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * SignatureType ::==
+     * --------------
+     * SIGNATURE-TYPE-TYPE TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return SignatureType as definition above shows (see NDN specification)
      **/
     String createSignatureType() {
         String content = Integer.toString(this.signatureType);
@@ -207,14 +252,16 @@ public class DataPacket {
     }
 
     /**
-     DATA ::=
-     --------------
-     DATA-TLV TLV-LENGTH
-     Name
-     MetaInfo?
-     Content
-     Signature
-     --------------
+     * DATA ::=
+     * --------------
+     * DATA-TLV TLV-LENGTH
+     * Name
+     * MetaInfo?
+     * Content
+     * Signature
+     * --------------
+     *
+     * @return Data packet as definition above shows (see NDN specification)
      **/
     String createDATA() {
         String content = nameField.createName();
@@ -229,5 +276,4 @@ public class DataPacket {
     public String toString() {
         return createDATA();
     }
-
 }

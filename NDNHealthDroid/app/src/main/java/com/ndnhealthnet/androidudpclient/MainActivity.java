@@ -9,8 +9,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.net.InetAddress;
-
+/**
+ *
+ */
 public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1;
@@ -44,21 +45,23 @@ public class MainActivity extends Activity {
 
         datasource.addFIBData(dbData); // add cloud-server to FIB
 
-        receiverThread = initializeReceiver();
+        receiverThread = new UDPListener(getApplicationContext());
         receiverThread.start(); // begin listening for interest packets
 
         onCreateHelper();
     }
 
-    /** method exists so that layout can easily be reset **/
+    /**
+     * method exists so that layout can easily be reset
+     */
     private void onCreateHelper()
     {
         setContentView(R.layout.activity_main);
 
         String mySensorID = Utils.getFromPrefs(getApplicationContext(),
-                Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                Utils.PREFS_LOGIN_USER_ID_KEY, "");
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarning_textView);
         doctorText = (TextView) findViewById(R.id.doctor_textView);
@@ -129,7 +132,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** should be invoked automatically after user enters credentials **/
+    /**
+     * should be invoked automatically after user enters credentials
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if (requestCode == CREDENTIAL_RESULT_CODE) {
@@ -139,31 +144,10 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** tests validity of IP input **/
-    static boolean validIP(String ip) {
-        boolean validIP;
-
-        try {
-            InetAddress.getByName(ip);
-            validIP = true;
-        } catch (Exception e) {
-            validIP = false;
-        }
-
-        return validIP;
-    }
-
     @Override
     public void onDestroy()
     {
         super.onDestroy();
         continueReceiverExecution = false;  // notify receiver to terminate
-    }
-
-    /** create and return receiver thread **/
-    UDPListener initializeReceiver() {
-
-        // create thread to receive all incoming packets expected after request to patient
-        return new UDPListener(getApplicationContext());
     }
 }

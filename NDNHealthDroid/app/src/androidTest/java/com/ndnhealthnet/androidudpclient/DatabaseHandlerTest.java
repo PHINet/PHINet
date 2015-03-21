@@ -6,6 +6,10 @@ import junit.framework.TestCase;
 
 import java.util.ArrayList;
 
+/**
+ *
+ */
+
 public class DatabaseHandlerTest extends TestCase {
 
     DatabaseHandler datasource;
@@ -41,10 +45,18 @@ public class DatabaseHandlerTest extends TestCase {
 
     // --- test FIB data ---
 
+    /**
+     *
+     * @param context
+     */
     public DatabaseHandlerTest(Context context) {
         datasource = new DatabaseHandler(context);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void runTests() throws Exception {
         testAddPITData();
         testAddCSData();
@@ -70,6 +82,10 @@ public class DatabaseHandlerTest extends TestCase {
         datasource.deleteEntireFIB();
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testAddPITData() throws Exception {
 
         datasource.deleteEntirePIT(); // delete PIT before testing insertion
@@ -83,6 +99,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.addPITData(null));
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testAddCSData() throws Exception {
 
         datasource.deleteEntireCS(); // delete CS before testing insertion
@@ -96,6 +116,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.addCSData(csData1));
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testAddFIBData() throws Exception {
 
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
@@ -109,7 +133,11 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.addFIBData(fibData1));
     }
 
-    // method wipes pit, then adds two entries and checks that both are returned
+    /**
+     * method wipes pit, then adds two entries and checks that both are returned
+     *
+     * @throws Exception
+     */
     public void testGetGeneralPITData() throws Exception {
         datasource.deleteEntirePIT(); // delete PIT before testing insertion
 
@@ -147,6 +175,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(nullPITData, null); // verify that no entries were returned
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testGetSpecificPITData() throws Exception {
         datasource.deleteEntirePIT(); // delete PIT before testing insertion
 
@@ -173,6 +205,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getSpecificCSData("validUSERID", null), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testGetFIBData() throws Exception {
 
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
@@ -195,6 +231,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getFIBData(null), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testGetGeneralCSData() throws Exception {
 
         datasource.deleteEntireCS(); // delete CS before testing insertion
@@ -219,6 +259,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getGeneralCSData(null), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testGetAllFIBData() throws Exception {
 
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
@@ -245,6 +289,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(foundCount, 2);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testGetSpecificCSData() throws Exception {
         datasource.deleteEntireCS(); // delete CS before testing insertion
 
@@ -258,6 +306,10 @@ public class DatabaseHandlerTest extends TestCase {
         // TODO - rework name/timestring/etc so that only 1 can be returned
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testUpdateFIBData() throws Exception {
 
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
@@ -282,6 +334,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.updateFIBData(null));
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testUpdatePITData() throws Exception {
         datasource.deleteEntirePIT(); // delete FIB before testing insertion
 
@@ -305,6 +361,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.updatePITData(null));
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testUpdateCSData() throws Exception {
         datasource.deleteEntireCS(); // delete FIB before testing insertion
 
@@ -328,6 +388,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertFalse(datasource.updateCSData(null));
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeletePITEntry() throws Exception {
         datasource.deleteEntirePIT(); // delete FIB before testing insertion
 
@@ -348,6 +412,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr()), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeleteFIBEntry() throws Exception {
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
 
@@ -368,6 +436,10 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getFIBData(fibData1.getUserID()), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeleteCSEntry() throws Exception {
         datasource.deleteEntireCS(); // delete FIB before testing insertion
 
@@ -388,14 +460,26 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(datasource.getSpecificCSData(csData1.getUserID(), csData1.getTimeString()), null);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeleteEntirePIT() throws Exception {
         // TODO
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeleteEntireCS() throws Exception {
         // TODO
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     public void testDeleteEntireFIB() throws Exception {
         // TODO
     }

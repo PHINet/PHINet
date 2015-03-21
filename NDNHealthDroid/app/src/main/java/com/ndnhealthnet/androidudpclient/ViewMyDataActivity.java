@@ -24,7 +24,6 @@ public class ViewMyDataActivity extends Activity {
     TextView dataStatusText;
     GraphView graph;
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +37,7 @@ public class ViewMyDataActivity extends Activity {
 
         // get user id for querying db
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                Utils.PREFS_LOGIN_USER_ID_KEY, "");
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
         ArrayList<DBData> myData = MainActivity.datasource.getGeneralCSData(currentUserID);
         ArrayList<Float> myFloatData;

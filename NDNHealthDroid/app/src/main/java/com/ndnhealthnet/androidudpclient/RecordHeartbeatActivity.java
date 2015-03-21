@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/*
+/**
  * Linked to GetOwnHeartbeatButton
  */
 public class RecordHeartbeatActivity extends Activity {
@@ -95,9 +95,9 @@ public class RecordHeartbeatActivity extends Activity {
                 } else {
 
                     String mySensorID = Utils.getFromPrefs(getApplicationContext(),
-                            Utils.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                            StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
                     String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                            Utils.PREFS_LOGIN_USER_ID_KEY, "");
+                            StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
                     // store data in cache
                     DBData data = new DBData();

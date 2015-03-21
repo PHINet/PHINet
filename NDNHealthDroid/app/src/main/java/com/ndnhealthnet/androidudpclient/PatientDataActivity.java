@@ -15,10 +15,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
 
 import java.util.ArrayList;
 
@@ -44,7 +44,6 @@ public class PatientDataActivity extends Activity {
     private final String INTERVAL_TITLE_1 = "Choose the start interval.";
     private final String INTERVAL_TITLE_2 = "Choose the end interval.";
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,7 +101,7 @@ public class PatientDataActivity extends Activity {
             public void onClick(View v) {
 
                 // check before save AND notify user if invalid ip
-                if (!MainActivity.validIP(ipEditText.getText().toString())) {
+                if (!Utils.validIP(ipEditText.getText().toString())) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
 
                     builder.setTitle("Invalid IP entered. Submit anyways?");
@@ -150,13 +149,15 @@ public class PatientDataActivity extends Activity {
         });
     }
 
-    /** handles logic associated with requesting patient data **/
+    /**
+     * handles logic associated with requesting patient data
+     */
     private void requestHelper() {
 
         // performs a network-capabilities AND IP check before attempting to send
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        boolean isValidIP = MainActivity.validIP(patientIP);
+        boolean isValidIP = Utils.validIP(patientIP);
 
         if (mWifi.isConnected()) {
 
@@ -200,7 +201,7 @@ public class PatientDataActivity extends Activity {
 
             for (int i = 0; i < allFIBEntries.size(); i++) {
                 // send request to everyone in FIB; only send to users with actual ip
-                if (MainActivity.validIP(allFIBEntries.get(i).getIpAddr())) {
+                if (Utils.validIP(allFIBEntries.get(i).getIpAddr())) {
 
                     InterestPacket interestPacket = new InterestPacket(
                             patientUserID, StringConst.NULL_FIELD, generateTimeString(),
@@ -243,7 +244,12 @@ public class PatientDataActivity extends Activity {
         }
     }
 
-    /** allows users to select date regarding interval of requested data **/
+    /**
+     * allows users to select date regarding interval of requested data
+     *
+     * @param title
+     * @return
+     */
     AlertDialog.Builder generateIntervalSelector(String title) {
         final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
         final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
@@ -311,7 +317,11 @@ public class PatientDataActivity extends Activity {
         return builder;
     }
 
-    /** method generates UTC-compliant time string from user input **/
+    /**
+     * method generates UTC-compliant time string from user input
+     *
+     * @return
+     */
     private String generateTimeString()
     {
         // minimal input validation; if years are valid, assume all date data is valid

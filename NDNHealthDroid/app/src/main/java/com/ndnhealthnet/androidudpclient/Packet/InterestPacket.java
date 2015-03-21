@@ -6,9 +6,11 @@ import com.ndnhealthnet.androidudpclient.Utils;
 import java.util.Random;
 
 /**
- * Class creates an NDN-Compliant packet in the form of a string.
+ * Class creates an NDN-Compliant Interest packet in the form of a string.
  *
  * Each component of a packet has its own creation method.
+ *
+ * Specification found here: http://named-data.net/doc/ndn-tlv/data.html
  */
 public class InterestPacket {
 
@@ -18,26 +20,38 @@ public class InterestPacket {
     private NameField nameField;
     final private int LIFETIME_CONST = 100;
 
+    /**
+     *
+     * @param userDataID specifies data producer 
+     * @param sensorID specifies health-sensor type (e.g., heart sensor)
+     * @param timeString specifies when packet was created
+     * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
+     * @param ipAddr specifies IP of node that sent InterestPacket (so that reply is possible)
+     *
+     *        // TODO - rework ipADDR - potentially exclude; non-useful information
+     */
     public InterestPacket(String userDataID, String sensorID,
-                          String timestring, String processID, String ipAddr) {
+                          String timeString, String processID, String ipAddr) {
 
         // if current time requested, provide it
-        if (timestring.equals(StringConst.CURRENT_TIME)) {
-            timestring = Utils.getCurrentTime();
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
         }
 
-        nameField = new NameField(userDataID, sensorID, timestring, processID, ipAddr);
+        nameField = new NameField(userDataID, sensorID, timeString, processID, ipAddr);
     }
 
     /**
-    Nonce ::=
-    --------------
-    NONCE-TYPE TLV-LENGTH(=4) BYTE{4}
-    --------------
-
-     "The Nonce carries a randomly-generated 4-octet long byte-string.
-     The combination of Name and Nonce should uniquely identify an Interest packet.
-     This is used to detect looping Interests."
+     * Nonce ::=
+     * --------------
+     * NONCE-TYPE TLV-LENGTH(=4) BYTE{4}
+     * --------------
+     *
+     * "The Nonce carries a randomly-generated 4-octet long byte-string.
+     * The combination of Name and Nonce should uniquely identify an Interest packet.
+     * This is used to detect looping Interests."
+     *
+     * @return Nonce as definition above shows (see NDN specification)
     **/
     String createNonce() {
 
@@ -52,16 +66,18 @@ public class InterestPacket {
     }
     
     /**
-    Selectors ::=
-    --------------
-     SELECTORS-TYPE TLV-LENGTH
-     MinSuffixComponents?
-     MaxSuffixComponents?
-     PublisherPublicKeyLocator?
-     Exclude?
-     ChildSelector?
-     MustBeFresh?
-    --------------
+     * Selectors ::=
+     * --------------
+     * SELECTORS-TYPE TLV-LENGTH
+     * MinSuffixComponents?
+     * MaxSuffixComponents?
+     * PublisherPublicKeyLocator?
+     * Exclude?
+     * ChildSelector?
+     * MustBeFresh?
+     * --------------
+     *
+     * @return Selectors as definition above shows (see NDN specification)
     **/
     String createSelectors() {
         String content = createMinSuffixComponents();
@@ -75,11 +91,13 @@ public class InterestPacket {
     }
 
     /**
-     MinSuffixComponents ::=
-     --------------
-     MIN-SUFFIX-COMPONENTS-TYPE TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * MinSuffixComponents ::=
+     * --------------
+     * MIN-SUFFIX-COMPONENTS-TYPE TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return MinSuffixeComponents as definition above shows (see NDN specification)
      */
     String createMinSuffixComponents() {
         String content = "0"; // TODO - rework
@@ -87,11 +105,13 @@ public class InterestPacket {
     }
 
     /**
-     MaxSuffixComponents ::=
-     --------------
-     MAX-SUFFIX-COMPONENTS-TYPE TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * MaxSuffixComponents ::=
+     * --------------
+     * MAX-SUFFIX-COMPONENTS-TYPE TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return MaxSuffixeComponents as definition above shows (see NDN specification)
      */
     String createMaxSuffixComponents() {
         String content = "0"; // TODO - rework
@@ -99,30 +119,36 @@ public class InterestPacket {
     }
 
     /**
-     PublisherPublicKeyLocator ::=
-     --------------
-     KeyLocator
-     --------------
+     * PublisherPublicKeyLocator ::=
+     * --------------
+     * KeyLocator
+     * --------------
+     *
+     * @return PublisherPublicKeyLocator as definition above shows (see NDN specification)
      */
     String createPublisherPublicKeyLocator() {
         return "null"; // TODO - rework later
     }
 
     /**
-     Any ::=
-     --------------
-     ANY-TYPE TLV-LENGTH(=0)
-     --------------
+     * Any ::=
+     * --------------
+     * ANY-TYPE TLV-LENGTH(=0)
+     * --------------
+     *
+     * @return Any as definition above shows (see NDN specification)
      */
     String createAny() {
         return "ANY-TYPE 0";
     }
 
     /**
-     Exclude ::=
-     --------------
-     EXCLUDE-TYPE TLV-LENGTH Any? (NameComponent (Any)?)+
-     --------------
+     * Exclude ::=
+     * --------------
+     * EXCLUDE-TYPE TLV-LENGTH Any? (NameComponent (Any)?)+
+     * --------------
+     *
+     * @return Exclude as definition above shows (see NDN specification)
      */
     String createExclude() {
         String content = createAny(); // TODO - rework
@@ -130,11 +156,13 @@ public class InterestPacket {
     }
 
     /**
-     ChildSelector ::=
-     --------------
-     CHILD-SELECTOR-TYPE TLV-LENGTH
-     nonNegativeInteger
-     --------------
+     * ChildSelector ::=
+     * --------------
+     * CHILD-SELECTOR-TYPE TLV-LENGTH
+     * nonNegativeInteger
+     * --------------
+     *
+     * @return ChildSelector as definition above shows (see NDN specification)
      */
     String createChildSelector() {
         String content = "0"; // TODO - rework
@@ -142,20 +170,24 @@ public class InterestPacket {
     }
 
     /**
-     MustBeFresh ::=
-     --------------
-     MUST-BE-FRESH-TYPE TLV-LENGTH(=0)
-     --------------
+     * MustBeFresh ::=
+     * --------------
+     * MUST-BE-FRESH-TYPE TLV-LENGTH(=0)
+     * --------------
+     *
+     * @return MustBeFresh as definition above shows (see NDN specification)
      */
     String createMustBeFresh() {
         return "MUST-BE-FRESH-TYPE 0";
     }
 
     /**
-    InterestLifeTime ::=
-    --------------
-    INTEREST-LIFETIME-TYPE TLV-LENGTH nonNegativeInteger
-    --------------
+     * InterestLifeTime ::=
+     * --------------
+     * INTEREST-LIFETIME-TYPE TLV-LENGTH nonNegativeInteger
+     * --------------
+     *
+     * @return InterestLifeTime as definition above shows (see NDN specification)
     **/
     String createInterestLifetime() {
         String content = Integer.toString(LIFETIME_CONST); // TODO - add user-selected interval
@@ -163,10 +195,12 @@ public class InterestPacket {
     }
 
     /**
-    Scope ::=
-    --------------
-    SCOPE-TYPE TLV-LENGTH nonNegativeInteger
-    --------------
+     * Scope ::=
+     * --------------
+     * SCOPE-TYPE TLV-LENGTH nonNegativeInteger
+     * --------------
+     *
+     * @return Scope as definition above shows (see NDN specification)
     */
     String createScope() {
         String content = "0"; // TODO - rework
@@ -174,15 +208,17 @@ public class InterestPacket {
     }
 
     /**
-     INTEREST ::=
-     --------------
-     INTEREST-TYPE TLV-LENGTH
-     Name
-     Selectors?
-     Nonce
-     Scope?
-     Interest Lifetime?
-     --------------
+     * INTEREST ::=
+     * --------------
+     * INTEREST-TYPE TLV-LENGTH
+     * Name
+     * Selectors?
+     * Nonce
+     * Scope?
+     * Interest Lifetime?
+     * --------------
+     *
+     * @return Interest packet as definition above shows (see NDN specification)
      **/
     String createINTEREST() {
         String content = nameField.createName();

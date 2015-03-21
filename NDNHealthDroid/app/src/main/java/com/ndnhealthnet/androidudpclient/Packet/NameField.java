@@ -1,42 +1,51 @@
 package com.ndnhealthnet.androidudpclient.Packet;
 
 /**
- * Class creates an NDN-compliant name for use within packets.
+ * Class creates an NDN-compliant name for use within packets, but
+ * the name itself is structure defined specifically for this application.
  */
 public class NameField {
 
-    /**
-     Our Name Format:
-     "/ndn/userID/sensorID/timestring/processID/ [datacontents] or [ip]"
-
-     The last field is specific to DATA and INTEREST packets, respectively.
-     **/
-
     private String name;
 
-    public NameField(String userDataID, String sensorID, String timestring, String processID, String finalField) {
+    /**
+     * Constructor our Our Name Format:
+     * "/ndn/userID/sensorID/timeString/processID/ [datacontents] or [ip]"
+     * The last field is specific to DATA and INTEREST packets, respectively.
+     *
+     * @param userDataID specifies data producer
+     * @param sensorID specifies health-sensor type (e.g., heart sensor)
+     * @param timeString specifies when packet was created
+     * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
+     * @param finalField specific to DATA and INTEREST packets, respectively.
+     */
+    public NameField(String userDataID, String sensorID, String timeString, String processID, String finalField) {
         // NOTE: method assumes userID and sensorID are device specific
                 // meaning, no specification is needed; just get from memory
 
-        this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring
+        this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timeString
                             + "/" + processID + "/" + finalField;
     }
 
     /**
-     NameComponent ::=
-     --------------
-     GenericNameComponent | ImplicitSha256DigestComponent
-     --------------
+     * NameComponent ::=
+     * --------------
+     * GenericNameComponent | ImplicitSha256DigestComponent
+     * --------------
+     *
+     * @return NameComponent as definition above shows (see NDN specification)
      **/
     String createNameComponent() {
         return createGenericNameComponent() + " " + createImplicitSha256DigestComponent();
     }
 
     /**
-     GenericNameComponent ::=
-     --------------
-     NAME-COMPONENT-TYPE TLV-LENGTH Byte*
-     --------------
+     * GenericNameComponent ::=
+     * --------------
+     * NAME-COMPONENT-TYPE TLV-LENGTH Byte*
+     * --------------
+     *
+     * @return GenericNameComponent as definition above shows (see NDN specification)
      **/
     String createGenericNameComponent() {
         String content = name;
@@ -44,10 +53,12 @@ public class NameField {
     }
 
     /**
-     ImplicitSha256DigestComponent ::=
-     --------------
-     IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
-     --------------
+     * ImplicitSha256DigestComponent ::=
+     * --------------
+     * IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
+     * --------------
+     *
+     * @return ImplicitSha256DigestComponent as definition above shows (see NDN specification)
      **/
     String createImplicitSha256DigestComponent() {
 
@@ -59,10 +70,12 @@ public class NameField {
     }
 
     /**
-     Name ::=
-     --------------
-     NAME-TYPE TLV-LENGTH NameComponent
-     --------------
+     * Name ::=
+     * --------------
+     * NAME-TYPE TLV-LENGTH NameComponent
+     * --------------
+     *
+     * @return Name as definition above shows (see NDN specification)
      **/
     String createName() {
         String content = createNameComponent();
