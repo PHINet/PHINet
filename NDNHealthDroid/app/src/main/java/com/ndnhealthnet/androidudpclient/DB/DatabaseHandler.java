@@ -251,7 +251,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * Method returns specific, single FIB entry.
      *
      * @param userID associated with entry to be returned
-     * @return returned entry if found, otherwise null returned
+     * @return entry if found, otherwise null returned
      */
     public DBData getFIBData(String userID) {
 
@@ -289,7 +289,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * Data is queried without timestring specification; multiple entries may be found.
      *
      * @param userID associated with entries to be returned
-     * @return returned entries if found, otherwise null returned
+     * @return entries if found, otherwise null returned
      */
     public ArrayList<DBData> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -331,7 +331,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Method used to query entire FIB table; useful when multi-casting interests
      *
-     * @return returned entries if any exist, otherwise null returned
+     * @return entries if any exist, otherwise null returned
      */
     public ArrayList<DBData> getAllFIBData() {
         ArrayList<DBData> allFIBData = new ArrayList<DBData>();
@@ -361,7 +361,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @param userID associated with entry to be returned
      * @param timeString associated with entry to be returned
-     * @return returned entry if found, otherwise null returned
+     * @return entry if found, otherwise null returned
      */
     public DBData getSpecificCSData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();

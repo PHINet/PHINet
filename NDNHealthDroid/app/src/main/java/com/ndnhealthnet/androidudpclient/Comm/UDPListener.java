@@ -280,15 +280,19 @@ public class UDPListener extends Thread {
 
         String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
 
-        // TIME_STRING FORMAT: "yyyy-MM-dd||yyyy-MM-dd"; the former is start, latter is end
+        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss||yyyy-MM-ddTHH:mm:ss"; the former is start, latter is end
 
         boolean beforeStartDate = false;
         boolean afterEndDate = false;
 
         Date startDate, endDate, dataDate;
 
+        // replace "T" with empty char "", so that comparison is easier
+        requestIntervals[0] = requestIntervals[0].replace("T", "");
+        requestIntervals[1] = requestIntervals[1].replace("T", "");
+
         try {
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);

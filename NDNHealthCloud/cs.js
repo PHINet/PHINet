@@ -3,8 +3,6 @@
  * specified in the NDN documentation
  **/
     
-// TODO - document
-
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
@@ -26,7 +24,7 @@ client.connect(function(err) {
 });
 
 /**
- *
+ * Returns object that allows manipulation of ContentStore.
  */
 exports.CS = function () {
 
@@ -44,11 +42,11 @@ exports.CS = function () {
     return {
 
         /**
-         * Method performs minimal input validation then, on pass, deletes entry from the ContentStore.
+         * Method deletes a single, specific CS entry.
          *
-         * @param userid
-         * @param timestring
-         * @returns {boolean}
+         * @param userid associated with entry to be deleted
+         * @param timestring associated with entry to be deleted
+         * @return true if entry successfully deleted, false otherwise
          */
 		deleteCSData: function (userid, timestring) {
 
@@ -79,19 +77,19 @@ exports.CS = function () {
         },
 
         /**
-         * Method performs minimal input validation then, on pass, updates entry in the ContentStore.
+         * Method updates a single, specific CS entry.
          *
-         * @param DBDataObject
-         * @returns {boolean}
+         * @param dbDataObject object containing updated row contents
+         * @return true if entry successfully updated, false otherwise
          */
-		updateCSData: function (DBDataObject) {
+		updateCSData: function (dbDataObject) {
             try {
                 // perform minimal input validation
-                if (DBDataObject === null || DBDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM ContentStore WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
+                    + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
 
                         if (err) {
                             // table doesn't exist
@@ -112,10 +110,10 @@ exports.CS = function () {
         },
 
         /**
-         * Method returns all data associated with a specific userID or false if data not found or userID invalid.
+         * Data is queried without timestring specification; multiple entries may be found.
          *
-         * @param userid
-         * @returns {boolean}
+         * @param userid associated with entries to be returned
+         * @return returned entries if found, otherwise null returned
          */
 		getGeneralCSData: function (userid) {
 
@@ -148,12 +146,11 @@ exports.CS = function () {
 		},
 
         /**
-         * Method returns specific row associated with a userID and timeString
-         * or false if data not found or userID/timestring invalid.
+         * Method returns a single, specific CS entry if it exists.
          *
-         * @param userid
-         * @param timestring
-         * @returns {boolean}
+         * @param userid associated with entry to be returned
+         * @param timestring associated with entry to be returned
+         * @return entry if found, otherwise null returned
          */
 		getSpecificCSData: function (userid, timestring) {
             try {
@@ -180,10 +177,8 @@ exports.CS = function () {
         },
 
         /**
-         * Method performs minimal input validation then, on pass, adds entry to the ContentStore.
-         *
-         * @param dbDataObject
-         * @returns {boolean}
+         * @param dbDataObject data object to be entered
+         * @return true if data was successfully entered into DB, false otherwise
          */
 		addCSData: function(dbDataObject)  {
 

@@ -330,11 +330,13 @@ public class PatientDataActivity extends Activity {
         if (startYear != 0 && endYear != 0) {
             String timeString = "";
 
-            // TIME_STRING FORMAT: "yyyy-MM-dd||yyyy-MM-dd"; the former is start, latter is end
+            // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss||yyyy-MM-ddTHH:mm:ss";
+                    // where the former is start, latter is end
 
+            // by default, set HH:mm:ss from request interval to 00:00:00
             timeString += Integer.toString(startYear) + "-" + Integer.toString(startMonth) + "-";
-            timeString += Integer.toString(startDay) + "||" + Integer.toString(endYear) + "-";
-            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay);
+            timeString += Integer.toString(startDay) + "T00:00:00||" + Integer.toString(endYear) + "-";
+            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay) + "T:00:00:00";
 
             return timeString;
         } else {

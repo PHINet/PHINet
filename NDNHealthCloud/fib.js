@@ -3,9 +3,6 @@
  * Base specified in the NDN documentation
  **/
 
-
-// TODO - document
-
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
@@ -27,7 +24,7 @@ client.connect(function(err) {
 });
 
 /**
- *
+ * Returns object that allows manipulation of FIB.
  */
 exports.FIB =  function () {
 
@@ -37,9 +34,10 @@ exports.FIB =  function () {
 	return {
 
         /**
+         * Method deletes a single, specific FIB entry.
          *
-         * @param userid
-         * @returns {boolean}
+         * @param userid associated with entry to be deleted
+         * @return true if entry successfully deleted, false otherwise
          */
 		deleteFIBData: function (userid) {
 
@@ -71,19 +69,21 @@ exports.FIB =  function () {
         },
 
         /**
+         * Method updates a single, specific FIB entry.
          *
-         * @param DBDataObject
-         * @returns {boolean}
+         * @param data object containing updated row contents
+         * @return true if entry successfully updated, false otherwise
          */
-		updateFIBData: function (DBDataObject) {
+		updateFIBData: function (dbDataObject) {
 			// perform minimal input validation
 
             try {
-                if (DBDataObject.getUserID() === undefined || DBDataObject === null || DBDataObject === undefined) {
+                if (dbDataObject.getUserID() === undefined || dbDataObject === null 
+                    || dbDataObject === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM ForwardingInformationBase WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" + DBDataObject.getUserID() + "\'", function(err, result) {
+                    + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
 
                         if (err) {
                             // table doesn't exist
@@ -104,10 +104,10 @@ exports.FIB =  function () {
         },
 
         /**
+         * Method returns specific, single FIB entry.
          *
-         *
-         * @param userid
-         * @returns {boolean}
+         * @param userid associated with entry to be returned
+         * @return entry if found, otherwise null returned
          */
 		getFIBData: function (userid) {
 
@@ -144,8 +144,9 @@ exports.FIB =  function () {
         },
 
         /**
+         * Method used to query entire FIB table; useful when multi-casting interests
          *
-         * @returns {boolean}
+         * @return entries if any exist, otherwise null returned
          */
 		getAllFIBData: function () {
 
@@ -174,9 +175,8 @@ exports.FIB =  function () {
 		},
 
         /**
-         *
-         * @param dbDataObject
-         * @returns {boolean}
+         * @param dbDataObject data object to be entered
+         * @return true if data was successfully entered into DB, false otherwise
          */
 		insertFIBData: function(dbDataObject)  {
 

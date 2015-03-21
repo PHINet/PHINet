@@ -3,8 +3,6 @@
  * Table specified in the NDN documentation
  **/
 
-// TODO - document
-
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
@@ -26,7 +24,7 @@ client.connect(function(err) {
 });
 
 /**
- *
+ * Returns object that allows manipulation of PIT.
  */
 exports.PIT = function () {
 
@@ -39,11 +37,12 @@ exports.PIT = function () {
 	return {
 
         /**
+         * Method deletes a single, specific PIT entry.
          *
-         * @param userid
-         * @param timestring
-         * @param ipaddr
-         * @returns {boolean}
+         * @param userid associated with entry to be deleted
+         * @param timestring associated with entry to be deleted
+         * @param ipaddr associated with entry to be deleted
+         * @return true if entry successfully deleted, false otherwise
          */
         deletePITData: function (userid, timestring, ipaddr) {
 
@@ -77,9 +76,10 @@ exports.PIT = function () {
 		},
 
         /**
+         * Method updates a single, specific PIT entry.
          *
-         * @param dbDataObject
-         * @returns {boolean}
+         * @param dbDataObject object containing updated row contents
+         * @return true if entry successfully updated, false otherwise
          */
 		updatePITData: function (dbDataObject) {
 			// perform minimal input validation
@@ -115,7 +115,11 @@ exports.PIT = function () {
 		},
 
         /**
-         * gets all data requested for specific id/ip combination
+         * Data is queried without ipAddr specification; multiple entries may be found.
+         *
+         * @param userid specifies which PIT entries should be returned, together with ipaddr
+         * @param ipaddr specifies which PIT entries should be returned
+         * @return ArrayList of data for userID param
          */
 		getGeneralPITData: function (userid,  ipaddr) {
 
@@ -149,7 +153,8 @@ exports.PIT = function () {
 		},
 
         /**
-         *
+         * @param dbDataObject data object to be entered
+         * @return true if data was successfully entered into DB, false otherwise
          */
 		addPITData: function(dbDataObject)  {
 
