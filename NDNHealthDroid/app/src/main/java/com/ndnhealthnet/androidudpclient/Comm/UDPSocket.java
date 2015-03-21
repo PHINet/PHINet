@@ -1,6 +1,8 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.os.AsyncTask;
+
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -12,12 +14,12 @@ import java.util.TimerTask;
 /**
  * Class handles outbound UDP packets and listens when reply expected.
  */
-class UDPSocket extends AsyncTask<String, Void, Void> {
+public class UDPSocket extends AsyncTask<String, Void, Void> {
 
     String destAddr, messageType;
     int destPort;
 
-    UDPSocket(int port, String addr, String type){
+    public UDPSocket(int port, String addr, String type){
         destPort = port;
         destAddr = addr;
         messageType = type;

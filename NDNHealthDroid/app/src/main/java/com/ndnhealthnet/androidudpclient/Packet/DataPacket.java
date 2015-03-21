@@ -1,7 +1,7 @@
 package com.ndnhealthnet.androidudpclient.Packet;
 
-import com.ndnhealthnet.androidudpclient.StringConst;
-import com.ndnhealthnet.androidudpclient.Utils;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
  * Class creates an NDN-Compliant Data packet in the form of a string.

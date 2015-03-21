@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.DB;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import java.util.ArrayList;
 
@@ -246,9 +248,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method returns specific, single FIB entry.
      *
-     * @param userID
-     * @return
+     * @param userID associated with entry to be returned
+     * @return returned entry if found, otherwise null returned
      */
     public DBData getFIBData(String userID) {
 
@@ -285,8 +288,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Data is queried without timestring specification; multiple entries may be found.
      *
-     * @param userID
-     * @return
+     * @param userID associated with entries to be returned
+     * @return returned entries if found, otherwise null returned
      */
     public ArrayList<DBData> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -328,7 +331,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Method used to query entire FIB table; useful when multi-casting interests
      *
-     * @return
+     * @return returned entries if any exist, otherwise null returned
      */
     public ArrayList<DBData> getAllFIBData() {
         ArrayList<DBData> allFIBData = new ArrayList<DBData>();
@@ -354,11 +357,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method returns a single, specific CS entry if it exists.
      *
-     *
-     * @param userID
-     * @param timeString
-     * @return
+     * @param userID associated with entry to be returned
+     * @param timeString associated with entry to be returned
+     * @return returned entry if found, otherwise null returned
      */
     public DBData getSpecificCSData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -391,10 +394,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method updates a single, specific entry from specified table.
      *
-     * @param data
-     * @param tableName
-     * @return
+     * @param data object containing updated row contents
+     * @param tableName specified name of table to be updated
+     * @return true if entry successfully updated, false otherwise
      */
     private boolean updateData(DBData data, String tableName) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -429,9 +433,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method updates a single, specific FIB entry.
      *
-     * @param data
-     * @return
+     * @param data object containing updated row contents
+     * @return true if entry successfully updated, false otherwise
      */
     public boolean updateFIBData(DBData data) {
 
@@ -443,9 +448,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method updates a single, specific PIT entry.
      *
-     * @param data
-     * @return
+     * @param data object containing updated row contents
+     * @return true if entry successfully updated, false otherwise
      */
     public boolean updatePITData(DBData data) {
 
@@ -457,9 +463,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method updates a single, specific CS entry.
      *
-     * @param data
-     * @return
+     * @param data object containing updated row contents
+     * @return true if entry successfully updated, false otherwise
      */
     public boolean updateCSData(DBData data) {
 
@@ -471,11 +478,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method deletes a single, specific PIT entry.
      *
-     * @param userID
-     * @param timeString
-     * @param ipAddr
-     * @return
+     * @param userID associated with entry to be deleted
+     * @param timeString associated with entry to be deleted
+     * @param ipAddr associated with entry to be deleted
+     * @return true if entry successfully deleted, false otherwise
      */
     public boolean deletePITEntry(String userID, String timeString, String ipAddr) {
 
@@ -492,9 +500,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method deletes a single, specific FIB entry.
      *
-     * @param userID
-     * @return
+     * @param userID associated with entry to be deleted
+     * @return true if entry successfully deleted, false otherwise
      */
     public boolean deleteFIBEntry(String userID) {
 
@@ -510,10 +519,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Method deletes a single, specific CS entry.
      *
-     * @param userID
-     * @param timeString
-     * @return
+     * @param userID associated with entry to be deleted
+     * @param timeString associated with entry to be deleted
+     * @return true if entry successfully deleted, false otherwise
      */
     public boolean deleteCSEntry(String userID, String timeString) {
 
@@ -530,7 +540,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     *
+     * Method deletes all entries in PIT.
      */
     public void deleteEntirePIT() {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -539,7 +549,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     *
+     * Method deletes all entries in CS.
      */
     public void deleteEntireCS() {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -548,7 +558,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     *
+     * Method deletes all entries in FIB.
      */
     public void deleteEntireFIB() {
         SQLiteDatabase db = this.getWritableDatabase();

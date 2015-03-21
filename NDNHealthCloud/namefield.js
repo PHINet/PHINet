@@ -3,16 +3,25 @@
  * NDN-compliant name components for packets
  **/
 
+
+/**
+ * Enables creation of an NDN-compliant name for use within packets, but
+ * the name itself is structure defined specifically for this application.
+ */
 exports.NameField = function () {
 
     return {
         /**
-         Our Name Format:
-         "/ndn/userID/sensorID/timestring/processID/ [datacontents] or [ip]"
-
-         The last field is specific to DATA and INTEREST packets, respectively.
-         **/
-
+         * Constructor our Our Name Format:
+         * "/ndn/userID/sensorID/timeString/processID/ [datacontents] or [ip]"
+         * The last field is specific to DATA and INTEREST packets, respectively.
+         *
+         * @param userDataID specifies data producer
+         * @param sensorID specifies health-sensor type (e.g., heart sensor)
+         * @param timeString specifies when packet was created
+         * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
+         * @param finalField specific to DATA and INTEREST packets, respectively.
+         */
         NameField: function (userDataID, sensorID, timestring, processID, finalField) {
             // NOTE: method assumes userID and sensorID are device specific
                     // meaning, no specification is needed; just get from memory
@@ -22,20 +31,24 @@ exports.NameField = function () {
         },
 
         /**
-         NameComponent ::=
-         --------------
-         GenericNameComponent | ImplicitSha256DigestComponent
-         --------------
+         * NameComponent ::=
+         * --------------
+         * GenericNameComponent | ImplicitSha256DigestComponent
+         * --------------
+         *
+         * @return NameComponent as definition above shows (see NDN specification)
          **/
         createNameComponent: function () {
             return this.createGenericNameComponent() + " " + this.createImplicitSha256DigestComponent();
         },
 
         /**
-         GenericNameComponent ::=
-         --------------
-         NAME-COMPONENT-TYPE TLV-LENGTH Byte*
-         --------------
+         * GenericNameComponent ::=
+         * --------------
+         * NAME-COMPONENT-TYPE TLV-LENGTH Byte*
+         * --------------
+         *
+         * @return GenericNameComponent as definition above shows (see NDN specification)
          **/
         createGenericNameComponent: function () {
             var content = this.name;
@@ -43,10 +56,12 @@ exports.NameField = function () {
         },
 
         /**
-         ImplicitSha256DigestComponent ::=
-         --------------
-         IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
-         --------------
+         * ImplicitSha256DigestComponent ::=
+         * --------------
+         * IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
+         * --------------
+         *
+         * @return ImplicitSha256DigestComponent as definition above shows (see NDN specification)
          **/
         createImplicitSha256DigestComponent: function () {
 
@@ -58,10 +73,12 @@ exports.NameField = function () {
         },
 
         /**
-         Name ::=
-         --------------
-         NAME-TYPE TLV-LENGTH NameComponent
-         --------------
+         * Name ::=
+         * --------------
+         * NAME-TYPE TLV-LENGTH NameComponent
+         * --------------
+         *
+         * @return Name as definition above shows (see NDN specification)
          **/
         createName: function () {
             var content = this.createNameComponent();
@@ -69,6 +86,9 @@ exports.NameField = function () {
             return "NAME-TYPE " + (content.length).toString() + " " + content;
         },
 
+        /**
+         * Method returns NDN-compliant Data string
+         */
         toString: function () {
             return this.createName(); // TODO - rework
         }

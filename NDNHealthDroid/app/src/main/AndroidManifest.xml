@@ -17,11 +17,11 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-    <android:uses-permission
+    <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
-    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <android:uses-permission
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
 
@@ -48,7 +48,7 @@
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.anroidudpclient.MainActivity" />
+                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
         </activity>
         <activity
             android:name=".ConfigNetLinksActivity"
@@ -56,7 +56,7 @@
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.anroidudpclient.MainActivity" />
+                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
         </activity>
         <activity
             android:name=".ViewMyDataActivity"
@@ -64,7 +64,7 @@
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.anroidudpclient.MainActivity" />
+                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
         </activity>
         <activity
             android:name=".UserCredentialActivity"
@@ -72,7 +72,7 @@
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.anroidudpclient.MainActivity" />
+                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
         </activity>
         <activity
             android:name=".PatientDataActivity"
@@ -85,11 +85,7 @@
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.anroidudpclient.MainActivity" />
-        </activity>
-        <activity
-            android:name=".MainActivity2Activity"
-            android:label="@string/title_activity_main_activity2" >
+                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
         </activity>
     </application>
 

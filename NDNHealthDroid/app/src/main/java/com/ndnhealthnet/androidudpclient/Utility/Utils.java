@@ -1,8 +1,10 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Utility;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import com.ndnhealthnet.androidudpclient.DB.DBData;
 
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -37,7 +39,7 @@ public class Utils {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         final SharedPreferences.Editor editor = prefs.edit();
         editor.putString(key,value);
-        editor.commit();
+        editor.apply();
 
         return true;
     }
@@ -72,8 +74,8 @@ public class Utils {
     /**
      * Method takes query results and converts to a format that can be presented via graph
      *
-     * @param myData
-     * @return
+     * @param myData array list of database data
+     * @return data from input in graphable format
      */
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData) {
         // TODO - improve display accuracy (order chronologically, etc)
@@ -91,9 +93,7 @@ public class Utils {
     }
 
     /**
-     * Method returns the current time
-     *
-     * @return
+     * @return UTC-compliant current time
      */
     public static String getCurrentTime() {
         SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd");
@@ -105,24 +105,24 @@ public class Utils {
     /**
      * tests validity of IP input
      *
-     * @param ip
-     * @return
+     * @param ip input to be validated
+     * @return validity status of input IP
      */
     public static boolean validIP(String ip) {
 
         if (ip == null) {
             return false;
+        } else {
+            boolean validIP;
+
+            try {
+                InetAddress.getByName(ip);
+                validIP = true;
+            } catch (Exception e) {
+                validIP = false;
+            }
+
+            return validIP;
         }
-
-        boolean validIP;
-
-        try {
-            InetAddress.getByName(ip);
-            validIP = true;
-        } catch (Exception e) {
-            validIP = false;
-        }
-
-        return validIP;
     }
 }

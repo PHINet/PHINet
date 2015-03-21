@@ -18,7 +18,11 @@ import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
+import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
 
@@ -247,8 +251,8 @@ public class PatientDataActivity extends Activity {
     /**
      * allows users to select date regarding interval of requested data
      *
-     * @param title
-     * @return
+     * @param title used to set title of dialog
+     * @return returns the dialog so that it can be initiated elsewhere
      */
     AlertDialog.Builder generateIntervalSelector(String title) {
         final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
@@ -318,9 +322,7 @@ public class PatientDataActivity extends Activity {
     }
 
     /**
-     * method generates UTC-compliant time string from user input
-     *
-     * @return
+     * @return a UTC-compliant time string from user input
      */
     private String generateTimeString()
     {

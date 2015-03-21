@@ -4,6 +4,8 @@
  **/
 
 
+// TODO - document
+
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
@@ -24,6 +26,9 @@ client.connect(function(err) {
   });
 });
 
+/**
+ *
+ */
 exports.FIB =  function () {
 
 	/*var tempDBData = DBDataClass.DATA();
@@ -33,6 +38,8 @@ exports.FIB =  function () {
 
         /**
          *
+         * @param userid
+         * @returns {boolean}
          */
 		deleteFIBData: function (userid) {
 
@@ -65,6 +72,8 @@ exports.FIB =  function () {
 
         /**
          *
+         * @param DBDataObject
+         * @returns {boolean}
          */
 		updateFIBData: function (DBDataObject) {
 			// perform minimal input validation
@@ -96,6 +105,9 @@ exports.FIB =  function () {
 
         /**
          *
+         *
+         * @param userid
+         * @returns {boolean}
          */
 		getFIBData: function (userid) {
 
@@ -133,6 +145,7 @@ exports.FIB =  function () {
 
         /**
          *
+         * @returns {boolean}
          */
 		getAllFIBData: function () {
 
@@ -162,6 +175,8 @@ exports.FIB =  function () {
 
         /**
          *
+         * @param dbDataObject
+         * @returns {boolean}
          */
 		insertFIBData: function(dbDataObject)  {
 

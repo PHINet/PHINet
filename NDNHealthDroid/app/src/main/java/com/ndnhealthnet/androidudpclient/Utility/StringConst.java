@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Utility;
 
 /**
  * File contains constant strings that are sent withing

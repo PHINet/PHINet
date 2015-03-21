@@ -3,8 +3,10 @@
  */
 
 exports.Utils = {
-	
-	/** method returns current time **/
+
+    /**
+     * @return UTC-compliant current time
+     */
 	getCurrentTime: function () {
 
         // format is YYYY-MM-DD
@@ -29,5 +31,4 @@ exports.Utils = {
 
        	return timeString;
 	}
-
 }

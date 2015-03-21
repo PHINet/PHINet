@@ -2,6 +2,8 @@
  * File contains code for the Content Store
  * specified in the NDN documentation
  **/
+    
+// TODO - document
 
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
@@ -23,6 +25,9 @@ client.connect(function(err) {
   });
 });
 
+/**
+ *
+ */
 exports.CS = function () {
 
 	/*// NOTE: This fib entry is data only for testing
@@ -40,6 +45,10 @@ exports.CS = function () {
 
         /**
          * Method performs minimal input validation then, on pass, deletes entry from the ContentStore.
+         *
+         * @param userid
+         * @param timestring
+         * @returns {boolean}
          */
 		deleteCSData: function (userid, timestring) {
 
@@ -71,6 +80,9 @@ exports.CS = function () {
 
         /**
          * Method performs minimal input validation then, on pass, updates entry in the ContentStore.
+         *
+         * @param DBDataObject
+         * @returns {boolean}
          */
 		updateCSData: function (DBDataObject) {
             try {
@@ -101,6 +113,9 @@ exports.CS = function () {
 
         /**
          * Method returns all data associated with a specific userID or false if data not found or userID invalid.
+         *
+         * @param userid
+         * @returns {boolean}
          */
 		getGeneralCSData: function (userid) {
 
@@ -135,6 +150,10 @@ exports.CS = function () {
         /**
          * Method returns specific row associated with a userID and timeString
          * or false if data not found or userID/timestring invalid.
+         *
+         * @param userid
+         * @param timestring
+         * @returns {boolean}
          */
 		getSpecificCSData: function (userid, timestring) {
             try {
@@ -162,6 +181,9 @@ exports.CS = function () {
 
         /**
          * Method performs minimal input validation then, on pass, adds entry to the ContentStore.
+         *
+         * @param dbDataObject
+         * @returns {boolean}
          */
 		addCSData: function(dbDataObject)  {
 

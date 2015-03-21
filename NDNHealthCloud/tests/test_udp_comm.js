@@ -1,8 +1,15 @@
+/**
+ *
+ */
+
 var expect = require("chai").expect;
 
 var StringConst = require('../string_const').StringConst;
 var udp_comm = require('../udp_comm').UDPComm();
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -13,6 +20,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -23,6 +33,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -33,6 +46,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -43,6 +59,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -53,6 +72,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){
@@ -63,6 +85,9 @@ describe('UDPComm', function(){
     })
 })
 
+/**
+ *
+ */
 describe('UDPComm', function(){
     describe('#X()', function(){
         it('X', function(){

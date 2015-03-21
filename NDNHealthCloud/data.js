@@ -6,11 +6,22 @@
 var StringConst = require('./string_const').StringConst;
 var Utils = require('./utils').Utils;
 
+/**
+ *
+ */
 exports.DATA = function () { 
 
     return {
-    	
-    	// Data Cache Constructor
+
+        /**
+         * constructor for CS
+         *
+         * @param sensorID associated with CS data
+         * @param processID associated with CS data
+         * @param timeString associated with CS data
+         * @param userID associated with CS data
+         * @param datafloat contents associated with CS data
+         */
     	csData: function (userID, sensorID, processID, timeString,
                      datafloat) {
 
@@ -32,7 +43,15 @@ exports.DATA = function () {
             this.datafloat = datafloat;
         },
 
-        // PIT Entry Constructor
+        /**
+         * constructor for either PIT
+         *
+         * @param sensorID associated with PIT data
+         * @param processID associated with PIT data
+         * @param timeString associated with PIT data
+         * @param userID associated with PIT data
+         * @param ipAddr associated with request
+         */
         pitData: function (userID, sensorID, processID, timeString,
                     ipAddr) {
 
@@ -48,7 +67,13 @@ exports.DATA = function () {
             this.ipAddr = ipAddr;
         },
 
-        // FIB entry constructor
+        /**
+         * unambiguous FIB DBData constructor
+         *
+         * @param userID associated with FIB data
+         * @param timeString associated with FIB data
+         * @param ipAddr associated with FIB data
+         */
         fibData: function(userID, timeString, ipAddr) {
 
             // if current time requested, provide it
@@ -81,6 +106,9 @@ exports.DATA = function () {
             return this.timeString;
         },
 
+        /**
+         * Method sets object's timeString. If CURRENT_TIME chose, invoke Utils method.
+         */
         setTimeString: function (timeString) {
 
             if (timeString === StringConst.CURRENT_TIME) {

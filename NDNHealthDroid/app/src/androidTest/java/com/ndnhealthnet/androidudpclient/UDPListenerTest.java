@@ -2,10 +2,12 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
+import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
+
 import junit.framework.TestCase;
 
 /**
- *
+ * Tests the functionality of UDPListener.java
  */
 public class UDPListenerTest extends TestCase {
 
@@ -13,15 +15,16 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @param context
+     * @param context used to create UDPListener object used in testing
      */
     public UDPListenerTest(Context context) {
         receiverThread = new UDPListener(context);
     }
 
     /**
+     * Method invokes all test cases.
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void runTests() throws Exception {
         testHandleIncomingNDNPacket();
@@ -36,7 +39,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleIncomingNDNPacket() throws Exception {
 
@@ -44,7 +47,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleInterestPacket() throws Exception {
         // 1. test all, bad input
@@ -58,7 +61,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleInterestFIBRequest() throws Exception {
         // 1. test if empty fib
@@ -70,7 +73,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleInterestCacheRequest() throws Exception {
 
@@ -87,7 +90,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testIsValidForTimeInterval() throws Exception {
 
@@ -102,7 +105,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleDataPacket() throws Exception {
 
@@ -115,7 +118,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleCacheData() throws Exception {
 
@@ -132,7 +135,7 @@ public class UDPListenerTest extends TestCase {
 
     /**
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testHandleFIBData() throws Exception {
         // 1. handle bad input

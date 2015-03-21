@@ -1,7 +1,7 @@
 package com.ndnhealthnet.androidudpclient.Packet;
 
-import com.ndnhealthnet.androidudpclient.StringConst;
-import com.ndnhealthnet.androidudpclient.Utils;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.Random;
 

@@ -1,9 +1,11 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.DB;
+
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
- *
+ * Class that handles data that is to be stored in DB and/or processed.
  */
-
 public class DBData {
 
     private String sensorID;
@@ -18,12 +20,12 @@ public class DBData {
     /**
      * constructor for either pit/cs
      *
-     * @param type
-     * @param sensorID
-     * @param processID
-     * @param timeString
-     * @param userID
-     * @param fifthField
+     * @param type used in check to decide if constructor used for PIT or CS data
+     * @param sensorID associated with PIT/CS data
+     * @param processID associated with PIT/CS data
+     * @param timeString associated with PIT/CS data
+     * @param userID associated with PIT/CS data
+     * @param fifthField associated with PIT/CS data, either IP or DATA_CONTENTS - for PIT,CS respectively
      */
     public DBData(String type, String sensorID, String processID, String timeString,
                   String userID, String fifthField) {
@@ -45,60 +47,38 @@ public class DBData {
     /**
      * unambiguous FIB DBData constructor
      *
-     * @param userID
-     * @param timestring
-     * @param ipAddr
+     * @param userID associated with FIB data
+     * @param timestring associated with FIB data
+     * @param ipAddr associated with FIB data
      */
-    public DBData(String userID, String timestring, String ipAddr) {
+    public DBData(String userID, String timeString, String ipAddr) {
         this.userID = userID;
-        this.timeString = timestring;
+        this.timeString = timeString;
         this.ipAddr = ipAddr;
     }
 
-    /**
-     *
-     *
-     * @return
-     */
     public String getSensorID() {
         return sensorID;
     }
 
-    /**
-     *
-     * @param sensorID
-     */
     public void setSensorID(String sensorID) {
         this.sensorID = sensorID;
     }
 
-    /**
-     *
-     * @return
-     */
     public String getProcessID() {
         return processID;
     }
 
-    /**
-     *
-     * @param processID
-     */
     public void setProcessID(String processID) {
         this.processID = processID;
     }
 
-    /**
-     *
-     * @return
-     */
     public String getTimeString() {
         return timeString;
     }
 
     /**
-     *
-     * @param timeString
+     * Method sets object's timeString. If CURRENT_TIME chose, invoke Utils method.
      */
     public void setTimeString(String timeString) {
 
@@ -109,50 +89,26 @@ public class DBData {
         this.timeString = timeString;
     }
 
-    /**
-     *
-     * @return
-     */
     public String getUserID() {
         return userID;
     }
 
-    /**
-     *
-     * @param userID
-     */
     public void setUserID(String userID) {
         this.userID = userID;
     }
 
-    /**
-     *
-     * @return
-     */
     public String getIpAddr() {
         return ipAddr;
     }
 
-    /**
-     *
-     * @param ipAddr
-     */
     public void setIpAddr(String ipAddr) {
         this.ipAddr = ipAddr;
     }
 
-    /**
-     *
-     * @return
-     */
     public String getDataFloat() {
         return dataFloat;
     }
 
-    /**
-     *
-     * @param dataFloat
-     */
     public void setDataFloat(String dataFloat) {
         this.dataFloat = dataFloat;
     }

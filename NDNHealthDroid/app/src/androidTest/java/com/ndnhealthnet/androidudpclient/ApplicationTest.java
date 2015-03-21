@@ -5,7 +5,7 @@ import android.content.Context;
 import android.test.ApplicationTestCase;
 
 /**
- *
+ * Class handles all test cases for entire application.
  */
 public class ApplicationTest extends ApplicationTestCase<Application> {
     public ApplicationTest() {

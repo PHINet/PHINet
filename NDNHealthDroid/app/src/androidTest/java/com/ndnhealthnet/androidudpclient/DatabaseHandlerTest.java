@@ -2,14 +2,17 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
 
 /**
- *
+ *  Tests the functionality of DatabaseHandler.java
  */
-
 public class DatabaseHandlerTest extends TestCase {
 
     DatabaseHandler datasource;
@@ -46,16 +49,16 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test FIB data ---
 
     /**
-     *
-     * @param context
+     * @param context used to create DatabaseHandler object used in testing
      */
     public DatabaseHandlerTest(Context context) {
         datasource = new DatabaseHandler(context);
     }
 
     /**
+     * Method invokes all test cases.
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void runTests() throws Exception {
         testAddPITData();
@@ -83,8 +86,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testAddPITData() throws Exception {
 
@@ -100,8 +102,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testAddCSData() throws Exception {
 
@@ -117,8 +118,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testAddFIBData() throws Exception {
 
@@ -136,7 +136,7 @@ public class DatabaseHandlerTest extends TestCase {
     /**
      * method wipes pit, then adds two entries and checks that both are returned
      *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetGeneralPITData() throws Exception {
         datasource.deleteEntirePIT(); // delete PIT before testing insertion
@@ -176,8 +176,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetSpecificPITData() throws Exception {
         datasource.deleteEntirePIT(); // delete PIT before testing insertion
@@ -206,8 +205,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetFIBData() throws Exception {
 
@@ -232,8 +230,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetGeneralCSData() throws Exception {
 
@@ -260,8 +257,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetAllFIBData() throws Exception {
 
@@ -290,8 +286,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testGetSpecificCSData() throws Exception {
         datasource.deleteEntireCS(); // delete CS before testing insertion
@@ -307,8 +302,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testUpdateFIBData() throws Exception {
 
@@ -335,8 +329,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testUpdatePITData() throws Exception {
         datasource.deleteEntirePIT(); // delete FIB before testing insertion
@@ -362,8 +355,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testUpdateCSData() throws Exception {
         datasource.deleteEntireCS(); // delete FIB before testing insertion
@@ -389,8 +381,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeletePITEntry() throws Exception {
         datasource.deleteEntirePIT(); // delete FIB before testing insertion
@@ -413,8 +404,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeleteFIBEntry() throws Exception {
         datasource.deleteEntireFIB(); // delete FIB before testing insertion
@@ -437,8 +427,7 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeleteCSEntry() throws Exception {
         datasource.deleteEntireCS(); // delete FIB before testing insertion
@@ -461,24 +450,21 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeleteEntirePIT() throws Exception {
         // TODO
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeleteEntireCS() throws Exception {
         // TODO
     }
 
     /**
-     *
-     * @throws Exception
+     * @throws Exception for failed tests
      */
     public void testDeleteEntireFIB() throws Exception {
         // TODO

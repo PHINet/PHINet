@@ -1,9 +1,13 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.content.Context;
 
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.MainActivity;
 import com.ndnhealthnet.androidudpclient.Packet.DataPacket;
 import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -67,7 +71,7 @@ public class UDPListener extends Thread {
      * Helper method that handles all incoming packets;
      * may be invoked from elsewhere in code (namely, UDPSocket)
      *
-     * @param packetData
+     * @param packetData entire packet to have its contents assessed
      */
     static void handleIncomingNDNPacket(String packetData) {
 
@@ -101,7 +105,7 @@ public class UDPListener extends Thread {
      * 1. Do I have the data?
      * 2. Have I already sent an interest for this data?
      *
-     * @param packetDataArray
+     * @param packetDataArray incoming packet after having been "split" by space and placed array
      */
     static void handleInterestPacket(String[] packetDataArray) {
         String [] nameComponent = null;
@@ -145,9 +149,9 @@ public class UDPListener extends Thread {
     /**
      * returns entire FIB to user who requested it
      *
-     * @param packetUserID
-     * @param packetSensorID
-     * @param packetIP
+     * @param packetUserID userID of entity that requested FIB contents
+     * @param packetSensorID sensorID of entity that requested FIB contents
+     * @param packetIP ip of entity that requested FIB contents
      */
     static void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
     {
@@ -186,11 +190,11 @@ public class UDPListener extends Thread {
     /**
      * performs NDN logic on packet that requests data
      *
-     * @param packetUserID
-     * @param packetSensorID
-     * @param packetTimeString
-     * @param packetProcessID
-     * @param packetIP
+     * @param packetUserID userID associated with requested data from cache
+     * @param packetSensorID sensorID associated with requested data from cache
+     * @param packetTimeString timeString associated with requested data from cache
+     * @param packetProcessID processID associated with requested data from cache
+     * @param packetIP ip of entity that requested data from cache
      */
     static void handleInterestCacheRequest(String packetUserID, String packetSensorID, String packetTimeString,
                             String packetProcessID, String packetIP)
@@ -268,9 +272,9 @@ public class UDPListener extends Thread {
     /**
      * Method returns true if the data interval is within request interval
      *
-     * @param requestInterval
-     * @param dataInterval
-     * @return
+     * @param requestInterval a request interval; necessarily must contain two times (start and end)
+     * @param dataInterval the time stamp on specific data
+     * @return determination of whether dataInterval is within requestInterval
      */
     static  boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
 
@@ -307,7 +311,7 @@ public class UDPListener extends Thread {
      * Method parses packet then stores in cache if requested,
      * and sends out to satisfy any potential Interests.
      *
-     * @param packetDataArray
+     * @param packetDataArray incoming packet after having been "split" by space and placed array
      */
     static void handleDataPacket(String[] packetDataArray)
     {
@@ -380,12 +384,12 @@ public class UDPListener extends Thread {
     /**
      * Method handles incoming Non-FIB data
      *
-     * @param packetUserID
-     * @param packetSensorID
-     * @param packetTimeString
-     * @param packetProcessID
-     * @param packetFloatContent
-     * @param allValidPITEntries
+     * @param packetUserID userID associated with incoming Data packet
+     * @param packetSensorID sensorID associated with incoming Data packet
+     * @param packetTimeString timeString associated with incoming Data packet
+     * @param packetProcessID processID associated with incoming Data packet
+     * @param packetFloatContent contents of incoming Data packet
+     * @param allValidPITEntries ArrayList of all PIT entries requesting this data
      */
     static void handleCacheData(String packetUserID,String  packetSensorID,String  packetTimeString,
                          String  packetProcessID,String  packetFloatContent,
@@ -431,7 +435,7 @@ public class UDPListener extends Thread {
     /**
      * Method handles incoming FIB data
      *
-     * @param packetFloatContent
+     * @param packetFloatContent contents of FIB Data packet (i.e., "userID,userIP" string)
      */
     static void handleFIBData(String packetFloatContent) {
 

@@ -3,6 +3,7 @@
  * Table specified in the NDN documentation
  **/
 
+// TODO - document
 
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
@@ -24,6 +25,9 @@ client.connect(function(err) {
   });
 });
 
+/**
+ *
+ */
 exports.PIT = function () {
 
 	// NOTE: temp var
@@ -36,6 +40,10 @@ exports.PIT = function () {
 
         /**
          *
+         * @param userid
+         * @param timestring
+         * @param ipaddr
+         * @returns {boolean}
          */
         deletePITData: function (userid, timestring, ipaddr) {
 
@@ -70,6 +78,8 @@ exports.PIT = function () {
 
         /**
          *
+         * @param dbDataObject
+         * @returns {boolean}
          */
 		updatePITData: function (dbDataObject) {
 			// perform minimal input validation

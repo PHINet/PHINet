@@ -1,3 +1,7 @@
+/**
+ *
+ */
+
 var expect = require("chai").expect;
 
 var ContentStore = require('../cs.js').CS();
@@ -16,6 +20,9 @@ entry2.csData("serverTestUser2", "serverTestSensor2",
 
 // --- test entries ---
 
+/**
+ *
+ */
 describe('ContentStore', function(){
     describe('#addCSData()', function(){
         it('should return true if entry has been made', function(){
@@ -36,6 +43,9 @@ describe('ContentStore', function(){
     })
 })
 
+/**
+ *
+ */
 describe('ContentStore', function(){
     describe('#updateCSData()', function(){
         it('should return true if update has been made', function(){
@@ -54,6 +64,9 @@ describe('ContentStore', function(){
     })
 })
 
+/**
+ *
+ */
 describe('ContentStore', function(){
     describe('#deleteCSData()', function(){
         it('should return true if deletion has been made', function(){
@@ -71,6 +84,9 @@ describe('ContentStore', function(){
     })
 })
 
+/**
+ *
+ */
 describe('ContentStore', function(){
     describe('#getGeneralCSData()', function(){
         it('should return array of data if userid valid, otherwise false', function(){
@@ -81,6 +97,9 @@ describe('ContentStore', function(){
     })
 })
 
+/**
+ *
+ */
 describe('ContentStore', function(){
     describe('#getSpecificCSData()', function(){
         it('should return a specific entry, otherwise false', function(){

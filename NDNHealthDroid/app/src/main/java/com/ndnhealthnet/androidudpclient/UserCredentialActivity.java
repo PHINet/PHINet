@@ -8,6 +8,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
+
 /**
  * Provides UI for user to enter/update credentials (i.e., user_id and sensor_id)
  */
@@ -82,8 +85,8 @@ public class UserCredentialActivity extends Activity {
     /**
      * attempts to determine whether userID input is valid
      *
-     * @param userID
-     * @return
+     * @param userID input to have validity assessed
+     * @return boolean regarding validity of input
      */
     private boolean validInputUserID(String userID) {
         // TODO - perform sophisticated input validation
@@ -93,10 +96,10 @@ public class UserCredentialActivity extends Activity {
 
     /**
      * attempts to determine whether sensorID input is valid
-     *  valid input is a four digit integer string
+     * valid input is a four digit integer string
      *
-     * @param sensorID
-     * @return
+     * @param sensorID input to have validity assessed
+     * @return boolean regarding validity of input
      */
     private boolean validInputSensorID(String sensorID) {
 

@@ -9,8 +9,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
+
 /**
- *
+ *  The "main loop" of the application; Activity should always be on stack.
  */
 public class MainActivity extends Activity {
 
@@ -21,12 +27,12 @@ public class MainActivity extends Activity {
 	UDPListener receiverThread;
 
     // used to specify when listener "receiverThread" should actively listen for packets
-    static boolean continueReceiverExecution = true;
+    public static boolean continueReceiverExecution = true;
 
-    static final int devicePort = 50056; // port used by all NDN-HealthNet applications
-    static String deviceIP;
+    public static final int devicePort = 50056; // port used by all NDN-HealthNet applications
+    public static String deviceIP;
 
-    static DatabaseHandler datasource; // data source that is accessed through application
+    public static DatabaseHandler datasource; // data source that is accessed through application
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -134,6 +140,10 @@ public class MainActivity extends Activity {
 
     /**
      * should be invoked automatically after user enters credentials
+     *
+     * @param requestCode code of activity that has returned a result
+     * @param resultCode status of activity return
+     * @param data intent associated with returned activity
      */
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {

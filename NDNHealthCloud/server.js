@@ -118,6 +118,12 @@ client.connect(function(err) {
   });
 });
 
+/**
+ * Function creates DB table if it currently don't exist.
+ *
+ * @param dbName suspect table name
+ * @param dbCreationQuery creation query to be invoked if table doesn't exist
+ */
 function ifNonexistentCreateDB(dbName, dbCreationQuery) {
   client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
 
