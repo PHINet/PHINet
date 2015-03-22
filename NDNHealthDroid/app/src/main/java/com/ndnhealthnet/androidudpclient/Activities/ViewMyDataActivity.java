@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -42,7 +44,7 @@ public class ViewMyDataActivity extends Activity {
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
-        ArrayList<DBData> myData = MainActivity.datasource.getGeneralCSData(currentUserID);
+        ArrayList<DBData> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(currentUserID);
         ArrayList<Float> myFloatData;
 
         if (myData == null) {

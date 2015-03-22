@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,7 +20,9 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -57,7 +59,7 @@ public class PatientDataActivity extends Activity {
         patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_IP);
         patientUserID = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_USER_ID);
 
-        ArrayList<DBData> patientCacheData = MainActivity.datasource.getGeneralCSData(patientUserID);
+        ArrayList<DBData> patientCacheData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(patientUserID);
 
         // textview used to notify user whether data for patient exists
         dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
@@ -146,7 +148,7 @@ public class PatientDataActivity extends Activity {
                 // TODO - rework with actual Patient/Doctor relationship
 
                 // delete from FIB
-                MainActivity.datasource.deleteFIBEntry(patientUserID);
+                DBSingleton.getInstance(getApplicationContext()).getDB().deleteFIBEntry(patientUserID);
 
                 finish();
             }
@@ -165,7 +167,7 @@ public class PatientDataActivity extends Activity {
 
         if (mWifi.isConnected()) {
 
-            ArrayList<DBData> pitEntries = MainActivity.datasource.getGeneralPITData(patientUserID);
+            ArrayList<DBData> pitEntries = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralPITData(patientUserID);
 
             // place entry into PIT for self; this is because if a request is
             // received for same data, we won't send two identical PITs
@@ -184,7 +186,7 @@ public class PatientDataActivity extends Activity {
                 // deviceIP, because this device is the requester
                 selfPITEntry.setIpAddr(MainActivity.deviceIP);
 
-                MainActivity.datasource.addPITData(selfPITEntry);
+                DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
 
             } else {
                 // user has already requested data, update PIT entries
@@ -195,11 +197,11 @@ public class PatientDataActivity extends Activity {
                 /*for (int i = 0; i < pitEntries.size(); i++) {
 
                     pitEntries.get(i).setTimeString(StringConst.CURRENT_TIME);
-                    MainActivity.datasource.updatePITData(pitEntries.get(i));
+                    DBSingleton.getInstance(getApplicationContext()).getDB().updatePITData(pitEntries.get(i));
                 }*/
             }
 
-            ArrayList<DBData> allFIBEntries = MainActivity.datasource.getAllFIBData();
+            ArrayList<DBData> allFIBEntries = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
 
             int fibRequestsSent = 0;
 
@@ -330,13 +332,13 @@ public class PatientDataActivity extends Activity {
         if (startYear != 0 && endYear != 0) {
             String timeString = "";
 
-            // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss||yyyy-MM-ddTHH:mm:ss";
+            // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS";
                     // where the former is start, latter is end
 
-            // by default, set HH:mm:ss from request interval to 00:00:00
+            // by default, set HH:mm:ss.SSS from request interval to 00:00:00.00000
             timeString += Integer.toString(startYear) + "-" + Integer.toString(startMonth) + "-";
-            timeString += Integer.toString(startDay) + "T00:00:00||" + Integer.toString(endYear) + "-";
-            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay) + "T:00:00:00";
+            timeString += Integer.toString(startDay) + "T00:00:00.000||" + Integer.toString(endYear) + "-";
+            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay) + "T:00:00:00.000";
 
             return timeString;
         } else {
@@ -355,7 +357,7 @@ public class PatientDataActivity extends Activity {
         updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
         updatedFIBEntry.setUserID(patientUserID);
 
-        MainActivity.datasource.updateFIBData(updatedFIBEntry);
+        DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(updatedFIBEntry);
 
         Toast toast = Toast.makeText(this, "Save successful.", Toast.LENGTH_LONG);
         toast.show();

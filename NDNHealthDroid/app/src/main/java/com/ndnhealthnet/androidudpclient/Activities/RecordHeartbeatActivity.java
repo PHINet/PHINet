@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -17,6 +17,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.R;
+import com.ndnhealthnet.androidudpclient.Sensor.ImageProcessing;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -111,7 +114,7 @@ public class RecordHeartbeatActivity extends Activity {
                     data.setProcessID(StringConst.NULL_FIELD); // no valid process id, set to null
                     data.setDataFloat(Integer.toString(currentBeatInt));
 
-                    MainActivity.datasource.addCSData(data);
+                    DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);
 
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Heart beat successfully recorded.", Toast.LENGTH_LONG);

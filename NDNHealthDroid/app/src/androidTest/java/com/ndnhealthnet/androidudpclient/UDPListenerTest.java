@@ -3,6 +3,10 @@ package com.ndnhealthnet.androidudpclient;
 import android.content.Context;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import junit.framework.TestCase;
 
@@ -12,6 +16,8 @@ import junit.framework.TestCase;
 public class UDPListenerTest extends TestCase {
 
     UDPListener receiverThread;
+    DatabaseHandler datasource;
+    Context context;
 
     /**
      *
@@ -19,6 +25,8 @@ public class UDPListenerTest extends TestCase {
      */
     public UDPListenerTest(Context context) {
         receiverThread = new UDPListener(context);
+        datasource = new DatabaseHandler(context);
+        this.context = context;
     }
 
     /**
@@ -94,13 +102,32 @@ public class UDPListenerTest extends TestCase {
      */
     public void testIsValidForTimeInterval() throws Exception {
 
-        // 1. test bad input
+        final String goodRequestInterval = "2012-5-04T08:08.888||2014-5-04T08:08.888";
+        final String badRequestInterval = "2012-ERROR:08.888||2014-ERROR8:08.888";
 
-        // 2. test input before interval
+        final String goodDataInterval1 = "2012-7-04T08:08.888"; // date is within goodRequestInterval
+        final String goodDataInterval2 = "2012-1-04T08:08.888"; // date is before goodRequestInterval
+        final String goodDataInterval3 = "2014-7-04T08:08.888"; // date is after goodRequestInterval
 
-        // 3. test input after interval
+        // --- test bad input ---
+        assertFalse(receiverThread.isValidForTimeInterval(null, null)); // null entries
 
-        // 4. test input during interval
+        // syntax error in request interval
+        assertFalse(receiverThread.isValidForTimeInterval(badRequestInterval, goodDataInterval1));
+
+        // two data intervals and no request interval
+        assertFalse(receiverThread.isValidForTimeInterval(goodDataInterval1, goodDataInterval1));
+
+        // --- test bad input ---
+
+        // test input rejection if before interval
+        assertFalse(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval2));
+
+        // test input rejection if after interval
+        assertFalse(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval3));
+
+        // test input acceptance if during interval
+        assertFalse(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
     }
 
     /**
@@ -138,10 +165,49 @@ public class UDPListenerTest extends TestCase {
      * @throws Exception for failed tests
      */
     public void testHandleFIBData() throws Exception {
-        // 1. handle bad input
 
-        // 2. handle handle with self-fib entry
+        final String IP1 = "11.11.11.11";
+        final String IP2 = "12.12.12.12";
+        final String userID1 = "user1";
+        final String deviceID = "deviceID";
 
-        // 2. handle with fib entry of other entity (and update/non-update)
+        // it's necessary to have a userID entered for device so that a FIB entry isn't added for self
+        Utils.saveToPrefs(this.context, StringConst.PREFS_LOGIN_USER_ID_KEY, deviceID);
+
+        String goodFIBEntry = userID1 + "," + IP1;
+        String updateToGoodFIBEntry = userID1 + "," + IP2;
+        String deviceFIBEntry = deviceID + "," + IP1; // should be rejected on basis of ID
+        String badFIBEntry1 = "a,a";
+        String badFIBEntry2 = "apsidfasdf";
+
+        datasource.deleteEntireFIB(); // clear FIB before testing functionality
+
+        // test on bad input
+        assertFalse(receiverThread.handleFIBData(null));
+        assertFalse(receiverThread.handleFIBData(""));
+        assertFalse(receiverThread.handleFIBData(badFIBEntry1));
+        assertFalse(receiverThread.handleFIBData(badFIBEntry2));
+
+
+        // handle handle with self-FIB entry; should be rejected because it's the device's own ID
+        assertFalse(receiverThread.handleFIBData(deviceFIBEntry));
+
+        // --- handle with FIB entry of other entity ---
+
+        receiverThread.handleFIBData(goodFIBEntry);
+
+        assertTrue(receiverThread.handleFIBData(goodFIBEntry));
+
+        DBData fibEntry = datasource.getFIBData(userID1);
+
+        assertEquals(fibEntry.getIpAddr(), IP1); // test entry was added to FIB
+
+        assertTrue(receiverThread.handleFIBData(updateToGoodFIBEntry));
+
+        DBData updatedFIBEntry = datasource.getFIBData(userID1);
+
+        assertEquals(updatedFIBEntry.getIpAddr(), IP2); // test entry was updated in FIB
+
+        // --- handle with FIB entry of other entity ---
     }
 }

@@ -2,8 +2,9 @@ package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.content.Context;
 
+import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
-import com.ndnhealthnet.androidudpclient.MainActivity;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Packet.DataPacket;
 import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
@@ -14,7 +15,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -155,7 +155,7 @@ public class UDPListener extends Thread {
      */
     static void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
     {
-        ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
+        ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
         String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
@@ -200,7 +200,7 @@ public class UDPListener extends Thread {
                             String packetProcessID, String packetIP)
     {
         // first, check CONTENT STORE (cache)
-        ArrayList<DBData> csDATA = MainActivity.datasource.getGeneralCSData(packetUserID);
+        ArrayList<DBData> csDATA = DBSingleton.getInstance(context).getDB().getGeneralCSData(packetUserID);
 
         if (csDATA != null) {
 
@@ -220,7 +220,7 @@ public class UDPListener extends Thread {
         } else {
             // second, check PIT
 
-            if (MainActivity.datasource.getGeneralPITData(packetUserID) == null) {
+            if (DBSingleton.getInstance(context).getDB().getGeneralPITData(packetUserID) == null) {
 
                 // add new request to PIT, then look into FIB before sending request
                 DBData newPITEntry = new DBData();
@@ -230,9 +230,9 @@ public class UDPListener extends Thread {
                 newPITEntry.setProcessID(packetProcessID);
                 newPITEntry.setIpAddr(packetIP);
 
-                MainActivity.datasource.addPITData(newPITEntry);
+                DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
 
-                ArrayList<DBData> allFIBData = MainActivity.datasource.getAllFIBData();
+                ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
                 if (allFIBData == null || allFIBData.size() == 0) {
 
@@ -264,7 +264,7 @@ public class UDPListener extends Thread {
                 newPITEntry.setProcessID(packetProcessID);
                 newPITEntry.setIpAddr(packetIP);
 
-                MainActivity.datasource.addPITData(newPITEntry);
+                DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
             }
         }
     }
@@ -276,23 +276,28 @@ public class UDPListener extends Thread {
      * @param dataInterval the time stamp on specific data
      * @return determination of whether dataInterval is within requestInterval
      */
-    static  boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
+    static public boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
+
+        if (requestInterval == null || dataInterval == null) {
+            return false; // reject bad input
+        }
 
         String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
 
-        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss||yyyy-MM-ddTHH:mm:ss"; the former is start, latter is end
+        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS"
+                            // the former is start interval, latter is end interval
 
         boolean beforeStartDate = false;
         boolean afterEndDate = false;
 
         Date startDate, endDate, dataDate;
 
-        // replace "T" with empty char "", so that comparison is easier
-        requestIntervals[0] = requestIntervals[0].replace("T", "");
-        requestIntervals[1] = requestIntervals[1].replace("T", "");
-
         try {
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            // replace "T" with empty char "", so that comparison is easier
+            requestIntervals[0] = requestIntervals[0].replace("T", "");
+            requestIntervals[1] = requestIntervals[1].replace("T", "");
+
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);
@@ -301,7 +306,7 @@ public class UDPListener extends Thread {
             beforeStartDate = dataDate.before(startDate);
             afterEndDate = dataDate.after(endDate);
 
-        } catch (ParseException e) {
+        } catch (Exception e) {
             return false; // some problem occurred, default return is false
         }
 
@@ -353,7 +358,7 @@ public class UDPListener extends Thread {
         String packetFloatContent = dataContents.trim();
 
         // first, determine who wants the data
-        ArrayList<DBData> allValidPITEntries = MainActivity.datasource
+        ArrayList<DBData> allValidPITEntries = DBSingleton.getInstance(context).getDB()
                 .getGeneralPITData(packetUserID);
 
         if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
@@ -409,18 +414,18 @@ public class UDPListener extends Thread {
         data.setDataFloat(packetFloatContent);
 
         // if data exists in cache, just update
-        if (MainActivity.datasource.getGeneralCSData(packetUserID) != null) {
-            MainActivity.datasource.updateCSData(data);
+        if (DBSingleton.getInstance(context).getDB().getGeneralCSData(packetUserID) != null) {
+            DBSingleton.getInstance(context).getDB().updateCSData(data);
         } else {
             // data not in cache, add now
-            MainActivity.datasource.addCSData(data);
+            DBSingleton.getInstance(context).getDB().addCSData(data);
         }
 
         // now, send packets to each entity that requested the data
         for (int i = 0; i < allValidPITEntries.size(); i++) {
 
             // data satisfies PIT entry; delete the entry
-            MainActivity.datasource.deletePITEntry(allValidPITEntries.get(i).getUserID(),
+            DBSingleton.getInstance(context).getDB().deletePITEntry(allValidPITEntries.get(i).getUserID(),
                     allValidPITEntries.get(i).getTimeString(), allValidPITEntries.get(i).getIpAddr());
 
             // another device requested the data, send reply as Datapacket
@@ -440,31 +445,40 @@ public class UDPListener extends Thread {
      * Method handles incoming FIB data
      *
      * @param packetFloatContent contents of FIB Data packet (i.e., "userID,userIP" string)
+     * @return true if FIB entry was added/updated within database, false otherwise
      */
-    static void handleFIBData(String packetFloatContent) {
+    public static boolean handleFIBData(String packetFloatContent) {
 
-        DBData data = new DBData();
+        try {
+            DBData data = new DBData();
 
-        // data packet contains requested fib data, store in fib now
-        String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+            // data packet contains requested fib data, store in fib now
+            String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
-        // expected format: "userID,userIP"
-        String [] packetFIBContent = packetFloatContent.split(","); // TODO - don't rely on this assumption
+            // expected format: "userID,userIP"
+            String [] packetFIBContent = packetFloatContent.split(",");
 
-        data.setUserID(packetFIBContent[0].trim());
-        data.setIpAddr(packetFIBContent[1].trim());
-        data.setTimeString(StringConst.CURRENT_TIME);
+            data.setUserID(packetFIBContent[0].trim());
+            data.setIpAddr(packetFIBContent[1].trim());
+            data.setTimeString(StringConst.CURRENT_TIME);
 
-        // don't add data for self here
-        if (!data.getUserID().equals(myUserID)) {
+            // perform minimal input validation, and don't add data for self here
+            if (data.getUserID() != "" && Utils.validIP(data.getIpAddr()) && !data.getUserID().equals(myUserID)) {
 
-            DBData fibCheckObject = MainActivity.datasource.getFIBData(data.getUserID());
+                DBData fibCheckObject = DBSingleton.getInstance(context).getDB().getFIBData(data.getUserID());
 
-            if (fibCheckObject == null) {
-                MainActivity.datasource.addFIBData(data);
-            } else {
-                MainActivity.datasource.updateFIBData(data);
+                if (fibCheckObject == null) {
+                    DBSingleton.getInstance(context).getDB().addFIBData(data);
+                } else {
+                    DBSingleton.getInstance(context).getDB().updateFIBData(data);
+                }
+
+                return true;
             }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // FIB wasn't touched; return false
         }
     }
 }

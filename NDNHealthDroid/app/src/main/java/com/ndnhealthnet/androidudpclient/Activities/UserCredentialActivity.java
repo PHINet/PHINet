@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 

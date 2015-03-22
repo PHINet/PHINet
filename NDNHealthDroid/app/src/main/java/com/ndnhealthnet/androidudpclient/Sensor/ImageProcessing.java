@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Sensor;
 
 /**
  * This abstract class is used to process images.

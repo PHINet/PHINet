@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Sensor;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,6 +8,9 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.ndnhealthnet.androidudpclient.Activities.RecordHeartbeatActivity;
+import com.ndnhealthnet.androidudpclient.R;
 
 /**
  * This class extends the View class and is designed draw the heartbeat image.

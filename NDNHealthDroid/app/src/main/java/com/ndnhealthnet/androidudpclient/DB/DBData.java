@@ -29,6 +29,11 @@ public class DBData {
      */
     public DBData(String type, String sensorID, String processID, String timeString,
                   String userID, String fifthField) {
+
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
+        }
+
         this.sensorID = sensorID;
         this.processID = processID;
         this.timeString = timeString;
@@ -48,10 +53,15 @@ public class DBData {
      * unambiguous FIB DBData constructor
      *
      * @param userID associated with FIB data
-     * @param timestring associated with FIB data
+     * @param timeString associated with FIB data
      * @param ipAddr associated with FIB data
      */
     public DBData(String userID, String timeString, String ipAddr) {
+
+        if (timeString.equals(StringConst.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
+        }
+
         this.userID = userID;
         this.timeString = timeString;
         this.ipAddr = ipAddr;

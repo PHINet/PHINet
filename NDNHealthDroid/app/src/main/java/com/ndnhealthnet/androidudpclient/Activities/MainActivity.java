@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,7 +11,8 @@ import android.widget.TextView;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
-import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -32,8 +33,6 @@ public class MainActivity extends Activity {
     public static final int devicePort = 50056; // port used by all NDN-HealthNet applications
     public static String deviceIP;
 
-    public static DatabaseHandler datasource; // data source that is accessed through application
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,14 +41,11 @@ public class MainActivity extends Activity {
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
-        // create tables
-        datasource = new DatabaseHandler(getApplicationContext());
-
         DBData dbData = new DBData();
         dbData.setIpAddr("52.11.79.46");
         dbData.setUserID("CLOUD-SERVER");
 
-        datasource.addFIBData(dbData); // add cloud-server to FIB
+        DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(dbData); // add cloud-server to FIB
 
         receiverThread = new UDPListener(getApplicationContext());
         receiverThread.start(); // begin listening for interest packets
@@ -113,9 +109,9 @@ public class MainActivity extends Activity {
         tempDeletePITBtn = (Button) findViewById(R.id.deletePITBtn);
         tempDeletePITBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                datasource.deleteEntirePIT();
-                datasource.deleteEntireCS();
-                datasource.deleteEntireFIB();
+                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePIT();
+                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireCS();
+                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireFIB();
             }
         });
 

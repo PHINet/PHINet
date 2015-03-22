@@ -33,7 +33,7 @@
         android:screenOrientation="portrait"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -43,49 +43,49 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RecordHeartbeatActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".Activities.RecordHeartbeatActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
+                android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".ConfigNetLinksActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".Activities.ConfigNetLinksActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
+                android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".ViewMyDataActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".Activities.ViewMyDataActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
+                android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".UserCredentialActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".Activities.UserCredentialActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
+                android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".PatientDataActivity"
-            android:parentActivityName=".GetCliBeatActivity"
+            android:name=".Activities.PatientDataActivity"
+            android:parentActivityName=".Activities.GetCliBeatActivity"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".GetCliBeatActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".Activities.GetCliBeatActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.ndnhealthnet.androidudpclient.MainActivity" />
+                android:value=".Activities.MainActivity" />
         </activity>
     </application>
 

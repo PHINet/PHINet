@@ -115,18 +115,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             db.insertWithOnConflict(tableName, null, values, SQLiteDatabase.CONFLICT_FAIL);
             db.close(); // Closing database connection
 
-            System.out.println("returning true");
             return true;
         } catch (SQLiteConstraintException e) {
 
-            // only PIT allows duplicate entries (many may request same data)
-            if (tableName.equals(StringConst.PIT_DB)) {
-                db.insert(tableName, null, values);
-                db.close();
-                return true;
-            }
-
-            System.out.println("returning false");
             return false;
         }
     }
@@ -201,7 +192,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * Data is queried with ipAddr specification; at most one entry is found.
+     * Data is queried with ipAddr specification. At most one entry should be found -
+     * because multiple queries for same data should result in updates, not multiple entries;
+     * an exception is thrown if multiple entries are detected
      *
      * @param userID specifies which PIT entries should be returned, together with ipAddr
      * @param ipAddr specifies which PIT entries should be returned
@@ -227,24 +220,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         }
 
-        DBData data = new DBData();
-
-        // ensure query was successful
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-
-            data.setUserID(cursor.getString(0));
-            data.setSensorID(cursor.getString(1));
-            data.setTimeString(cursor.getString(2));
-            data.setProcessID(cursor.getString(3));
-            data.setIpAddr(cursor.getString(4));
-            cursor.close();
+        if (cursor.getCount() > 1) {
+            db.close();
+            throw new IllegalStateException("!!Error querying PIT data: redundant entries found.");
         } else {
-            data = null; // query found nothing, set return object to null
-        }
+            DBData data = new DBData();
 
-        db.close();
-        return data;
+            // ensure query was successful
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.moveToFirst();
+
+                data.setUserID(cursor.getString(0));
+                data.setSensorID(cursor.getString(1));
+                data.setTimeString(cursor.getString(2));
+                data.setProcessID(cursor.getString(3));
+                data.setIpAddr(cursor.getString(4));
+                cursor.close();
+            } else {
+                data = null; // query found nothing, set return object to null
+            }
+
+            db.close();
+            return data;
+        }
     }
 
     /**
@@ -366,7 +364,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public DBData getSpecificCSData(String userID, String timeString) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=\"" + userID + "\" AND timestring=\"" + timeString + "\"";
+        String whereSelection = "_userID=\"" + userID + "\" AND timeString=\"" + timeString + "\"";
 
         Cursor cursor = db.query(StringConst.CS_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},

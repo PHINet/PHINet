@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -8,7 +8,9 @@ import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class ConfigNetLinksActivity extends Activity {
 
                 int requestsSentCount = 0; // count requests send in order to inform user
 
-                ArrayList<DBData> neighbors = MainActivity.datasource.getAllFIBData();
+                ArrayList<DBData> neighbors = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
 
                 // loop over all FIB entries and ask each valid for their FIB
                 for (int i = 0; i < neighbors.size(); i++) {
@@ -41,7 +43,7 @@ public class ConfigNetLinksActivity extends Activity {
                     if (!neighbors.get(i).getIpAddr().equals(StringConst.NULL_IP)) {
 
                         // check to see if PIT table already has entry for neighbor's FIB
-                        ArrayList<DBData> pitsForNeighbor = MainActivity.datasource
+                        ArrayList<DBData> pitsForNeighbor = DBSingleton.getInstance(getApplicationContext()).getDB()
                                 .getGeneralPITData(neighbors.get(i).getUserID());
 
                         boolean pitEntryFound = false;
@@ -73,7 +75,7 @@ public class ConfigNetLinksActivity extends Activity {
                             // deviceIP, because this device is the requester
                             selfPITEntry.setIpAddr(MainActivity.deviceIP);
 
-                            MainActivity.datasource.addPITData(selfPITEntry);
+                            DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
 
                             requestsSentCount++;
                         }

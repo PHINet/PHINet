@@ -1,4 +1,4 @@
-package com.ndnhealthnet.androidudpclient;
+package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,6 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -48,7 +50,7 @@ public class GetCliBeatActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_getclibeat);
 
-        ArrayList<DBData> patientList = MainActivity.datasource.getAllFIBData();
+        ArrayList<DBData> patientList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
         if (patientList == null) {
             // array list is null; pass empty data structure rather than null
             patientList = new ArrayList<DBData>();
@@ -125,23 +127,23 @@ public class GetCliBeatActivity extends ListActivity {
                                 data.setTimeString(StringConst.CURRENT_TIME);
                                 data.setIpAddr(StringConst.NULL_IP);
 
-                                MainActivity.datasource.addFIBData(data);
+                                DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
                             } else {
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);
                                 data.setTimeString(StringConst.CURRENT_TIME);
 
-                                if (MainActivity.datasource.getFIBData(patientInputString[0]) == null) {
+                                if (DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(patientInputString[0]) == null) {
                                     // user entered valid patient, now add to fib
 
-                                    MainActivity.datasource.addFIBData(data);
+                                    DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
 
                                     // hide "empty patient list" text when patient added
                                     emptyListTextView.setVisibility(View.GONE);
                                 } else {
                                     // user entered previous patient, just update
 
-                                    MainActivity.datasource.updateFIBData(data);
+                                    DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(data);
                                 }
                             }
 
