@@ -205,13 +205,17 @@ public class PatientDataActivity extends Activity {
 
             int fibRequestsSent = 0;
 
+            System.out.println("prior to interest loop");
             for (int i = 0; i < allFIBEntries.size(); i++) {
                 // send request to everyone in FIB; only send to users with actual ip
                 if (Utils.validIP(allFIBEntries.get(i).getIpAddr())) {
 
+                    System.out.println("sending interest packet");
                     InterestPacket interestPacket = new InterestPacket(
                             patientUserID, StringConst.NULL_FIELD, generateTimeString(),
                             StringConst.INTEREST_CACHE_DATA, MainActivity.deviceIP);
+
+                    System.out.println("ip addr: " + allFIBEntries.get(i).getIpAddr());
 
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(interestPacket.toString()); // send interest packet
@@ -332,13 +336,23 @@ public class PatientDataActivity extends Activity {
         if (startYear != 0 && endYear != 0) {
             String timeString = "";
 
+            // append a "0" if month is single digit - so to conform to formatting
+            String startMonthString = "", endMonthString = "";
+            if (startMonth < 10) {
+                startMonthString += "0" + Integer.toString(startMonth);
+            }
+
+            if (endMonth < 10) {
+                endMonthString += "0" + Integer.toString(endMonth);
+            }
+
             // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS";
                     // where the former is start, latter is end
 
             // by default, set HH:mm:ss.SSS from request interval to 00:00:00.00000
-            timeString += Integer.toString(startYear) + "-" + Integer.toString(startMonth) + "-";
+            timeString += Integer.toString(startYear) + "-" + startMonthString + "-";
             timeString += Integer.toString(startDay) + "T00:00:00.000||" + Integer.toString(endYear) + "-";
-            timeString += Integer.toString(endMonth) + "-" + Integer.toString(endDay) + "T:00:00:00.000";
+            timeString += endMonthString + "-" + Integer.toString(endDay) + "T00:00:00.000";
 
             return timeString;
         } else {

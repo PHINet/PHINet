@@ -96,7 +96,7 @@ public class Utils {
      * @return UTC-compliant current time
      */
     public static String getCurrentTime() {
-        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSS");
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // replace space with T; change makes parsing easier

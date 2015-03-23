@@ -138,10 +138,11 @@ public class UDPListener extends Thread {
 
             handleInterestFIBRequest(packetUserID, packetSensorID, packetIP);
         } else if (packetProcessID.equals(StringConst.INTEREST_CACHE_DATA)) {
-
+            System.out.println("interest for cache");
             handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString,
                     packetProcessID, packetIP);
         } else {
+            System.out.println("dropped interest");
             // unknown process id; drop packet
         }
     }
@@ -204,19 +205,32 @@ public class UDPListener extends Thread {
 
         if (csDATA != null) {
 
+            int dataAppendCount = 0;
+            String dataPayload = "";
+
             for (int i = 0; i < csDATA.size(); i++) {
 
                 // only reply to interest with data that matches date-request
-                if (isValidForTimeInterval(packetTimeString, csDATA.get(i).getTimeString())) {
+              if (isValidForTimeInterval(packetTimeString, csDATA.get(i).getTimeString())) {
 
-                    DataPacket dataPacket = new DataPacket(csDATA.get(i).getUserID(), csDATA.get(i).getSensorID(),
-                            csDATA.get(i).getTimeString(), csDATA.get(i).getProcessID(), csDATA.get(i).getDataFloat());
-
-                    new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
-                            .execute(dataPacket.toString()); // reply to interest with DATA from cache
+                  // append all data to single string since all going to single source
+                    dataPayload += csDATA.get(i).getDataFloat()+ ",";
+                    dataAppendCount ++;
                 }
             }
 
+            // if valid data was found, now send Data packet
+            if (dataAppendCount > 0) {
+
+                // TODO - rework 0th assumption
+
+                // 0th should be equivalent to any; all data originated from name source
+                DataPacket dataPacket = new DataPacket(csDATA.get(0).getUserID(), csDATA.get(0).getSensorID(),
+                        csDATA.get(0).getTimeString(), csDATA.get(0).getProcessID(), dataPayload);
+
+                new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
+                        .execute(dataPacket.toString()); // reply to interest with DATA from cache
+            }
         } else {
             // second, check PIT
 
@@ -294,8 +308,9 @@ public class UDPListener extends Thread {
 
         try {
             // replace "T" with empty char "", so that comparison is easier
-            requestIntervals[0] = requestIntervals[0].replace("T", "");
-            requestIntervals[1] = requestIntervals[1].replace("T", "");
+            requestIntervals[0] = requestIntervals[0].replace("T", " ");
+            requestIntervals[1] = requestIntervals[1].replace("T", " ");
+            dataInterval = dataInterval.replace("T", " ");
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -307,11 +322,12 @@ public class UDPListener extends Thread {
             afterEndDate = dataDate.after(endDate);
 
         } catch (Exception e) {
+            e.printStackTrace();
             return false; // some problem occurred, default return is false
         }
 
         // if dataInterval is not before start and not after end, then its with interval
-        return (!beforeStartDate && !afterEndDate) || requestInterval.equals(dataInterval)
+        return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataInterval)
                 || requestIntervals[1].equals(dataInterval);
     }
 
@@ -334,7 +350,7 @@ public class UDPListener extends Thread {
                 // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
 
                 // NOTE: debugging print only
-                System.out.println("name component: " + nameComponent);
+                System.out.println("name component: " + packetDataArray[i+2]);
 
                 nameComponent = packetDataArray[i+2].trim().split("/"); // split into various components
 
@@ -362,6 +378,7 @@ public class UDPListener extends Thread {
                 .getGeneralPITData(packetUserID);
 
         if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
+
             // no one requested the data, merely drop it
         } else {
 
@@ -413,10 +430,16 @@ public class UDPListener extends Thread {
         data.setProcessID(packetProcessID);
         data.setDataFloat(packetFloatContent);
 
+        System.out.println("handle cache data");
+
+        // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
+
         // if data exists in cache, just update
         if (DBSingleton.getInstance(context).getDB().getGeneralCSData(packetUserID) != null) {
+
             DBSingleton.getInstance(context).getDB().updateCSData(data);
         } else {
+
             // data not in cache, add now
             DBSingleton.getInstance(context).getDB().addCSData(data);
         }

@@ -26,6 +26,8 @@ public class DatabaseHandlerTest extends TestCase {
     DBData pitData2 = new DBData(StringConst.PIT_DB, "SENSOR2", StringConst.DATA_CACHE,
             StringConst.CURRENT_TIME, "USER2", "12.12.12.12");
 
+    DBData emptyPIT = new DBData();
+
     DBData pitData3 = new DBData(StringConst.PIT_DB, "SENSOR3", StringConst.DATA_CACHE,
             StringConst.CURRENT_TIME, "USER1", "13.13.13.13");
 

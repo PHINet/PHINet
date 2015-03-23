@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
@@ -43,6 +44,14 @@ public class UDPListenerTest extends TestCase {
         testHandleDataPacket();
         testHandleCacheData();
         testHandleFIBData();
+
+        // delete test entries
+        DBSingleton.getInstance(context).getDB().deleteEntireCS();
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT();
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB();
+
+        // erase test user ID
+        Utils.saveToPrefs(this.context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
     }
 
     /**
@@ -102,12 +111,15 @@ public class UDPListenerTest extends TestCase {
      */
     public void testIsValidForTimeInterval() throws Exception {
 
-        final String goodRequestInterval = "2012-5-04T08:08.888||2014-5-04T08:08.888";
+        final String goodRequestInterval = "2012-05-04T08:08:08.888||2014-05-04T08:08:08.888";
         final String badRequestInterval = "2012-ERROR:08.888||2014-ERROR8:08.888";
 
-        final String goodDataInterval1 = "2012-7-04T08:08.888"; // date is within goodRequestInterval
-        final String goodDataInterval2 = "2012-1-04T08:08.888"; // date is before goodRequestInterval
-        final String goodDataInterval3 = "2014-7-04T08:08.888"; // date is after goodRequestInterval
+        final String goodDataInterval1 = "2012-07-04T08:08:08.888"; // date is within goodRequestInterval
+        final String goodDataInterval2 = "2012-01-04T08:08:08.888"; // date is before goodRequestInterval
+        final String goodDataInterval3 = "2014-07-04T08:08:08.888"; // date is after goodRequestInterval
+
+        final String testInterval1 = "2015-02-22T00:00:00.000||2015-04-22T00:00:00.000";
+        final String dataTime1 = "2015-03-22T22:58:10.878";
 
         // --- test bad input ---
         assertFalse(receiverThread.isValidForTimeInterval(null, null)); // null entries
@@ -127,7 +139,8 @@ public class UDPListenerTest extends TestCase {
         assertFalse(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval3));
 
         // test input acceptance if during interval
-        assertFalse(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
+        assertTrue(receiverThread.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
+        assertTrue(receiverThread.isValidForTimeInterval(testInterval1, dataTime1));
     }
 
     /**
@@ -187,7 +200,6 @@ public class UDPListenerTest extends TestCase {
         assertFalse(receiverThread.handleFIBData(""));
         assertFalse(receiverThread.handleFIBData(badFIBEntry1));
         assertFalse(receiverThread.handleFIBData(badFIBEntry2));
-
 
         // handle handle with self-FIB entry; should be rejected because it's the device's own ID
         assertFalse(receiverThread.handleFIBData(deviceFIBEntry));

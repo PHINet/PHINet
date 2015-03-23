@@ -7,7 +7,7 @@ html
 
 body
 { font: normal .80em 'trebuchet ms', arial, sans-serif;
-  background: #F7F7F7 url(pattern.png) fixed;
+  background: #009900;
   color: #fff;}
 
 p
@@ -53,7 +53,7 @@ h6
 a, a:hover
 { outline: none;
   text-decoration: none;
-  color: #35BDF5;}
+  color: black;}
 
 a:hover
 { text-decoration: underline;}
@@ -147,7 +147,7 @@ ul#menu li
 ul#menu li a
 { font: normal 170% 'Yanone Kaffeesatz', sans-serif;
   text-decoration: none;
-  color: #FFF;
+  color: black;
   display: block; 
   float: left; 
   height: 20px;
@@ -162,10 +162,10 @@ ul#menu li.current a
 { background: transparent url(transparent.png) repeat;
   border: 1px solid #000;
   border-bottom: 0;
-  color: #F14E23;}
+  color: black;}
 
 ul#menu li a:hover
-{ color: #F14E23;}
+{ color: white;}
 
 #site_content
 { width: 950px;
