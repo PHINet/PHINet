@@ -1,3 +1,10 @@
+.loginArea {
+    position: absolute;
+    top: 5%;
+    right: 17%;
+    font-size: 180%;
+}
+
 html
 { height: 100%;}
 
@@ -6,7 +13,7 @@ html
   padding: 0;}
 
 body
-{ font: normal .80em 'trebuchet ms', arial, sans-serif;
+{ font: normal .80em 'Roboto', arial, sans-serif;
   background: #009900;
   color: #fff;}
 
@@ -19,13 +26,13 @@ img
 { border: 0;}
 
 h1, h2, h3, h4, h5, h6 
-{ font: normal 250% 'Yanone Kaffeesatz', arial, sans-serif;
+{ font: normal 250% 'Roboto', arial, sans-serif;
   color: #FFF;
   margin: 0 0 15px 0;
   padding: 5px 0 5px 0;}
 
 h2
-{ font: normal 170% 'Yanone Kaffeesatz', arial, sans-serif;
+{ font: normal 170% 'Roboto', arial, sans-serif;
   color: #FFF;  
   margin: 0;
   padding: 0 0 8px 0;}
@@ -100,15 +107,12 @@ ol li
   height: 145px;}
 
 #logo
-{ width: 950px;
-  float: left;
+{ width: 850px;
   height: 100px;
-  background: transparent;
-  padding: 0 0 0px 10px;}
+  background: transparent;}
 
 #logo h1
-{ font: normal 350% 'Yanone Kaffeesatz', arial, sans-serif;
-  padding: 5px 0 0 17px;
+{ font: normal 350% 'Roboto', arial, sans-serif;
   color: #FFF;
   float: left;}
 
@@ -124,18 +128,18 @@ ol li
 { float: right; 
   padding-right: 25px;
   text-align: right; 
-  font: 500% 'tangerine', arial; 
+  font: 500% 'Roboto', arial; 
   color: #111;}
 
 #menubar
 { height: 46px;
-  width: 700px;
+  width: 800px;
   margin: 0px auto -1px auto;
   float: right;
   padding: 0px 0 0 0;} 
 
 ul#menu
-{ float: right;}
+{ float: left;}
 
 ul#menu li
 { float: left;
@@ -145,9 +149,9 @@ ul#menu li
   background: transparent;}
 
 ul#menu li a
-{ font: normal 170% 'Yanone Kaffeesatz', sans-serif;
+{ font: normal 170% 'Roboto', sans-serif;
   text-decoration: none;
-  color: black;
+  color: white;
   display: block; 
   float: left; 
   height: 20px;
@@ -165,10 +169,10 @@ ul#menu li.current a
   color: black;}
 
 ul#menu li a:hover
-{ color: white;}
+{ color: black;}
 
 #site_content
-{ width: 950px;
+{ width: 850px;
   overflow: hidden;
   margin: 0 auto 0 auto;
   padding: 0;
@@ -210,7 +214,8 @@ ul#menu li a:hover
 
 #content
 { text-align: left;
-  width: 630px;
+  width: 700px;
+  font-size: 120%;
   padding: 25px 0 5px 25px;
   margin: 0;}
 
@@ -227,7 +232,7 @@ ul#menu li a:hover
 #footer
 { clear: both;
   width: 100%;
-  font: normal 150% 'yanone kaffeesatz',  arial, sans-serif;
+  font: normal 150% 'Roboto',  arial, sans-serif;
   height: 85px;
   padding: 20px 0 5px 0;
   text-align: center; 
@@ -263,7 +268,7 @@ ul#menu li a:hover
   
 .form_settings input, .form_settings textarea
 { width: 252px; 
-  font: 100% 'trebuchet ms', arial;
+  font: 100% 'Roboto', arial;
   border: 0;
   border: 1px solid #eee;
   padding: 5px 10px;
@@ -275,14 +280,14 @@ ul#menu li a:hover
   width: auto;
   margin: 0 0 0 200px; 
   cursor: pointer; 
-  color: #35BDF5;
+  color: white;
   border: 1px solid #ddd;
   padding: 5px 15px;
-  background: #fff;
-  font: normal 140% 'Yanone Kaffeesatz', sans-serif;}
+  background: black;
+  font: normal 140% 'Roboto', sans-serif;}
 
 .form_settings textarea, .form_settings select
-{ font: 100% 'trebuchet ms', arial; 
+{ font: 100% 'Roboto', arial; 
   border: 1px solid #eee;
   padding: 5px 10px;
   background: #fff;
@@ -315,7 +320,7 @@ ul#menu li a:hover
   float: right;
   cursor: pointer;
   margin: 0;
-  font: normal 140% 'Yanone Kaffeesatz', sans-serif;}
+  font: normal 140% 'Roboto', sans-serif;}
  
 table
 { margin: 10px 0 30px 0;}

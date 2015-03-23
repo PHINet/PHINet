@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         DBData dbData = new DBData();
-        dbData.setIpAddr("52.11.79.46");
+        dbData.setIpAddr("52.149.194.227"); // public server IP
         dbData.setUserID("CLOUD-SERVER");
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(dbData); // add cloud-server to FIB
@@ -111,7 +111,6 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePIT();
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireCS();
-                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireFIB();
             }
         });
 

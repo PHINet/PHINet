@@ -3,14 +3,14 @@
  * segment of execution for this web application
  **/
 
-var StringConst = require('./string_const').StringConst;
+//var StringConst = require('./string_const').StringConst;
 var express = require('express')
-var udp_comm = require('./udp_comm').UDPComm();
+//var udp_comm = require('./udp_comm').UDPComm();
 var http = require('http');
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
-udp_comm.initializeListener();
+//udp_comm.initializeListener();
 
 var app = express()
 app.use(bodyParser.json());
@@ -46,14 +46,18 @@ app.get('/profile', function (req, res) {
 })
 
 // ---- Code Tests UDP Functionality ---
-var DataPacketClass = require('./datapacket');
-var InterestPacketClass = require('./interestpacket');
+//var DataPacketClass = require('./datapacket');
+//var InterestPacketClass = require('./interestpacket');
 app.get('/test', function (req, res) {
   res.sendFile('/public/templates/test.html', { root: __dirname })
 })
 
+app.get('*', function(req, res){
+  res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
+});
+
 /** method allows user to test networking functionality **/
-app.post('/submitIP', function(req, res) {
+/*app.post('/submitIP', function(req, res) {
 
   if (req.body.user.ipAddrPing !== undefined) {
     // user requested ping
@@ -123,7 +127,7 @@ client.connect(function(err) {
  *
  * @param dbName suspect table name
  * @param dbCreationQuery creation query to be invoked if table doesn't exist
- */
+ *//*
 function ifNonexistentCreateDB(dbName, dbCreationQuery) {
   client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
 
@@ -161,10 +165,9 @@ function createFIB() {
 
 createFIB();
 createCS();
-createPIT();
+createPIT();*/
 
 // --- Code Handles DB Creation ---
-
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));
