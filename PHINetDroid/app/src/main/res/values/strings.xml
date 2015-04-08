@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">NDN Health</string>
+    <string name="app_name">ΦNet</string>
     <string name="action_settings">Settings</string>
     <string name="backBtnText">Back</string>
     <string name="selfBeatText">Record Heartbeat</string>
     <string name="patientDataText">View My Data</string>
     <string name="cliBeatText">View Patients</string>
     <string name="netLinksText">Configure Network Links</string>
-    <string name="welcomeText">NDN HealthSensorNet</string>
+    <string name="welcomeText">ΦNet</string>
     <string name="editPatientDataBtnText">Edit Patient Data</string>
     <string name="addNewPatientBtnText">Add New Patient</string>
     <string name="patientDataTitle">Patient Data</string>
