@@ -57,12 +57,14 @@ public class UDPSocket extends AsyncTask<String, Void, Void> {
 
                         try {
                             clientSocket.receive(receivePacket);
-                        } catch (IOException e) {
+                            String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+
+                            final String packetData = new String(receivePacket.getData());
+                            UDPListener.handleIncomingNDNPacket(packetData, packetSourceIP);
+
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-
-                        final String packetData = new String(receivePacket.getData());
-                        UDPListener.handleIncomingNDNPacket(packetData);
 
                         clientSocket.close();
                         this.cancel();

@@ -213,7 +213,7 @@ public class PatientDataActivity extends Activity {
                     System.out.println("sending interest packet");
                     InterestPacket interestPacket = new InterestPacket(
                             patientUserID, StringConst.NULL_FIELD, generateTimeString(),
-                            StringConst.INTEREST_CACHE_DATA, MainActivity.deviceIP);
+                            StringConst.INTEREST_CACHE_DATA);
 
                     System.out.println("ip addr: " + allFIBEntries.get(i).getIpAddr());
 

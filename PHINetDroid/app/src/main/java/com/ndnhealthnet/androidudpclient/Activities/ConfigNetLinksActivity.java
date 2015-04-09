@@ -56,7 +56,7 @@ public class ConfigNetLinksActivity extends Activity {
                         if (!pitEntryFound) {
                             InterestPacket interestPacket = new InterestPacket(
                                     neighbors.get(i).getUserID(), StringConst.NULL_FIELD,
-                                    StringConst.INTEREST_FIB, StringConst.NULL_FIELD, MainActivity.deviceIP);
+                                    StringConst.INTEREST_FIB, StringConst.NULL_FIELD);
 
                             // NOTE: temporary debugging output
                             System.out.println("sent packet: " + interestPacket.toString());

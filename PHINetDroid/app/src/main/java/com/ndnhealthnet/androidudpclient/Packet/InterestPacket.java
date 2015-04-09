@@ -21,24 +21,19 @@ public class InterestPacket {
     final private int LIFETIME_CONST = 100;
 
     /**
-     *
-     * @param userDataID specifies data producer 
+     * @param userDataID specifies data producer
      * @param sensorID specifies health-sensor type (e.g., heart sensor)
      * @param timeString specifies when packet was created
      * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
-     * @param ipAddr specifies IP of node that sent InterestPacket (so that reply is possible)
-     *
-     *        // TODO - rework ipADDR - potentially exclude; non-useful information
      */
-    public InterestPacket(String userDataID, String sensorID,
-                          String timeString, String processID, String ipAddr) {
+    public InterestPacket(String userDataID, String sensorID, String timeString, String processID) {
 
         // if current time requested, provide it
         if (timeString.equals(StringConst.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
         }
 
-        nameField = new NameField(userDataID, sensorID, timeString, processID, ipAddr);
+        nameField = new NameField(userDataID, sensorID, timeString, processID);
     }
 
     /**

@@ -51,8 +51,10 @@ public class UDPListener extends Thread {
                 try {
                     clientSocket.receive(receivePacket);
 
+                    String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+
                     // process incoming packet
-                    handleIncomingNDNPacket(new String(receivePacket.getData()));
+                    handleIncomingNDNPacket(new String(receivePacket.getData()), packetSourceIP);
 
                 } catch (SocketTimeoutException e) {
                     continue;
@@ -73,7 +75,7 @@ public class UDPListener extends Thread {
      *
      * @param packetData entire packet to have its contents assessed
      */
-    static void handleIncomingNDNPacket(String packetData) {
+    static void handleIncomingNDNPacket(String packetData, String ipAddr) {
 
         // NOTE: temporary debugging print
         System.out.println("incoming packet: " + packetData);
@@ -93,7 +95,7 @@ public class UDPListener extends Thread {
             handleDataPacket(packetDataArray);
         } else if (packetDataArray[0].equals(StringConst.INTEREST_TYPE)) {
 
-            handleInterestPacket(packetDataArray);
+            handleInterestPacket(packetDataArray, ipAddr);
         } else {
             // throw away, packet is neither INTEREST nor DATA
         }
@@ -107,7 +109,7 @@ public class UDPListener extends Thread {
      *
      * @param packetDataArray incoming packet after having been "split" by space and placed array
      */
-    static void handleInterestPacket(String[] packetDataArray) {
+    static void handleInterestPacket(String[] packetDataArray, String ipAddr) {
         String [] nameComponent = null;
 
         for (int i = 0; i < packetDataArray.length; i++) {
@@ -132,15 +134,14 @@ public class UDPListener extends Thread {
         String packetSensorID = nameComponent[3];
         String packetTimeString = nameComponent[4];
         String packetProcessID = nameComponent[5];
-        String packetIP = nameComponent[6];
 
         if (packetProcessID.equals(StringConst.INTEREST_FIB)) {
 
-            handleInterestFIBRequest(packetUserID, packetSensorID, packetIP);
+            handleInterestFIBRequest(packetUserID, packetSensorID, ipAddr);
         } else if (packetProcessID.equals(StringConst.INTEREST_CACHE_DATA)) {
             System.out.println("interest for cache");
             handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString,
-                    packetProcessID, packetIP);
+                    packetProcessID, ipAddr);
         } else {
             System.out.println("dropped interest");
             // unknown process id; drop packet
@@ -261,7 +262,7 @@ public class UDPListener extends Thread {
                                 && !allFIBData.get(i).getIpAddr().equals("null")) {
 
                             InterestPacket interestPacket = new InterestPacket(packetUserID, packetSensorID,
-                                    packetTimeString,  packetProcessID, packetIP);
+                                    packetTimeString,  packetProcessID);
 
                             new UDPSocket(MainActivity.devicePort, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                                     .execute(interestPacket.toString()); // send interest packet
@@ -371,7 +372,6 @@ public class UDPListener extends Thread {
         String packetSensorID = nameComponent[3].trim();
         String packetTimeString = nameComponent[4].trim();
         String packetProcessID = nameComponent[5].trim();
-        String packetFloatContent = dataContents.trim();
 
         // first, determine who wants the data
         ArrayList<DBData> allValidPITEntries = DBSingleton.getInstance(context).getDB()
@@ -394,12 +394,12 @@ public class UDPListener extends Thread {
             if (requestCount > 0) { // positive request count, process packet now
                 if (packetProcessID.equals(StringConst.DATA_FIB)) {
 
-                    handleFIBData(packetFloatContent);
+                    handleFIBData(dataContents);
 
                 } else if (packetProcessID.equals(StringConst.DATA_CACHE)) {
 
                     handleCacheData(packetUserID, packetSensorID, packetTimeString, packetProcessID,
-                            packetFloatContent, allValidPITEntries);
+                            dataContents, allValidPITEntries);
                 } else {
                     // unknown process id; drop packet
                 }

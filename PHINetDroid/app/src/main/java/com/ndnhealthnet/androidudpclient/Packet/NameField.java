@@ -10,21 +10,20 @@ public class NameField {
 
     /**
      * Constructor our Our Name Format:
-     * "/ndn/userID/sensorID/timeString/processID/ [datacontents] or [ip]"
+     * "/ndn/userID/sensorID/timeString/processID"
      * The last field is specific to DATA and INTEREST packets, respectively.
      *
      * @param userDataID specifies data producer
      * @param sensorID specifies health-sensor type (e.g., heart sensor)
      * @param timeString specifies when packet was created
      * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
-     * @param finalField specific to DATA and INTEREST packets, respectively.
      */
-    public NameField(String userDataID, String sensorID, String timeString, String processID, String finalField) {
+    public NameField(String userDataID, String sensorID, String timeString, String processID) {
         // NOTE: method assumes userID and sensorID are device specific
                 // meaning, no specification is needed; just get from memory
 
         this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timeString
-                            + "/" + processID + "/" + finalField;
+                            + "/" + processID;
     }
 
     /**

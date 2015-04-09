@@ -55,7 +55,7 @@ public class DataPacket {
             timeString = Utils.getCurrentTime();
         }
 
-        this.nameField = new NameField(userDataID, sensorID, timeString, processID, content);
+        this.nameField = new NameField(userDataID, sensorID, timeString, processID);
         this.content = content;
 
         // perform input validation on content type
@@ -101,7 +101,7 @@ public class DataPacket {
             timeString = Utils.getCurrentTime();
         }
 
-        this.nameField = new NameField(userDataID, sensorID, timeString, processID, content);
+        this.nameField = new NameField(userDataID, sensorID, timeString, processID);
         this.content = content;
 
         this.contentType = CONTENT_TYPE_DEFAULT;
