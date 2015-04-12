@@ -1,71 +1,56 @@
 /** 
  * File contains code for the Content Store
  * specified in the NDN documentation
- **/
+ */
     
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
-
-var pg = require('pg');
-
-var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
-client.connect(function(err) {
-  if(err) {
-    return console.error('could not connect to postgres', err);
-  } 
-  client.query('SELECT NOW() AS "theTime"', function(err, result) {
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log("the time: " + result.rows[0].theTime);
-    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-    client.end();
-  });
-});
+var postgresDB = require('pg'); // postgres database module
+var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 
 /**
  * Returns object that allows manipulation of ContentStore.
  */
 exports.CS = function () {
 
-	/*// NOTE: This fib entry is data only for testing
-	var tempDBData1 = DBDataClass.DATA();
-		tempDBData1.csData("serverTestUser", "serverTestSensor", 
-					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
-
-	// NOTE: This fib entry is data only for testing
-	var tempDBData2 = DBDataClass.DATA();
-		tempDBData2.csData("CLOUD-SERVER", "serverTestSensor", 
-					StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,77");
-*/
+    /**
+     * Function invocation connects to DB
+     */
+    (function connectClient () {
+        client.connect(function(err) {
+            if(err) {
+                return console.error('could not connect to postgres', err);
+            }
+        });
+    })();
 
     return {
 
         /**
          * Method deletes a single, specific CS entry.
          *
-         * @param userid associated with entry to be deleted
-         * @param timestring associated with entry to be deleted
+         * @param userID associated with entry to be deleted
+         * @param timeString associated with entry to be deleted
+         * @param delCallback testing callback: rowCount is returned and checked against expected value
          * @return true if entry successfully deleted, false otherwise
          */
-		deleteCSData: function (userid, timestring) {
+		deleteCSData: function (userID, timeString, delCallback) {
 
             try {
-                if (userid === undefined || userid === null || timestring == undefined || timestring == null) {
+                if (userID === undefined || userID === null || timeString == undefined || timeString == null) {
                     return false;
                 } else {
                     client.query( "DELETE FROM ContentStore WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\' AND " +
-                    StringConst.KEY_TIME_STRING + " = \'" + timestring + "\'", function(err, result) {
+                        + StringConst.KEY_USER_ID + " = \'" +  userID + "\' AND " +
+                        StringConst.KEY_TIME_STRING + " = \'" + timeString + "\'",
 
-                        if (err) {
-                            // table doesn't exist
+                        function(err, result) {
+                            if (err) {
+                                delCallback(0);  // error occurred - 0 rows modified; return
+                            } else {
 
-                            console.log("error: " + err);
-                        } else {
-
-                            // TODO - perform some check
-                        }
+                                delCallback(result.rowCount);
+                            }
                     });
 
                     return true;
@@ -80,24 +65,26 @@ exports.CS = function () {
          * Method updates a single, specific CS entry.
          *
          * @param dbDataObject object containing updated row contents
+         * @param updateCallback testing callback: rowCount is returned and checked against expected value
          * @return true if entry successfully updated, false otherwise
          */
-		updateCSData: function (dbDataObject) {
+		updateCSData: function (dbDataObject, updateCallback) {
+
             try {
                 // perform minimal input validation
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
+                            || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM ContentStore WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
+                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID +
+                             " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
 
                         if (err) {
-                            // table doesn't exist
-
-                            console.log("error: " + err);
+                            updateCallback(0); // error occurred - 0 rows modified; return
                         } else {
-
                             // TODO - update data and timestamp
+
+                            updateCallback(result.rowCount);
                         }
                     });
 
@@ -110,30 +97,36 @@ exports.CS = function () {
         },
 
         /**
-         * Data is queried without timestring specification; multiple entries may be found.
+         * Data is queried without timeString specification; multiple entries may be found.
          *
-         * @param userid associated with entries to be returned
+         * @param userID associated with entries to be returned
+         * @param getGenCallback testing callback: rowCount is returned and checked against expected value
          * @return returned entries if found, otherwise null returned
          */
-		getGeneralCSData: function (userid) {
+		getGeneralCSData: function (userID, getGenCallback) {
 
             try {
-                if (userid === null || userid === undefined) {
+                if (userID === null || userID === undefined) {
                     return false;
                 } else {
                     var allCSEntries = [];
-                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userid + "\'",
+                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
                         function(err, result) {
 
                             // TODO - return false if no rows found
                             if (err) {
                                 // table doesn't exist
 
-                                console.log("error: " + err);
+                                getGenCallback(0); // error occurred - 0 rows modified; return
                             } else {
+
                                 for (var i = 0; i < result.rows.length; i++) {
+                                    allCSEntries.push(result.rows[i]);
+
                                     // TODO - create db object for all and return
                                 }
+
+                                getGenCallback(result.rowCount);
                             }
 
                             return allCSEntries;
@@ -148,24 +141,30 @@ exports.CS = function () {
         /**
          * Method returns a single, specific CS entry if it exists.
          *
-         * @param userid associated with entry to be returned
-         * @param timestring associated with entry to be returned
+         * @param userID associated with entry to be returned
+         * @param timeString associated with entry to be returned
+         * @param getSpecCallback testing callback: rowCount is returned and checked against expected value
          * @return entry if found, otherwise null returned
          */
-		getSpecificCSData: function (userid, timestring) {
+		getSpecificCSData: function (userID, timeString, getSpecCallback) {
+
             try {
-                if (userid === undefined || userid === null || timestring === undefined || timestring == null) {
+                if (userID === undefined || userID === null || timeString === undefined || timeString == null) {
                     return false;
                 } else {
+
                     client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
-                    user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timestring + "\'", function(err, result) {
+                        user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timeString + "\'", function(err, result) {
 
                         if (err) {
                             // table doesn't exist
                             // TODO - return false if no entry was found
-                            console.log("error: " + err);
+
+                            getSpecCallback(0); // error occurred - 0 rows modified; return
                         } else {
                             // TODO - if matching entry found, return
+
+                            getSpecCallback(result.rowCount);
                         }
 
                     });
@@ -177,25 +176,33 @@ exports.CS = function () {
         },
 
         /**
+         *    * // TODO - update doc
+         *
          * @param dbDataObject data object to be entered
+         * @param insCallback testing callback: rowCount is returned and checked against expected value
          * @return true if data was successfully entered into DB, false otherwise
          */
-		addCSData: function(dbDataObject)  {
+		insertCSData: function(dbDataObject, insCallback)  {
 
            try {
-               if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
-                   console.log('returning false');
+               if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
+                        || dbDataObject.getUserID() === undefined) {
                    return false;
                } else {
+
                    client.query("INSERT INTO ContentStore(" + StringConst.KEY_USER_ID
-                   + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + ","
-                   + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
-                   +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
-                       dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()],
+                       + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + ","
+                       + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
+                       +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
+                           dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()],
 
                        function(err, result) {
 
-                           // TODO - utilize this function
+                           if (err) {
+                               insCallback(0); // error occurred - 0 rows modified; return
+                           } else {
+                               insCallback(result.rowCount);
+                           }
                    });
 
                    return true;

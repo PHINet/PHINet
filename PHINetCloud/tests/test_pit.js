@@ -1,5 +1,5 @@
 /**
- *
+ * File provides test cases for the Pending Interest Table implemented in pit.js.
  */
 
 var expect = require("chai").expect;
@@ -21,7 +21,7 @@ entry2.pitData("serverTestUser2", "serverTestSensor2",
 // --- test entries ---
 
 describe('PIT', function(){
-    describe('#addPITData()', function(){
+    describe('#insertPITData()', function(){
         it('should return true if entry has been made', function(){
             // TODO - tests
         })

@@ -42,7 +42,7 @@ exports.DataPacket = function () {
             }
 
             this.nameField = NameField.NameField();
-            this.nameField.NameField(userDataID, sensorID, timestring, processID, content);
+            this.nameField.NameField(userDataID, sensorID, timestring, processID);
             this.content = content;
             this.contentType = contentType;
             this.freshnessPeriod= freshnessPeriod;

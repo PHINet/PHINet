@@ -20,27 +20,21 @@ exports.DATA = function () {
          * @param processID associated with CS data
          * @param timeString associated with CS data
          * @param userID associated with CS data
-         * @param datafloat contents associated with CS data
+         * @param dataFloat contents associated with CS data
          */
     	csData: function (userID, sensorID, processID, timeString,
-                     datafloat) {
-
-            console.log("TOIMESTRING: " + timeString);
-            console.log("string const current time: " + StringConst.CURRENT_TIME);
+                     dataFloat) {
 
              // if current time requested, provide it
             if (timeString === StringConst.CURRENT_TIME) {
-                console.log("if");
                 timeString = Utils.getCurrentTime();
-            } else {
-                console.log("else");
-            }
+            } 
 
             this.sensorID = sensorID;
             this.processID = processID;
             this.timeString = timeString;
             this.userID = userID;
-            this.datafloat = datafloat;
+            this.dataFloat = dataFloat;
         },
 
         /**
@@ -135,11 +129,11 @@ exports.DATA = function () {
         },
 
         getDataFloat: function () {
-            return this.datafloat;
+            return this.dataFloat;
         },
 
-        setDataFloat: function (datafloat) {
-            this.datafloat = datafloat;
+        setDataFloat: function (dataFloat) {
+            this.dataFloat = dataFloat;
         }
     }
 };

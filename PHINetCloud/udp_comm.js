@@ -109,7 +109,6 @@ exports.UDPComm = function() {
             var packetSensorID = nameComponent[3];
             var packetTimeString = nameComponent[4];
             var packetProcessID = nameComponent[5];
-            var packetIP = nameComponent[6];
 
             console.log("name: " + nameComponent);
 
@@ -322,7 +321,6 @@ exports.UDPComm = function() {
             packetSensorID = nameComponent[3].trim();
             packetTimeString= nameComponent[4].trim();
             packetProcessID = nameComponent[5].trim();
-            packetFloatContent = dataContents.trim();
 
             // first, determine who wants the data
             var allValidPITEntries = PIT.getGeneralPITData(packetUserID, packetTimeString);

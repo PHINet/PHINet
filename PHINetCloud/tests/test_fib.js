@@ -1,5 +1,5 @@
 /**
- *
+ * File provides test cases for Forwarding Information Base implemented in fib.js.
  */
 
 var expect = require("chai").expect;
@@ -21,7 +21,7 @@ entry2.fibData("serverTestUser2", StringConst.CURRENT_TIME, "10,11,12,13,14,15")
  *
  */
 describe('FIB', function(){
-    describe('#addFIBData()', function(){
+    describe('#insertFIBData()', function(){
         it('should return true if entry has been made', function(){
                 // TODO - tests
         })
@@ -55,7 +55,7 @@ describe('FIB', function(){
  *
  */
 describe('FIB', function(){
-    describe('#getGeneralFIBData()', function(){
+    describe('#getAllFIBData()', function(){
         it('should return array of data if userid valid, otherwise false', function(){
 
         	// TODO - tests

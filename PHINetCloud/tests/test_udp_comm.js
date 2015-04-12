@@ -1,5 +1,5 @@
 /**
- *
+ * File provides test cases for the UDP Communication module implemented in udp_comm.js
  */
 
 var expect = require("chai").expect;

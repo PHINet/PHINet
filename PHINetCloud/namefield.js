@@ -1,7 +1,8 @@
 /** 
  * File contains code for creating 
  * NDN-compliant name components for packets
- **/
+ */
+
 
 
 /**
@@ -13,21 +14,19 @@ exports.NameField = function () {
     return {
         /**
          * Constructor our Our Name Format:
-         * "/ndn/userID/sensorID/timeString/processID/ [datacontents] or [ip]"
+         * "/ndn/userID/sensorID/timeString/processID"
          * The last field is specific to DATA and INTEREST packets, respectively.
          *
          * @param userDataID specifies data producer
          * @param sensorID specifies health-sensor type (e.g., heart sensor)
          * @param timeString specifies when packet was created
          * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
-         * @param finalField specific to DATA and INTEREST packets, respectively.
          */
-        NameField: function (userDataID, sensorID, timestring, processID, finalField) {
+        NameField: function (userDataID, sensorID, timestring, processID) {
             // NOTE: method assumes userID and sensorID are device specific
                     // meaning, no specification is needed; just get from memory
 
-            this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring
-                                + "/" + processID + "/" + finalField;
+            this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring + "/" + processID;
         },
 
         /**

@@ -5,57 +5,54 @@
 
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
-
 var pg = require('pg');
-
 var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
-client.connect(function(err) {
-  if(err) {
-    return console.error('could not connect to postgres', err);
-  } 
-  client.query('SELECT NOW() AS "theTime"', function(err, result) {
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log("the time: " + result.rows[0].theTime);
-    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-    client.end();
-  });
-});
 
 /**
  * Returns object that allows manipulation of FIB.
  */
 exports.FIB =  function () {
 
-	/*var tempDBData = DBDataClass.DATA();
-		tempDBData.fibData("serverTestUser", StringConst.CURRENT_TIME, "10.11.12.13");*/
+    /**
+     * Function invocation connects to DB
+     */
+    (function connectClient () {
+        client.connect(function(err) {
+            if(err) {
+                return console.error('could not connect to postgres', err);
+            }
+        });
+    })();
 
 	return {
 
         /**
          * Method deletes a single, specific FIB entry.
          *
-         * @param userid associated with entry to be deleted
+         * @param userID associated with entry to be deleted
+         * @param delCallback testing callback: rowCount is returned and checked against expected value
          * @return true if entry successfully deleted, false otherwise
          */
-		deleteFIBData: function (userid) {
+		deleteFIBData: function (userID, delCallback) {
 
             try {
 
-                if (userid === null || userid === undefined) {
+                if (userID === null || userID === undefined) {
                     return false;
                 } else {
                     client.query( "DELETE FROM ForwardingInformationBase WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'", function(err, result) {
+                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'",
+
+                        function(err, result) {
 
                         if (err) {
                             // table doesn't exist
+                            delCallback(0);  // error occurred - 0 rows modified; return
 
                             console.log("error: " + err);
                         } else {
 
-                            // TODO - perform some check
+                            delCallback(result.rowCount);
                         }
                     });
 
@@ -72,14 +69,15 @@ exports.FIB =  function () {
          * Method updates a single, specific FIB entry.
          *
          * @param data object containing updated row contents
+         * @param updateCallback testing callback: rowCount is returned and checked against expected value
          * @return true if entry successfully updated, false otherwise
          */
-		updateFIBData: function (dbDataObject) {
+		updateFIBData: function (dbDataObject, updateCallback) {
 			// perform minimal input validation
 
             try {
                 if (dbDataObject.getUserID() === undefined || dbDataObject === null 
-                    || dbDataObject === undefined) {
+                        || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM ForwardingInformationBase WHERE "
@@ -89,10 +87,14 @@ exports.FIB =  function () {
                             // table doesn't exist
 
                             console.log("error: " + err);
+                            updateCallback(0);  // error occurred - 0 rows modified; return
                         } else {
 
                             // TODO - update IP and timestamp
+
+                            updateCallback(result.rowCount)
                         }
+
                     });
 
                     return true;
@@ -106,13 +108,14 @@ exports.FIB =  function () {
         /**
          * Method returns specific, single FIB entry.
          *
-         * @param userid associated with entry to be returned
+         * @param userID associated with entry to be returned
+         * @param getSpecCallback testing callback: rowCount is returned and checked against expected value
          * @return entry if found, otherwise null returned
          */
-		getFIBData: function (userid) {
+		getSpecificFIBData: function (userID, getSpecCallback) {
 
             try {
-                if (userid === null || userid === undefined) {
+                if (userID === null || userID === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
@@ -122,15 +125,19 @@ exports.FIB =  function () {
 
                             // TODO - return false if no entry found
                             console.log("error: " + err);
+
+                            getSpecCallback(0);  // error occurred - 0 rows modified; return
                         } else {
 
                             for (var i = 0; i < result.rows.length; i++) {
-                                if (result.rows[i].userid === userid) {
+                                if (result.rows[i].userid === userID) {
 
                                     // TODO - create db object and return
 
                                 }
                             }
+
+                            getSpecCallback(result.rowCount);
                         }
                     });
 
@@ -138,7 +145,7 @@ exports.FIB =  function () {
                 }
 
             } catch (err) {
-                console.log("!!Error in ForwardingInformationBase.getFIBData(): " + err);
+                console.log("!!Error in ForwardingInformationBase.getSpecificFIBData(): " + err);
                 return false;
             }
         },
@@ -146,9 +153,10 @@ exports.FIB =  function () {
         /**
          * Method used to query entire FIB table; useful when multi-casting interests
          *
+         * @param getAllCallback testing callback: rowCount is returned and checked against expected value
          * @return entries if any exist, otherwise null returned
          */
-		getAllFIBData: function () {
+		getAllFIBData: function (getAllCallback) {
 
             try {
                 var allFIBEntries = [];
@@ -159,11 +167,14 @@ exports.FIB =  function () {
 
                         // TODO - return false if nothing found
 
+                        getAllCallback(0);  // error occurred - 0 rows modified; return
                         console.log("error: " + err);
                     } else {
                         for (var i = 0; i < result.rows.length; i++) {
                             // TODO - create db object for all and return
                         }
+
+                        getAllCallback(result.rowCount);
                     }
 
                     return allFIBEntries;
@@ -175,26 +186,35 @@ exports.FIB =  function () {
 		},
 
         /**
+         * TODO -
+         *
          * @param dbDataObject data object to be entered
+         * @param insCallback testing callback: rowCount is returned and checked against expected value
          * @return true if data was successfully entered into DB, false otherwise
          */
-		insertFIBData: function(dbDataObject)  {
+		insertFIBData: function(dbDataObject, insCallback)  {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
+                            || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
                     client.query("INSERT INTO ForwardingInformationBase(" + StringConst.KEY_USER_ID
                     + "," + StringConst.KEY_TIME_STRING + ","  + StringConst.KEY_IP_ADDRESS
                     +") values($1, $2, $3)", [dbDataObject.getUserID(), dbDataObject.getTimeString(), dbDataObject.getIpAddr()],
                     function(err, result) {
-                        // TODO - utilize this function
+
+                        if (err) {
+                            insCallback(0);  // error occurred - 0 rows modified; return
+                        } else {
+                            insCallback(result.rowCount);
+                        }
                     });
 
                     return true;
                 }
             } catch (err) {
-                console.log("!!Error in ForwardingInformationBase.getSpecificFIBData(): " + err);
+                console.log("!!Error in ForwardingInformationBase.insertFIBData(): " + err);
                 return false;
             }
 		}

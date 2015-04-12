@@ -30,7 +30,7 @@ exports.InterestPacket = function () {
         *
         *        // TODO - rework ipADDR - potentially exclude; non-useful information
         */
-        InterestPacket: function (userDataID, sensorID, timestring, processID, ipAddr) {
+        InterestPacket: function (userDataID, sensorID, timestring, processID) {
 
              // if current time requested, provide it
             if (timestring === StringConst.CURRENT_TIME) {
@@ -38,7 +38,7 @@ exports.InterestPacket = function () {
             }
 
             this.nameField = NameField.NameField();
-            this.nameField.NameField(userDataID, sensorID, timestring, processID, ipAddr);
+            this.nameField.NameField(userDataID, sensorID, timestring, processID);
             this.NON_NEG_INT_CONST = 0; // TODO - rework
         },
 
