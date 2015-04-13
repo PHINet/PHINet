@@ -46,6 +46,7 @@ exports.CS = function () {
 
                         function(err, result) {
                             if (err) {
+                                
                                 delCallback(0);  // error occurred - 0 rows modified; return
                             } else {
 
@@ -76,16 +77,22 @@ exports.CS = function () {
                             || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID +
-                             " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
 
-                        if (err) {
-                            updateCallback(0); // error occurred - 0 rows modified; return
-                        } else {
-                            // TODO - update data and timestamp
+                    client.query( "UPDATE ContentStore SET " + StringConst.KEY_PROCESS_ID + " = \'"
+                        + dbDataObject.getProcessID() + "\', " + StringConst.KEY_DATA_CONTENTS + " = \'"
+                        + dbDataObject.getDataFloat() + "\', " + StringConst.KEY_SENSOR_ID + " = \'"
+                        + dbDataObject.getSensorID() + "\' WHERE " + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID()
+                        + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + dbDataObject.getTimeString() + "\'",
 
-                            updateCallback(result.rowCount);
-                        }
+                        function(err, result) {
+
+                            if (err) {
+
+                                updateCallback(0); // error occurred - 0 rows modified; return
+                            } else {
+
+                                updateCallback(result.rowCount);
+                            }
                     });
 
                     return true;
@@ -109,27 +116,32 @@ exports.CS = function () {
                 if (userID === null || userID === undefined) {
                     return false;
                 } else {
-                    var allCSEntries = [];
+
                     client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
                         function(err, result) {
 
-                            // TODO - return false if no rows found
                             if (err) {
                                 // table doesn't exist
 
-                                getGenCallback(0); // error occurred - 0 rows modified; return
+                                getGenCallback(0, null); // error occurred - 0 rows modified; return
                             } else {
 
-                                for (var i = 0; i < result.rows.length; i++) {
-                                    allCSEntries.push(result.rows[i]);
+                                var queriedEntries = [];
 
-                                    // TODO - create db object for all and return
+                                for (var i = 0; i < result.rows.length; i++) {
+
+                                    var queriedRow = DBDataClass.DATA();
+                                    queriedRow.setUserID(result.rows[i]._userid);
+                                    queriedRow.setSensorID(result.rows[i].sensorid);
+                                    queriedRow.setTimeString(result.rows[i].timestring);
+                                    queriedRow.setProcessID(result.rows[i].processid);
+                                    queriedRow.setDataFloat(result.rows[i].datacontents);
+
+                                    queriedEntries.push(queriedRow);
                                 }
 
-                                getGenCallback(result.rowCount);
+                                getGenCallback(result.rowCount, queriedEntries);
                             }
-
-                            return allCSEntries;
                         });
                 }
             } catch (err) {
@@ -154,19 +166,22 @@ exports.CS = function () {
                 } else {
 
                     client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
-                        user + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timeString + "\'", function(err, result) {
+                        userID + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timeString + "\'", function(err, result) {
 
                         if (err) {
-                            // table doesn't exist
-                            // TODO - return false if no entry was found
 
                             getSpecCallback(0); // error occurred - 0 rows modified; return
                         } else {
-                            // TODO - if matching entry found, return
 
-                            getSpecCallback(result.rowCount);
+                            var queriedRow = DBDataClass.DATA();
+                            queriedRow.setUserID(result.rows[0]._userid);
+                            queriedRow.setSensorID(result.rows[0].sensorid);
+                            queriedRow.setTimeString(result.rows[0].timestring);
+                            queriedRow.setProcessID(result.rows[0].processid);
+                            queriedRow.setDataFloat(result.rows[0].datacontents);
+
+                            getSpecCallback(result.rowCount, queriedRow);
                         }
-
                     });
                 }
             } catch (err) {
@@ -176,7 +191,7 @@ exports.CS = function () {
         },
 
         /**
-         *    * // TODO - update doc
+         * Method allows insertion of valid data into content store database.
          *
          * @param dbDataObject data object to be entered
          * @param insCallback testing callback: rowCount is returned and checked against expected value

@@ -18,6 +18,10 @@ var entry2 = DBDataClass.DATA();
 entry2.csData("serverTestUser2", "serverTestSensor2", 
 		StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
 
+var entry3 = DBDataClass.DATA();
+entry3.csData("serverTestUser2", "serverTestSensor3",
+            StringConst.DATA_CACHE, "yesterday", "55,66");
+
 // --- test entries ---
 
 /**
@@ -31,6 +35,7 @@ describe('ContentStore', function(){
             ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function (rowsTouched) {
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
+
             ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
@@ -83,6 +88,11 @@ describe('ContentStore', function(){
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test rejection given bad input
+            expect(ContentStore.updateCSData(null)).to.equal(false);
+            expect(ContentStore.updateCSData(undefined)).to.equal(false);
+            expect(ContentStore.updateCSData(DBDataClass.DATA())).to.equal(false); // an "empty" object
+
             // now, place data into DB
             ContentStore.insertCSData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -92,13 +102,11 @@ describe('ContentStore', function(){
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
             });
 
-            // test rejection given bad input
-            expect(ContentStore.updateCSData(null)).to.equal(false);
-            expect(ContentStore.updateCSData(undefined)).to.equal(false);
-            expect(ContentStore.updateCSData(DBDataClass.DATA())).to.equal(false); // an "empty" object
+            var ENTRY1_NEW_DATA = "100,101,102", ENTRY2_NEW_DATA = "9999";
 
             // modify data
-            entry1.setDataFloat("100,101,102");
+            entry1.setDataFloat(ENTRY1_NEW_DATA);
+            entry2.setDataFloat(ENTRY2_NEW_DATA);
 
             // test valid update given good input
             ContentStore.updateCSData(entry1, function(rowsTouched) {
@@ -107,8 +115,32 @@ describe('ContentStore', function(){
 
             ContentStore.updateCSData(entry2, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was updated
+            });
 
-                done(); // the invocation of done() tells testing framework that all tests are complete
+            // test that update worked; check that new value is present
+
+            ContentStore.getSpecificCSData(entry1.getUserID(), entry1.getTimeString(),
+
+                function(rowsTouched, queryResult) {
+
+                    // verify that only entry (of two by same user) was found
+                    expect(rowsTouched === 1).to.equal(true);
+
+                    // check that single entry was found and returned
+                    expect(queryResult.getDataFloat() === ENTRY1_NEW_DATA).to.equal(true);
+            });
+
+            ContentStore.getSpecificCSData(entry2.getUserID(), entry2.getTimeString(),
+
+                function(rowsTouched, queryResult) {
+
+                    // verify that only entry (of two by same user) was found
+                    expect(rowsTouched === 1).to.equal(true);
+
+                    // check that single entry was found and returned
+                    expect(queryResult.getDataFloat() === ENTRY2_NEW_DATA).to.equal(true);
+
+                    done(); // the invocation of done() tells testing framework that all tests are complete
             });
         })
     })
@@ -137,7 +169,7 @@ describe('ContentStore', function(){
                 });
 
             // test deletion given bad input
-            expect(ContentStore.updateCSData(undefined, undefined)).to.equal(false);
+            expect(ContentStore.deleteCSData(undefined, undefined)).to.equal(false);
 
             // object no longer exists in DB, verify that no rows were modified
             ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(),
@@ -155,10 +187,60 @@ describe('ContentStore', function(){
  */
 describe('ContentStore', function(){
     describe('#getGeneralCSData()', function(){
-        it('should return array of data if userid valid, otherwise false', function(){
+        it('should return array of data if userid valid, otherwise false', function(done){
 
-            // TODO - tests
+            // first delete (potentially stored) entries before testing get
+            ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function (rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
 
+            ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
+
+            ContentStore.deleteCSData(entry3.getUserID(), entry3.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
+
+            // insert good data
+            ContentStore.insertCSData(entry1, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.insertCSData(entry2, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.insertCSData(entry3, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.getGeneralCSData(entry2.getUserID(), function(rowsTouched, queryResult) {
+
+                // verify that both entries from serverTestUser2 were found
+                expect(rowsTouched === 2).to.equal(true);
+
+                // verify that both entries from serverTestUser2 were returned
+                expect(queryResult.length === 2).to.equal(true);
+
+
+                var entry2Found = false;
+                var entry3Found = false;
+
+                for (var i = 0; i < queryResult.length; i++) {
+
+                    if (queryResult[i].getSensorID() === entry2.getSensorID()) {
+                        entry2Found = true;
+                    } else if (queryResult[i].getSensorID() === entry3.getSensorID()) {
+                        entry3Found = true;
+                    }
+                }
+
+                // check that both entries were found and returned
+                expect(entry2Found && entry3Found).to.equal(true);
+
+                done(); // the invocation of done() tells testing framework that all tests are complete
+            });
         })
     })
 });
@@ -168,10 +250,46 @@ describe('ContentStore', function(){
  */
 describe('ContentStore', function(){
     describe('#getSpecificCSData()', function(){
-        it('should return a specific entry, otherwise false', function(){
+        it('should return a specific entry, otherwise false', function(done){
 
-            // TODO - tests
+            // first delete (potentially stored) entries before testing get
+            ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function (rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
 
+            ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
+
+            ContentStore.deleteCSData(entry3.getUserID(), entry3.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
+            });
+
+            // insert good data
+            ContentStore.insertCSData(entry1, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.insertCSData(entry2, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.insertCSData(entry3, function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
+            });
+
+            ContentStore.getSpecificCSData(entry2.getUserID(), entry2.getTimeString(),
+
+                function(rowsTouched, queryResult) {
+
+                    // verify that only entry (of two by same user) was found
+                    expect(rowsTouched === 1).to.equal(true);
+
+                    // check that single entry was found and returned
+                    expect(queryResult.getSensorID() === entry2.getSensorID()).to.equal(true);
+
+                    done(); // the invocation of done() tells testing framework that all tests are complete
+            });
         })
     })
 });
