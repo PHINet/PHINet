@@ -41,15 +41,14 @@ exports.FIB =  function () {
                     return false;
                 } else {
                     client.query( "DELETE FROM ForwardingInformationBase WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" +  DBDataObject.getUserID() + "\'",
+                    + StringConst.KEY_USER_ID + " = \'" +  userID + "\'",
 
                         function(err, result) {
 
                         if (err) {
-                            // table doesn't exist
+
                             delCallback(0);  // error occurred - 0 rows modified; return
 
-                            console.log("error: " + err);
                         } else {
 
                             delCallback(result.rowCount);
@@ -68,29 +67,25 @@ exports.FIB =  function () {
         /**
          * Method updates a single, specific FIB entry.
          *
-         * @param data object containing updated row contents
+         * @param dbDataObject object containing updated row contents
          * @param updateCallback testing callback: rowCount is returned and checked against expected value
          * @return true if entry successfully updated, false otherwise
          */
 		updateFIBData: function (dbDataObject, updateCallback) {
-			// perform minimal input validation
 
             try {
-                if (dbDataObject.getUserID() === undefined || dbDataObject === null 
-                        || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM ForwardingInformationBase WHERE "
-                    + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID() + "\'", function(err, result) {
+                    client.query( "UPDATE ForwardingInformationBase SET " + StringConst.KEY_TIME_STRING + " = \'"
+                    + dbDataObject.getTimeString() + "\' ," + StringConst.KEY_IP_ADDRESS + " = \'"
+                    + dbDataObject.getIpAddr() + "\'" + " WHERE " + StringConst.KEY_USER_ID + " = \'"
+                    + dbDataObject.getUserID() + "\'" , function(err, result) {
 
                         if (err) {
-                            // table doesn't exist
 
-                            console.log("error: " + err);
                             updateCallback(0);  // error occurred - 0 rows modified; return
                         } else {
-
-                            // TODO - update IP and timestamp
 
                             updateCallback(result.rowCount)
                         }
@@ -118,26 +113,20 @@ exports.FIB =  function () {
                 if (userID === null || userID === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
+                    client.query( "SELECT * FROM ForwardingInformationBase WHERE " + StringConst.KEY_USER_ID
+                    + " = \'" + userID + "\'" , function(err, result) {
 
                         if (err) {
-                            // table doesn't exist
-
-                            // TODO - return false if no entry found
-                            console.log("error: " + err);
 
                             getSpecCallback(0);  // error occurred - 0 rows modified; return
                         } else {
 
-                            for (var i = 0; i < result.rows.length; i++) {
-                                if (result.rows[i].userid === userID) {
+                            var queriedRow = DBDataClass.DATA();
+                            queriedRow.setUserID(result.rows[0]._userid);
+                            queriedRow.setTimeString(result.rows[0].timestring);
+                            queriedRow.setIpAddr(result.rows[0].ipaddress);
 
-                                    // TODO - create db object and return
-
-                                }
-                            }
-
-                            getSpecCallback(result.rowCount);
+                            getSpecCallback(result.rowCount, queriedRow);
                         }
                     });
 
@@ -159,22 +148,25 @@ exports.FIB =  function () {
 		getAllFIBData: function (getAllCallback) {
 
             try {
-                var allFIBEntries = [];
                 client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
 
                     if (err) {
-                        // table doesn't exist
-
-                        // TODO - return false if nothing found
-
                         getAllCallback(0);  // error occurred - 0 rows modified; return
-                        console.log("error: " + err);
+
                     } else {
+
+                        var queryResults = [];
+
                         for (var i = 0; i < result.rows.length; i++) {
-                            // TODO - create db object for all and return
+                            var queriedRow = DBDataClass.DATA();
+                            queriedRow.setUserID(result.rows[i]._userid);
+                            queriedRow.setTimeString(result.rows[i].timestring);
+                            queriedRow.setIpAddr(result.rows[i].ipaddress);
+
+                            queryResults.push(queriedRow);
                         }
 
-                        getAllCallback(result.rowCount);
+                        getAllCallback(result.rowCount, queryResults);
                     }
 
                     return allFIBEntries;
@@ -186,7 +178,7 @@ exports.FIB =  function () {
 		},
 
         /**
-         * TODO -
+         * Method allows insertion of valid data into forwarding information base.
          *
          * @param dbDataObject data object to be entered
          * @param insCallback testing callback: rowCount is returned and checked against expected value

@@ -3,7 +3,6 @@
  */
 
 var expect = require("chai").expect;
-
 var ContentStore = require('../cs.js').CS();
 var DBDataClass = require('../data');
 var StringConst = require('../string_const').StringConst;
@@ -187,7 +186,7 @@ describe('ContentStore', function(){
  */
 describe('ContentStore', function(){
     describe('#getGeneralCSData()', function(){
-        it('should return array of data if userid valid, otherwise false', function(done){
+        it('should return true if data found, otherwise false', function(done){
 
             // first delete (potentially stored) entries before testing get
             ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function (rowsTouched) {
@@ -250,7 +249,7 @@ describe('ContentStore', function(){
  */
 describe('ContentStore', function(){
     describe('#getSpecificCSData()', function(){
-        it('should return a specific entry, otherwise false', function(done){
+        it('should return true if specific entry found, otherwise false', function(done){
 
             // first delete (potentially stored) entries before testing get
             ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function (rowsTouched) {
