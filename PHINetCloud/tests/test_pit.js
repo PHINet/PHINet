@@ -72,6 +72,8 @@ describe('PIT', function(){
     })
 });
 
+
+
 /**
  * Tests PIT.updatePITData() functionality.
  */
@@ -83,11 +85,11 @@ describe('PIT', function(){
             PIT.deletePITData(entry1.getUserID(), entry1.getTimeString(), entry1.getIpAddr(),
                 function (rowsTouched) {
                     expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
-            });
+                });
             PIT.deletePITData(entry2.getUserID(), entry2.getTimeString(), entry2.getIpAddr(),
                 function(rowsTouched) {
                     expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
-            });
+                });
 
             // test rejection given bad input
             expect(PIT.updatePITData(null)).to.equal(false);

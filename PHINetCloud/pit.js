@@ -22,6 +22,7 @@ exports.PIT = function () {
 
                 return console.error('could not connect to postgres', err);
             }
+
         });
     })();
 
@@ -80,12 +81,13 @@ exports.PIT = function () {
                         || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
+
                     client.query( "UPDATE PendingInterestTable SET " + StringConst.KEY_TIME_STRING + "= \'"
                     + dbDataObject.getTimeString() + "\' WHERE "+ StringConst.KEY_PROCESS_ID + " = \'"
                         + dbDataObject.getProcessID() + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'"
-                        + dbDataObject.getIpAddr()() + "\' AND " + StringConst.KEY_SENSOR_ID + " = \'"
+                        + dbDataObject.getIpAddr() + "\' AND " + StringConst.KEY_SENSOR_ID + " = \'"
                         + dbDataObject.getSensorID() + "\' AND " + StringConst.KEY_USER_ID + " = \'"
-                        + dbDataObject.getUserID() ,
+                        + dbDataObject.getUserID()+ "\'" ,
 
                         function(err, result) {
 
@@ -102,6 +104,7 @@ exports.PIT = function () {
 
             }
             catch (err) {
+
                 console.log("!!Error in PendingInterestTable.updatePITData(): " + err);
                 return false;
             }
@@ -131,21 +134,26 @@ exports.PIT = function () {
 
                             } else {
 
-                                var queryResults = [];
+                                if (result.rowCount > 0) {
+                                    var queryResults = [];
 
-                                for (var i = 0; i < result.rows.length; i++) {
+                                    for (var i = 0; i < result.rows.length; i++) {
 
-                                    var queriedRow = DBDataClass.DATA();
-                                    queriedRow.setUserID(result.rows[i]._userid);
-                                    queriedRow.setSensorID(result.rows[i].sensorid);
-                                    queriedRow.setTimeString(result.rows[i].timestring);
-                                    queriedRow.setProcessID(result.rows[i].processid);
-                                    queriedRow.setIpAddr(result.rows[i].ipaddress);
+                                        var queriedRow = DBDataClass.DATA();
+                                        queriedRow.setUserID(result.rows[i]._userid);
+                                        queriedRow.setSensorID(result.rows[i].sensorid);
+                                        queriedRow.setTimeString(result.rows[i].timestring);
+                                        queriedRow.setProcessID(result.rows[i].processid);
+                                        queriedRow.setIpAddr(result.rows[i].ipaddress);
 
-                                    queryResults.push(queriedRow);
+                                        queryResults.push(queriedRow);
+                                    }
+
+                                    getGenCallback(result.rowCount, queryResults);
+                                } else {
+
+                                    getGenCallback(0, null);
                                 }
-
-                                getGenCallback(result.rowCount, queryResults);
                             }
                     });
                 }
@@ -183,14 +191,19 @@ exports.PIT = function () {
                             getSpecCallback(0); // error occurred - 0 rows modified; return
                         } else {
 
-                            var queriedRow = DBDataClass.DATA();
-                            queriedRow.setUserID(result.rows[0]._userid);
-                            queriedRow.setSensorID(result.rows[0].sensorid);
-                            queriedRow.setTimeString(result.rows[0].timestring);
-                            queriedRow.setProcessID(result.rows[0].processid);
-                            queriedRow.setIpAddr(result.rows[0].ipaddress);
+                            if (result.rowCount > 0) {
 
-                            getSpecCallback(result.rowCount, queriedRow);
+                                var queriedRow = DBDataClass.DATA();
+                                queriedRow.setUserID(result.rows[0]._userid);
+                                queriedRow.setSensorID(result.rows[0].sensorid);
+                                queriedRow.setTimeString(result.rows[0].timestring);
+                                queriedRow.setProcessID(result.rows[0].processid);
+                                queriedRow.setIpAddr(result.rows[0].ipaddress);
+                                getSpecCallback(result.rowCount, queriedRow);
+                            } else {
+
+                                getSpecCallback(0, null);
+                            }
                         }
                     });
                 }

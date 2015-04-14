@@ -121,12 +121,18 @@ exports.FIB =  function () {
                             getSpecCallback(0);  // error occurred - 0 rows modified; return
                         } else {
 
-                            var queriedRow = DBDataClass.DATA();
-                            queriedRow.setUserID(result.rows[0]._userid);
-                            queriedRow.setTimeString(result.rows[0].timestring);
-                            queriedRow.setIpAddr(result.rows[0].ipaddress);
+                            if (result.rowCount > 0 ) {
+                                var queriedRow = DBDataClass.DATA();
+                                queriedRow.setUserID(result.rows[0]._userid);
+                                queriedRow.setTimeString(result.rows[0].timestring);
+                                queriedRow.setIpAddr(result.rows[0].ipaddress);
 
-                            getSpecCallback(result.rowCount, queriedRow);
+                                getSpecCallback(result.rowCount, queriedRow);
+                            } else {
+
+                                getSpecCallback(0, null);
+                            }
+
                         }
                     });
 
@@ -159,18 +165,23 @@ exports.FIB =  function () {
 
                         } else {
 
-                            var queryResults = [];
+                            if (result.rowCount > 0) {
+                                var queryResults = [];
 
-                            for (var i = 0; i < result.rows.length; i++) {
-                                var queriedRow = DBDataClass.DATA();
-                                queriedRow.setUserID(result.rows[i]._userid);
-                                queriedRow.setTimeString(result.rows[i].timestring);
-                                queriedRow.setIpAddr(result.rows[i].ipaddress);
+                                for (var i = 0; i < result.rows.length; i++) {
+                                    var queriedRow = DBDataClass.DATA();
+                                    queriedRow.setUserID(result.rows[i]._userid);
+                                    queriedRow.setTimeString(result.rows[i].timestring);
+                                    queriedRow.setIpAddr(result.rows[i].ipaddress);
 
-                                queryResults.push(queriedRow);
+                                    queryResults.push(queriedRow);
+                                }
+
+                                getAllCallback(result.rowCount, queryResults);
+                            } else {
+
+                                getAllCallback(0, null);
                             }
-
-                            getAllCallback(result.rowCount, queryResults);
                         }
 
                         return true;

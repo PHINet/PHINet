@@ -228,7 +228,6 @@ describe('ContentStore', function(){
 
             ContentStore.getGeneralCSData(entry2.getUserID(), function(rowsTouched, queryResult) {
 
-                console.log("rows touched: " + rowsTouched);
 
                 // verify that both entries from serverTestUser2 were found
                 expect(rowsTouched === 2).to.equal(true);

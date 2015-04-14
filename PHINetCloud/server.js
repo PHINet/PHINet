@@ -45,13 +45,44 @@ app.get('/profile', function (req, res) {
   res.sendFile('/public/templates/profile.html', { root: __dirname })
 });
 
+app.get('/test', function (req, res) {
+    res.sendFile('/public/templates/test.html', { root: __dirname })
+});
+
 app.get('*', function(req, res){
     res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
 });
 
-app.get('/test', function (req, res) {
-    res.sendFile('/public/templates/test.html', { root: __dirname })
+app.post('/loginAction', function(req, res) {
+
+    console.log("username: " + req.body.user_name);
+    console.log("password: " + req.body.user_password);
+
+    // TODO - handle login
+
+    // TODO - at end, redirect user
+
 });
+
+app.post('/registerAction', function(req, res) {
+
+    console.dir(req.body);
+    // TODO - handle register
+
+    // TODO - at end, redirect user
+
+});
+
+app.post('/contactAction', function(req, res) {
+    console.dir(req.body);
+    // TODO - handle contact
+
+    // TODO - at end, redirect user
+
+});
+
+
+
 
 // ---- Code Tests UDP Functionality ---
 
@@ -159,9 +190,14 @@ function createFIB() {
   ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery);
 }
 
+function createLoginDB() {
+    ifNonexistentCreateDB(StringConst.LOGIN_DB, StringConst.createLoginDBQuery);
+}
+
 createFIB();
 createCS();
 createPIT();
+createLoginDB();
 
 // --- Code Handles DB Creation ---
 

@@ -30,7 +30,8 @@ exports.UDPComm = function() {
          * Method initializes the UDP listener to specified PORT.
          */
 		initializeListener : function () {
-			socket.bind(NDN_SENSOR_NET_PORT);
+
+            socket.bind(NDN_SENSOR_NET_PORT);
 			socket.on('message', function(msg, rinfo) {
 			  
 			  var message = msg.toString('utf8').split(" ");
@@ -220,15 +221,21 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 
         if (csQueryResults !== null) {
             console.log("if statement, cache request");
+            console.log("rowsTouched: " + rowsTouched);
+
             for (var i = 0; i < csQueryResults.length; i++) {
 
-                // TODO - again, rework with specific date once TIMEvaris valid
+                console.log("within for loop");
+                console.log("packet ip: " + packetIP);
+                console.log("Packet port: " + packetPort);
+
+                // TODO - again, rework with specific date once TIME_STRING valid
 
                 var dataPacket = DataPacketClass.DataPacket();
                 dataPacket.DataPacket(csQueryResults[i].getUserID(), csQueryResults[i].getSensorID(),
                     csQueryResults[i].getTimeString(), csQueryResults[i].getProcessID(), csQueryResults[i].getDataFloat());
 
-                sendMessage(dataPacket.toString(), packetIP, packetPort); // reply to interest with DATA from cache
+                sendMessage(dataPacket.toString(), packetIP, NDN_SENSOR_NET_PORT); // reply to interest with DATA from cache
             }
 
         } else {

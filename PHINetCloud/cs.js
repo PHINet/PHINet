@@ -126,21 +126,27 @@ exports.CS = function () {
                                 getGenCallback(0, null); // error occurred - 0 rows modified; return
                             } else {
 
-                                var queriedEntries = [];
+                                if (result.rowCount > 0) {
+                                    var queriedEntries = [];
 
-                                for (var i = 0; i < result.rows.length; i++) {
+                                    for (var i = 0; i < result.rows.length; i++) {
 
-                                    var queriedRow = DBDataClass.DATA();
-                                    queriedRow.setUserID(result.rows[i]._userid);
-                                    queriedRow.setSensorID(result.rows[i].sensorid);
-                                    queriedRow.setTimeString(result.rows[i].timestring);
-                                    queriedRow.setProcessID(result.rows[i].processid);
-                                    queriedRow.setDataFloat(result.rows[i].datacontents);
+                                        var queriedRow = DBDataClass.DATA();
+                                        queriedRow.setUserID(result.rows[i]._userid);
+                                        queriedRow.setSensorID(result.rows[i].sensorid);
+                                        queriedRow.setTimeString(result.rows[i].timestring);
+                                        queriedRow.setProcessID(result.rows[i].processid);
+                                        queriedRow.setDataFloat(result.rows[i].datacontents);
 
-                                    queriedEntries.push(queriedRow);
+                                        queriedEntries.push(queriedRow);
+                                    }
+
+                                    getGenCallback(result.rowCount, queriedEntries);
+                                } else {
+
+                                    getGenCallback(0, null);
                                 }
 
-                                getGenCallback(result.rowCount, queriedEntries);
                             }
                         });
                 }
@@ -173,14 +179,19 @@ exports.CS = function () {
                             getSpecCallback(0); // error occurred - 0 rows modified; return
                         } else {
 
-                            var queriedRow = DBDataClass.DATA();
-                            queriedRow.setUserID(result.rows[0]._userid);
-                            queriedRow.setSensorID(result.rows[0].sensorid);
-                            queriedRow.setTimeString(result.rows[0].timestring);
-                            queriedRow.setProcessID(result.rows[0].processid);
-                            queriedRow.setDataFloat(result.rows[0].datacontents);
+                            if (result.rowCount > 0) {
+                                var queriedRow = DBDataClass.DATA();
+                                queriedRow.setUserID(result.rows[0]._userid);
+                                queriedRow.setSensorID(result.rows[0].sensorid);
+                                queriedRow.setTimeString(result.rows[0].timestring);
+                                queriedRow.setProcessID(result.rows[0].processid);
+                                queriedRow.setDataFloat(result.rows[0].datacontents);
 
-                            getSpecCallback(result.rowCount, queriedRow);
+                                getSpecCallback(result.rowCount, queriedRow);
+                            } else {
+
+                                getSpecCallback(0, null);
+                            }
                         }
                     });
                 }

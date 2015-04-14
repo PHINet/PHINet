@@ -39,13 +39,20 @@ exports.StringConst = {
     CS_DB : "ContentStore",
     PIT_DB : "PendingInterestTable",
     FIB_DB : "ForwardingInformationBase",
+    LOGIN_DB: "LoginCredentials",
 
     KEY_USER_ID : "_userID",
     KEY_SENSOR_ID : "sensorID",
     KEY_TIME_STRING : "timeString",
     KEY_PROCESS_ID : "processID",
     KEY_IP_ADDRESS : "ipAddress",
-    KEY_DATA_CONTENTS : "dataContents", 
+    KEY_DATA_CONTENTS : "dataContents",
+    KEY_EMAIL: "email",
+    KEY_PASSWORD: "password",
+    KEY_ENTITY_TYPE: "entityType",  // this key represents doctor or patient status (DOCTOR or PATIENT, respectively)
+
+    DOCTOR_ENTITY: "DOCTOR", // denotes doctor status in LOGIN_DB
+    PATIENT_ENTITY: "PATIENT", // denotes patient status in LOGIN_DB
 
     createPITQuery : "CREATE TABLE " + this.PIT_DB + "("
                 +this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
@@ -60,6 +67,9 @@ exports.StringConst = {
     createCSQuery : "CREATE TABLE " + this.CS_DB + "("
                 + this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
     this.KEY_TIME_STRING + " TEXT ," + this.KEY_PROCESS_ID + " TEXT," +this.KEY_DATA_CONTENTS +
-                " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))"
+                " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))",
 
+    createLoginDBQuery : "CREATE TABLE " + this.LOGIN_DB + "("
+        + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," +
+        this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
 };
