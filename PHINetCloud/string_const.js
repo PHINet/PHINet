@@ -54,22 +54,30 @@ exports.StringConst = {
     DOCTOR_ENTITY: "DOCTOR", // denotes doctor status in LOGIN_DB
     PATIENT_ENTITY: "PATIENT", // denotes patient status in LOGIN_DB
 
-    createPITQuery : "CREATE TABLE " + this.PIT_DB + "("
-                +this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
-    this.KEY_TIME_STRING + " TEXT," +this.KEY_PROCESS_ID + " TEXT," +this.KEY_IP_ADDRESS + " TEXT,"
-                + "PRIMARY KEY(" + this.KEY_USER_ID + "," + this.KEY_TIME_STRING + ", "
-                + this.KEY_IP_ADDRESS+ "))",
+    createPITQuery : function () {
+      return "CREATE TABLE " + this.PIT_DB + "("
+          +this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
+          this.KEY_TIME_STRING + " TEXT," +this.KEY_PROCESS_ID + " TEXT," +this.KEY_IP_ADDRESS + " TEXT,"
+          + "PRIMARY KEY(" + this.KEY_USER_ID + "," + this.KEY_TIME_STRING + ", "
+          + this.KEY_IP_ADDRESS+ "))";
+    } ,
 
-    createFIBQuery : "CREATE TABLE " + this.FIB_DB + "("
-                +this.KEY_USER_ID + " TEXT PRIMARY KEY," + this.KEY_TIME_STRING +
-                " TEXT, " +this.KEY_IP_ADDRESS + " TEXT)",
+    createFIBQuery : function() {
+      return "CREATE TABLE " + this.FIB_DB + "("
+          +this.KEY_USER_ID + " TEXT PRIMARY KEY," + this.KEY_TIME_STRING +
+          " TEXT, " +this.KEY_IP_ADDRESS + " TEXT)";
+    } ,
 
-    createCSQuery : "CREATE TABLE " + this.CS_DB + "("
-                + this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
-    this.KEY_TIME_STRING + " TEXT ," + this.KEY_PROCESS_ID + " TEXT," +this.KEY_DATA_CONTENTS +
-                " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))",
+    createCSQuery : function() {
+        return "CREATE TABLE " + this.CS_DB + "("
+        + this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
+        this.KEY_TIME_STRING + " TEXT ," + this.KEY_PROCESS_ID + " TEXT," +this.KEY_DATA_CONTENTS +
+        " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))";
+    },
 
-    createLoginDBQuery : "CREATE TABLE " + this.LOGIN_DB + "("
+    createLoginDBQuery : function() {
+        return "CREATE TABLE " + this.LOGIN_DB + "("
         + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," +
         this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
+    }
 };

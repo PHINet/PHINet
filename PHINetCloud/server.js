@@ -159,6 +159,7 @@ function ifNonexistentCreateDB(dbName, dbCreationQuery) {
   client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
 
     if (err) {
+
       var errWords = toString(err).split(" ");
       var naiveCheckPasses = true;
       // create table if naive check passes
@@ -177,21 +178,21 @@ function ifNonexistentCreateDB(dbName, dbCreationQuery) {
 
 function createPIT() {
 
-  ifNonexistentCreateDB(StringConst.PIT_DB, StringConst.createPITQuery);
+  ifNonexistentCreateDB(StringConst.PIT_DB, StringConst.createPITQuery());
 }
 
 function createCS() {
   
-  ifNonexistentCreateDB(StringConst.CS_DB, StringConst.createCSQuery);
+  ifNonexistentCreateDB(StringConst.CS_DB, StringConst.createCSQuery());
 }
 
 function createFIB() {
 
-  ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery);
+  ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery());
 }
 
 function createLoginDB() {
-    ifNonexistentCreateDB(StringConst.LOGIN_DB, StringConst.createLoginDBQuery);
+    ifNonexistentCreateDB(StringConst.LOGIN_DB, StringConst.createLoginDBQuery());
 }
 
 createFIB();

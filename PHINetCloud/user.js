@@ -1,5 +1,5 @@
 
-var StringConst = require('../string_const').StringConst;
+var StringConst = require('./string_const').StringConst;
 
 /**
  * Returns object that holds/manipulates User Data.
@@ -18,7 +18,7 @@ exports.User = function () {
          */
         user: function (userID, password, email, entityType) {
 
-            if (entityType !== StringConst.DOCTOR_ENTITY || entityType !== StringConst.PATIENT_ENTITY) {
+            if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
                 throw "!! Error in User constructor: entity is of invalid type \'" + entityType + "\' .";
             }
 

@@ -21,6 +21,8 @@ exports.LoginCredentials = function () {
             if(err) {
                 return console.error('could not connect to postgres', err);
             }
+
+            client.query("TRUNCATE LoginCredentials; DELETE FROM LoginCredentials")
         });
     })();
 
@@ -43,7 +45,7 @@ exports.LoginCredentials = function () {
                     return false;
                 } else {
 
-                    if (entityType !== StringConst.DOCTOR_ENTITY || entityType !== StringConst.PATIENT_ENTITY) {
+                    if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
                         console.log("!! Error in user insertion: entity is of invalid type \'" + entityType + "\' .");
 
                         return false;
@@ -134,7 +136,7 @@ exports.LoginCredentials = function () {
                     return false;
                 } else {
 
-                    if (entityType !== StringConst.DOCTOR_ENTITY || entityType !== StringConst.PATIENT_ENTITY) {
+                    if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
                         console.log("!! Error in user update: entity is of invalid type \'" + entityType + "\' .");
 
                         return false;
@@ -170,6 +172,7 @@ exports.LoginCredentials = function () {
          * @param delCallback testing callback: rowCount is returned and checked against expected value
          */
         deleteUser: function(userID, delCallback) {
+
             try {
                 if (userID === undefined || userID === null) {
                     return false;
