@@ -55,6 +55,13 @@ describe('LoginCredentials', function(){
                     expect(rowsTouched === 1).to.equal(true);
                 });
 
+            // test that redundant data is rejected
+            LoginDB.insertNewUser(user2.getUserID(), user2.getPassword(), user2.getEmail(),
+                user2.getEntityType(), function(rowsTouched){
+
+                    expect(rowsTouched === 0).to.equal(true);
+                });
+
             // delete before exiting tests
 
             LoginDB.deleteUser(user1.getUserID(), function(rowsTouched) {
