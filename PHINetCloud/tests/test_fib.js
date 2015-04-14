@@ -130,8 +130,19 @@ describe('FIB', function(){
                     // check that single entry was found and returned
                     expect(queryResult.getIpAddr() === ENTRY2_NEW_IP).to.equal(true);
 
-                    done(); // the invocation of done() tells testing framework that all tests are complete
                 });
+
+            // delete entries now that test is over
+            FIB.deleteFIBData(entry1.getUserID(), function (rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
+            });
+
+            FIB.deleteFIBData(entry2.getUserID(),  function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
+
+                done(); // the invocation of done() tells testing framework that all tests are complete
+
+            });
         })
     })
 });
@@ -185,6 +196,9 @@ describe('FIB', function(){
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test method against bad input
+            expect(FIB.getAllFIBData(null)).to.equal(false);
+
             // test good input
             FIB.insertFIBData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -215,9 +229,18 @@ describe('FIB', function(){
 
                 expect(entry1Found && entry2Found).to.equal(true);
 
-                done(); // the invocation of done() tells testing framework that all tests are complete
+           });
+
+            // delete entries now that test is over
+            FIB.deleteFIBData(entry1.getUserID(), function (rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
             });
 
+            FIB.deleteFIBData(entry2.getUserID(),  function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
+
+                done(); // the invocation of done() tells testing framework that all tests are complete
+            });
         })
     })
 });
@@ -237,6 +260,9 @@ describe('FIB', function(){
             FIB.deleteFIBData(entry2.getUserID(),  function(rowsTouched) {
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
+
+            // test method against bad input
+            expect(FIB.getSpecificFIBData(null, null)).to.equal(false);
 
             // test good input
             FIB.insertFIBData(entry1, function(rowsTouched) {
@@ -262,6 +288,16 @@ describe('FIB', function(){
 
                 expect(queryResults.getUserID() === entry2.getUserID()).to.equal(true);
                 expect(queryResults.getIpAddr() === entry2.getIpAddr()).to.equal(true);
+
+            });
+
+            // delete entries now that test is over
+            FIB.deleteFIBData(entry1.getUserID(), function (rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
+            });
+
+            FIB.deleteFIBData(entry2.getUserID(),  function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true); // verify that 1 row was deleted
 
                 done(); // the invocation of done() tells testing framework that all tests are complete
             });

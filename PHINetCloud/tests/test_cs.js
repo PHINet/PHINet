@@ -138,8 +138,17 @@ describe('ContentStore', function(){
 
                     // check that single entry was found and returned
                     expect(queryResult.getDataFloat() === ENTRY2_NEW_DATA).to.equal(true);
+            });
 
-                    done(); // the invocation of done() tells testing framework that all tests are complete
+            // finally, delete entries now that test is over
+            ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
+            });
+
+            ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
+
+                done(); // the invocation of done() tells testing framework that all tests are complete
             });
         })
     })
@@ -201,6 +210,9 @@ describe('ContentStore', function(){
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test method against bad input
+            expect(ContentStore.getGeneralCSData(null, null)).to.equal(false);
+
             // insert good data
             ContentStore.insertCSData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -216,12 +228,13 @@ describe('ContentStore', function(){
 
             ContentStore.getGeneralCSData(entry2.getUserID(), function(rowsTouched, queryResult) {
 
+                console.log("rows touched: " + rowsTouched);
+
                 // verify that both entries from serverTestUser2 were found
                 expect(rowsTouched === 2).to.equal(true);
 
                 // verify that both entries from serverTestUser2 were returned
                 expect(queryResult.length === 2).to.equal(true);
-
 
                 var entry2Found = false;
                 var entry3Found = false;
@@ -237,6 +250,15 @@ describe('ContentStore', function(){
 
                 // check that both entries were found and returned
                 expect(entry2Found && entry3Found).to.equal(true);
+            });
+
+            // finally, delete entries now that test is over
+            ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
+            });
+
+            ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
 
                 done(); // the invocation of done() tells testing framework that all tests are complete
             });
@@ -264,6 +286,9 @@ describe('ContentStore', function(){
                 expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test method against bad data
+            expect(ContentStore.getSpecificCSData(null, null, null)).to.equal(false);
+
             // insert good data
             ContentStore.insertCSData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -286,8 +311,17 @@ describe('ContentStore', function(){
 
                     // check that single entry was found and returned
                     expect(queryResult.getSensorID() === entry2.getSensorID()).to.equal(true);
+           });
 
-                    done(); // the invocation of done() tells testing framework that all tests are complete
+            // finally, delete entries now that test is over
+            ContentStore.deleteCSData(entry1.getUserID(), entry1.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
+            });
+
+            ContentStore.deleteCSData(entry2.getUserID(), entry2.getTimeString(), function(rowsTouched) {
+                expect(rowsTouched === 1).to.equal(true);
+
+                done(); // the invocation of done() tells testing framework that all tests are complete
             });
         })
     })

@@ -139,6 +139,18 @@ describe('PIT', function(){
                     // check that single entry was found and returned
                     expect(queryResult.getUserID() === entry2.getUserID()).to.equal(true);
 
+                });
+
+            // delete entries now that test is over
+            PIT.deletePITData(entry1.getUserID(), entry1.getTimeString(), entry1.getIpAddr(),
+                function (rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
+                });
+
+            PIT.deletePITData(entry2.getUserID(), entry2.getTimeString(), entry2.getIpAddr(),
+                function(rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
+
                     done(); // the invocation of done() tells testing framework that all tests are complete
                 });
         })
@@ -199,6 +211,9 @@ describe('PIT', function(){
                     expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test method against bad data
+            expect(PIT.getGeneralPITData(null, null, null)).to.equal(false);
+
             // insert good data
             PIT.insertPITData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -227,9 +242,20 @@ describe('PIT', function(){
 
                 // check that both entries were found and returned
                 expect(entry2Found).to.equal(true);
-
-                done(); // the invocation of done() tells testing framework that all tests are complete
             });
+
+            // delete entries now that test is over
+            PIT.deletePITData(entry1.getUserID(), entry1.getTimeString(), entry1.getIpAddr(),
+                function (rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
+                });
+
+            PIT.deletePITData(entry2.getUserID(), entry2.getTimeString(), entry2.getIpAddr(),
+                function(rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
+
+                    done(); // the invocation of done() tells testing framework that all tests are complete
+                });
         })
     })
 });
@@ -252,6 +278,9 @@ describe('PIT', function(){
                     expect(rowsTouched <= 1).to.equal(true); // verify that 1 or fewer rows were deleted
             });
 
+            // test method against bad data
+            expect(PIT.getSpecificPITData(null, null)).to.equal(false);
+
             // insert good data
             PIT.insertPITData(entry1, function(rowsTouched) {
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was modified
@@ -270,6 +299,18 @@ describe('PIT', function(){
 
                     // check that single entry was found and returned
                     expect(queryResult.getSensorID() === entry2.getSensorID()).to.equal(true);
+
+                });
+
+            // delete entries now that test is over
+            PIT.deletePITData(entry1.getUserID(), entry1.getTimeString(), entry1.getIpAddr(),
+                function (rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
+                });
+
+            PIT.deletePITData(entry2.getUserID(), entry2.getTimeString(), entry2.getIpAddr(),
+                function(rowsTouched) {
+                    expect(rowsTouched === 1).to.equal(true); // verify that 1 or fewer rows were deleted
 
                     done(); // the invocation of done() tells testing framework that all tests are complete
                 });

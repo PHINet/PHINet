@@ -30,19 +30,16 @@ exports.DataPacket = function () {
          * @param freshnessPeriod time until data "expires" (see NDN specification)
          * @param signatureType type of signature used on packet (see NDN specification)
          */
-        DataPacket: function (userDataID, sensorID, timestring, processID, content, 
+        DataPacket: function (userDataID, sensorID, timeString, processID, content, 
                     contentType, freshnessPeriod, signatureType) {
             
              // if current time requested, provide it
-            if (timestring === StringConst.CURRENT_TIME) {
-                console.log("if");
-                timestring = Utils.getCurrentTime();
-            } else {
-                console.log("else");
+            if (timeString === StringConst.CURRENT_TIME) {
+                timeString = Utils.getCurrentTime();
             }
 
             this.nameField = NameField.NameField();
-            this.nameField.NameField(userDataID, sensorID, timestring, processID);
+            this.nameField.NameField(userDataID, sensorID, timeString, processID);
             this.content = content;
             this.contentType = contentType;
             this.freshnessPeriod= freshnessPeriod;

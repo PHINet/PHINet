@@ -22,11 +22,11 @@ exports.NameField = function () {
          * @param timeString specifies when packet was created
          * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
          */
-        NameField: function (userDataID, sensorID, timestring, processID) {
+        NameField: function (userDataID, sensorID, timeString, processID) {
             // NOTE: method assumes userID and sensorID are device specific
                     // meaning, no specification is needed; just get from memory
 
-            this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timestring + "/" + processID;
+            this.name = "/ndn/" + userDataID + "/" + sensorID + "/" + timeString + "/" + processID;
         },
 
         /**

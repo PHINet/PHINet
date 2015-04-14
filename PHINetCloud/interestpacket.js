@@ -21,24 +21,22 @@ exports.InterestPacket = function () {
         LIFETIME_CONST : 100,
 
        /**
+        * InterestPacket constructor.
         *
         * @param userDataID specifies data producer
         * @param sensorID specifies health-sensor type (e.g., heart sensor)
         * @param timeString specifies when packet was created
         * @param processID specifies what process should be invoked upon reception (e.g., store in cache)
-        * @param ipAddr specifies IP of node that sent InterestPacket (so that reply is possible)
-        *
-        *        // TODO - rework ipADDR - potentially exclude; non-useful information
         */
-        InterestPacket: function (userDataID, sensorID, timestring, processID) {
+        InterestPacket: function (userDataID, sensorID, timeString, processID) {
 
              // if current time requested, provide it
-            if (timestring === StringConst.CURRENT_TIME) {
-                timestring = Utils.getCurrentTime();
+            if (timeString === StringConst.CURRENT_TIME) {
+                timeString = Utils.getCurrentTime();
             }
 
             this.nameField = NameField.NameField();
-            this.nameField.NameField(userDataID, sensorID, timestring, processID);
+            this.nameField.NameField(userDataID, sensorID, timeString, processID);
             this.NON_NEG_INT_CONST = 0; // TODO - rework
         },
 

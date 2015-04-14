@@ -62,4 +62,4 @@ exports.StringConst = {
     this.KEY_TIME_STRING + " TEXT ," + this.KEY_PROCESS_ID + " TEXT," +this.KEY_DATA_CONTENTS +
                 " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))"
 
-}
+};

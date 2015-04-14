@@ -3,14 +3,14 @@
  * segment of execution for this web application
  **/
 
-//var StringConst = require('./string_const').StringConst;
+var StringConst = require('./string_const').StringConst;
 var express = require('express')
-//var udp_comm = require('./udp_comm').UDPComm();
+var udp_comm = require('./udp_comm').UDPComm();
 var http = require('http');
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
-//udp_comm.initializeListener();
+udp_comm.initializeListener();
 
 var app = express()
 app.use(bodyParser.json());
@@ -23,40 +23,44 @@ app.use(express.static(__dirname));
 
 app.get('/', function (req, res) {
   res.sendFile('/public/templates/index.html', { root: __dirname })
-})
+});
 
 app.get('/login', function (req, res) {
   res.sendFile('/public/templates/login.html', { root: __dirname })
-})
+});
 
 app.get('/signup', function (req, res) {
   res.sendFile('/public/templates/signup.html', { root: __dirname })
-})
+});
 
 app.get('/document', function (req, res) {
   res.sendFile('/public/templates/document.html', { root: __dirname })
-})
+});
 
 app.get('/contact', function (req, res) {
   res.sendFile('/public/templates/contact.html', { root: __dirname })
-})
+});
 
 app.get('/profile', function (req, res) {
   res.sendFile('/public/templates/profile.html', { root: __dirname })
-})
-
-// ---- Code Tests UDP Functionality ---
-//var DataPacketClass = require('./datapacket');
-//var InterestPacketClass = require('./interestpacket');
-app.get('/test', function (req, res) {
-  res.sendFile('/public/templates/test.html', { root: __dirname })
-})
-
-app.get('*', function(req, res){
-  res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
 });
 
-/** method allows user to test networking functionality **/
+app.get('*', function(req, res){
+    res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
+});
+
+app.get('/test', function (req, res) {
+    res.sendFile('/public/templates/test.html', { root: __dirname })
+});
+
+// ---- Code Tests UDP Functionality ---
+
+// TODO - implement the testing portion of site
+
+//var DataPacketClass = require('./datapacket');
+//var InterestPacketClass = require('./interestpacket');
+
+// method allows user to test networking functionality
 /*app.post('/submitIP', function(req, res) {
 
   if (req.body.user.ipAddrPing !== undefined) {
@@ -100,7 +104,7 @@ app.get('*', function(req, res){
     udp_comm.sendMessage(interestPacket.createINTEREST(), req.body.user.ipAddr);
   }
 
-});
+});*/
 // ---- Code Tests UDP Functionality ---
 
 // --- Code Handles DB Creation ---
@@ -110,16 +114,8 @@ var pg = require('pg');
 var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
 client.connect(function(err) {
   if(err) {
-    return console.error('1could not connect to postgres', err);
-  } 
-  client.query('SELECT NOW() AS "theTime"', function(err, result) {
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log("the time: " + result.rows[0].theTime);
-    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-    client.end();
-  });
+    return console.error('could not connect to postgres', err);
+  }
 });
 
 /**
@@ -127,14 +123,14 @@ client.connect(function(err) {
  *
  * @param dbName suspect table name
  * @param dbCreationQuery creation query to be invoked if table doesn't exist
- *//*
+ */
 function ifNonexistentCreateDB(dbName, dbCreationQuery) {
   client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
 
     if (err) {
       var errWords = toString(err).split(" ");
       var naiveCheckPasses = true;
-      // create table
+      // create table if naive check passes
         
       naiveCheckPasses &= errWords.indexOf("does") === -1;
       naiveCheckPasses &= errWords.indexOf("not") === -1;
@@ -165,7 +161,7 @@ function createFIB() {
 
 createFIB();
 createCS();
-createPIT();*/
+createPIT();
 
 // --- Code Handles DB Creation ---
 

@@ -148,29 +148,34 @@ exports.FIB =  function () {
 		getAllFIBData: function (getAllCallback) {
 
             try {
-                client.query( "SELECT * FROM ForwardingInformationBase", function(err, result) {
 
-                    if (err) {
-                        getAllCallback(0);  // error occurred - 0 rows modified; return
+                if (getAllCallback == null || getAllCallback == undefined) {
+                    return false;
+                } else {
+                    client.query("SELECT * FROM ForwardingInformationBase", function (err, result) {
 
-                    } else {
+                        if (err) {
+                            getAllCallback(0);  // error occurred - 0 rows modified; return
 
-                        var queryResults = [];
+                        } else {
 
-                        for (var i = 0; i < result.rows.length; i++) {
-                            var queriedRow = DBDataClass.DATA();
-                            queriedRow.setUserID(result.rows[i]._userid);
-                            queriedRow.setTimeString(result.rows[i].timestring);
-                            queriedRow.setIpAddr(result.rows[i].ipaddress);
+                            var queryResults = [];
 
-                            queryResults.push(queriedRow);
+                            for (var i = 0; i < result.rows.length; i++) {
+                                var queriedRow = DBDataClass.DATA();
+                                queriedRow.setUserID(result.rows[i]._userid);
+                                queriedRow.setTimeString(result.rows[i].timestring);
+                                queriedRow.setIpAddr(result.rows[i].ipaddress);
+
+                                queryResults.push(queriedRow);
+                            }
+
+                            getAllCallback(result.rowCount, queryResults);
                         }
 
-                        getAllCallback(result.rowCount, queryResults);
-                    }
-
-                    return allFIBEntries;
-                });
+                        return true;
+                    });
+                }
             } catch (err) {
                 console.log("!!Error in ForwardingInformationBase.getAllFIBData(): " + err);
                 return false;

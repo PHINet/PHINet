@@ -1,13 +1,13 @@
 /** 
  * File contains code for the data-object  
  * used to handle patient information
- **/
+ */
 
 var StringConst = require('./string_const').StringConst;
 var Utils = require('./utils').Utils;
 
 /**
- *
+ * Returns object that holds/manipulates Packet/DB Data.
  */
 exports.DATA = function () { 
 

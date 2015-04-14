@@ -2,11 +2,11 @@
  * File contains code for data analytics
  */
 
-
 /**
- *
+ * Returns data analytics module.
  */
 exports.analytics = function() {
-	// NOTE: contents will be returned when 
-	// other modules "require" this 
-}
+
+    // TODO -
+
+};
