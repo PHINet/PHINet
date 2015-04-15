@@ -139,15 +139,24 @@ app.get('/profile', function (req, res) {
         if (err) {
             console.log("Error serving profile.html: " + err);
         } else {
-            var renderedHtml;
 
+            // verify that user exists before displaying profile page
             if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
-            } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
+                var renderedHtml = ejs.render(content, {user: req.cookies.user});
 
-            res.send(renderedHtml);
+                res.send(renderedHtml);
+            } else {
+
+                // user doesn't exist, direct to main page
+                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                    if (err) {
+                        console.log("Error serving profile.html: " + err);
+                    } else {
+
+                        res.send( ejs.render(content, {user: ""}));
+                    }
+                });
+            }
         }
     });
 });

@@ -1,83 +1,104 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-
 <head>
-  <title>PHINet | Profile</title>
-  <meta name="description" content="website description" />
-  <meta name="keywords" content="website keywords, website keywords" />
-  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
-  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" type="text/css" href="public/static/bootstrap/css/style.css" />
+    <title>PHINet | Profile</title>
+    <meta content="website description" name="description">
+    <meta content="website keywords, website keywords" name="keywords">
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
+    type='text/css'>
+    <link href="public/static/bootstrap/css/style.css" rel="stylesheet" type=
+    "text/css">
 </head>
 
 <body>
-  <div id="main">
-    <div id="header">
-      <div id="logo">
-        <h1>PHINet</h1>
+    <div id="main">
+        <div id="header">
+            <div id="logo">
+                <h1>PHINet</h1>
+            </div>
 
-      </div>
-       <div class="loginArea">
-           <% if(user) { %>
-             <%= user %> |   <a href="/logout">logout</a>
-           <% } else { %>
+            <div class="loginArea">
+                <% if(user) { %><%= user %>| <a href="/logout">logout</a>
+                <% } else { %> <a href="/login">login</a> | <a href=
+                "/signup">signup</a> <% } %>
+            </div>
 
-          <a href="/login">login</a> |
-            <a href="/signup">signup</a>
+            <div id="menubar">
+                <ul id="menu">
+                    <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
 
-        <% } %>
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    <li>
+                        <a href="/document">Documentation</a>
+                    </li>
+
+                    <li>
+                        <a href="/test">Test</a>
+                    </li><% if(user) { %>
+
+                    <li class="current">
+                        <a href="/profile">Profile</a>
+                    </li><% } %>
+
+                    <li>
+                        <a href="/contact">Contact Us</a>
+                    </li><!--  <li><a href="/profile">Profile</a></li>-->
+                </ul>
+            </div>
         </div>
-      <div id="menubar">
-        <ul id="menu">
-          <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
-          <li><a href="/">Home</a></li>
-          <li><a href="/document">Documentation</a></li>
-           <li><a href="/test">Test</a></li>
-          <li><a href="/contact">Contact Us</a></li>
-        <!--  <li><a href="/profile">Profile</a></li>-->
-        </ul>
-      </div>
+
+        <div id="site_content">
+            <div id="sidebar_container"></div>
+
+            <div id="content">
+                <!-- insert the page content here -->
+
+                <h1>Profile</h1>
+
+                <p>&nbsp;</p>
+
+                <table id="content">
+                    <tr>
+                        <td colspan="2">
+                            <p style="text-align: center"><strong>Personal
+                            information</strong></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <br>
+
+                            <p>First name:</p>
+
+                            <p>Last name:</p>
+
+                            <p>Email:</p>
+
+                            <p>Address:</p>
+
+                            <p>User type:</p>
+                        </td>
+
+                        <td>(Statistic Picture)</td>
+                    </tr>
+                </table>
+
+                <p>&nbsp;</p>
+            </div>
+        </div>
+
+        <div id="footer">
+            <p id="footer_time" style="text-align: center"></p><script>
+    document.getElementById("footer_time").innerHTML = Date();
+            </script>
+
+            <p></p>
+        </div>
     </div>
-    <div id="site_content">
-      <div id="sidebar_container"></div>
-      <div id="content">
-        <!-- insert the page content here -->
-        <h1>Profile</h1>
-        <p>&nbsp;</p>
-        <table id="content">
-
-            	<tr>
-            		<td colspan="2">
-					<p align="center"><strong>Personal information</strong></p>
-            		</td>
-                 </tr>
-                 <tr>
-                 <td><br>
-               	   <p>First name:   </p>
-				   <p>Last name:    </p>
-				   <p>Email:     </p>
-				   <p>Address:  </p>
-				   <p>User type:   </p>
-				</td>
-                <td>
-                (Statistic Picture)
-                </td>
-   				</tr>
-
-		</table>
-        <p>&nbsp;</p>
-
-        
-      </div>
-    </div>
-    <div id="footer">
-    <p id="footer_time" align="center" ></p>
-			<script>
-				document.getElementById("footer_time").innerHTML = Date();
-			</script>
-
-      <p></p>
-    </div>
-  </div>
 </body>
 </html>

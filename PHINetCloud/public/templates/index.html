@@ -1,81 +1,102 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-
 <head>
-  <title>PHINet | Main</title>
-  <meta name="description" content="website description" />
-  <meta name="keywords" content="website keywords, website keywords" />
-  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
-  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" type="text/css" href="public/static/bootstrap/css/style.css" />
+    <title>PHINet | Main</title>
+    <meta content="website description" name="description">
+    <meta content="website keywords, website keywords" name="keywords">
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
+    type='text/css'>
+    <link href="public/static/bootstrap/css/style.css" rel="stylesheet" type=
+    "text/css">
 </head>
 
 <body>
-  <div id="main">
-    <div id="header">
-      <div id="logo">
-        <h1>PHINet</h1>
-        <div class="slogan"></div>
-      </div>
-       <div class="loginArea">
-           <% if(user) { %>
-             <%= user %> |   <a href="/logout">logout</a>
-           <% } else { %>
+    <div id="main">
+        <div id="header">
+            <div id="logo">
+                <h1>PHINet</h1>
 
-          <a href="/login">login</a> |
-            <a href="/signup">signup</a>
+                <div class="slogan"></div>
+            </div>
 
-        <% } %>
+            <div class="loginArea">
+                <% if(user) { %><%= user %>| <a href="/logout">logout</a>
+                <% } else { %> <a href="/login">login</a> | <a href=
+                "/signup">signup</a> <% } %>
+            </div>
+
+            <div id="menubar">
+                <ul id="menu">
+                    <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
+
+                    <li class="current">
+                        <a href="/">Home</a>
+                    </li>
+
+                    <li>
+                        <a href="/document">Documentation</a>
+                    </li>
+
+                    <li>
+                        <a href="/test">Test</a>
+                    </li><% if(user) { %>
+
+                    <li>
+                        <a href="/profile">Profile</a>
+                    </li><% } %>
+
+                    <li>
+                        <a href="/contact">Contact Us</a>
+                    </li><!--  <li><a href="/profile">Profile</a></li>-->
+                </ul>
+            </div>
         </div>
-      <div id="menubar">
-        <ul id="menu">
-          <!-- put class="current" in the li tag for the selected page - to highlight which page you're on -->
-          <li class="current"><a href="/">Home</a></li>
-          <li><a href="/document">Documentation</a></li>
-           <li><a href="/test">Test</a></li>
-          <li><a href="/contact">Contact Us</a></li>
-   <!--  <li><a href="/profile">Profile</a></li>-->
-        </ul>
-      </div>
+
+        <div id="site_content">
+            <div id="content">
+                <!-- insert the page content here -->
+
+                <h2>Welcome! This is a testbed for an IoT-NDN-WBAN
+                project.</h2>
+                <hr>
+                <br>
+
+                <p>Our source code will be released soon. Look for other
+                content in the near future, too.</p>
+
+                <h2>Abstract</h2>
+                <hr>
+                <br>
+
+                <p>Named Data Networking, a future networking paradigm, allows
+                for features such as the naming of content for identification
+                and routing as well as router-based caching for ubiquitous
+                storage. These features are well suited for an Internet of
+                Things (IoT) which can network identifiable and addressable
+                electronic devices such as sensors that, in an IoT, are often
+                configured in a Wireless Body Area Network. To bridge the gap
+                between research approaches in the area of both Health-IoT and
+                content centric networking, this paper presents the first
+                content centric networking testbed framework called PHINet for
+                experimentation with Health-IoT. PHINet aims to fulfill the
+                following goals: ease of use, seamless scaling, support for
+                testing, development and integration of health services and
+                sensors, support for experimentation with live traffic
+                underneath, and integration of the cloud into Health- IoT.
+                Architecture, design, and implementation of PHINet is
+                presented. Furthermore, through several use cases, we
+                demonstrate the applicability of the proposed work.</p>
+            </div>
+        </div>
+
+        <div id="footer">
+            <p id="footer_time" style="text-align: center"></p><script>
+    document.getElementById("footer_time").innerHTML = Date();
+            </script>
+
+            <p></p>
+        </div>
     </div>
-    <div id="site_content">
-      <div id="content">
-        <!-- insert the page content here -->
-        <h2>Welcome! This is a testbed for an IoT-NDN-WBAN project.</h2>
-        <hr>
-        <br>
-		<p>Our source code will be released soon. Look for other content in the near future, too.</p>
-        
-        <h2>Abstract</h2>
-        <hr>
-        <br>
-        <p>Named Data Networking, a future networking paradigm, allows
-for features such as the naming of content for identification and
-routing as well as router-based caching for ubiquitous storage.
-These features are well suited for an Internet of Things (IoT)
-which can network identifiable and addressable electronic devices
-such as sensors that, in an IoT, are often configured in a
-Wireless Body Area Network. To bridge the gap between research
-approaches in the area of both Health-IoT and content centric
-networking, this paper presents the first content centric networking
-testbed framework called PHINet for experimentation with
-Health-IoT. PHINet aims to fulfill the following goals: ease of use,
-seamless scaling, support for testing, development and integration
-of health services and sensors, support for experimentation with
-live traffic underneath, and integration of the cloud into Health-
-IoT. Architecture, design, and implementation of PHINet is presented.
-Furthermore, through several use cases, we demonstrate
-the applicability of the proposed work.</p>
-                
-      </div>
-    </div>
-    <div id="footer">
-     <p id="footer_time" align="center" ></p>
-			<script>
-				document.getElementById("footer_time").innerHTML = Date();
-			</script>
-      <p></p>
-    </div>
-  </div>
 </body>
 </html>
