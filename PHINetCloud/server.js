@@ -5,9 +5,12 @@
 
 var request = require('request'); // handles POST
 var StringConst = require('./string_const').StringConst;
-var express = require('express')
+var cookieParser = require('cookie-parser');
+var express = require('express');
 var udp_comm = require('./udp_comm').UDPComm();
 var http = require('http');
+var ejs = require('ejs');
+var fs = require('fs');
 var LoginDB = require('./usercredentials.js').LoginCredentials();
 
 var bodyParser = require('body-parser'); // allows easy form submissions
@@ -16,6 +19,7 @@ udp_comm.initializeListener();
 
 var app = express()
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -24,89 +28,226 @@ app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
 app.get('/', function (req, res) {
-  res.sendFile('/public/templates/index.html', { root: __dirname })
+
+    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving index.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/login', function (req, res) {
-  res.sendFile('/public/templates/login.html', { root: __dirname })
+
+    fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving login.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+            } else {
+                renderedHtml = ejs.render(content, {user: "", error:""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/signup', function (req, res) {
-  res.sendFile('/public/templates/signup.html', { root: __dirname })
+    fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving signup.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+            } else {
+                renderedHtml = ejs.render(content, {user: "", error:""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
+});
+
+app.get('/logout', function(req, res) {
+    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving index.html: " + err);
+        } else {
+
+            res.clearCookie('user');
+
+            var renderedHtml = ejs.render(content, {user: "", error:""});
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/document', function (req, res) {
-  res.sendFile('/public/templates/document.html', { root: __dirname })
+    fs.readFile(__dirname + '/public/templates/document.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving document.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/contact', function (req, res) {
-  res.sendFile('/public/templates/contact.html', { root: __dirname })
+    fs.readFile(__dirname + '/public/templates/contact.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving contact.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/profile', function (req, res) {
-  res.sendFile('/public/templates/profile.html', { root: __dirname })
+    fs.readFile(__dirname + '/public/templates/profile.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving profile.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('/test', function (req, res) {
-    res.sendFile('/public/templates/test.html', { root: __dirname })
+    fs.readFile(__dirname + '/public/templates/test.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving test.html: " + err);
+        } else {
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.get('*', function(req, res){
-    res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
+
+    fs.readFile(__dirname + '/public/templates/404.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving 404.html: " + err);
+        } else {
+
+            var renderedHtml;
+
+            if (req.cookies && req.cookies.user) {
+                renderedHtml = ejs.render(content, {user: req.cookies.user});
+            } else {
+                renderedHtml = ejs.render(content, {user: ""});
+            }
+
+            res.send(renderedHtml);
+        }
+    });
 });
 
 app.post('/loginAction', function(req, res) {
 
-    // NOTE: temporary redirect to invalid page
-    res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
+     LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
 
-   /* LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
+         var userAlreadyExists = rowsTouched === 1;
+         var passwordMatched;
+
+         if (queryResults === null) {
+             passwordMatched = false; // user doesn't exist; passwords cannot match
+         } else {
+             passwordMatched = queryResults.getPassword() === req.body.user_password;
+         }
 
         // checks to see if user already exists and password matches
-        if (rowsTouched === 1 && queryResults.getPassword() === req.body.user_password) {
+        if (userAlreadyExists && passwordMatched) {
 
             // notify user of successful login
-            request.post(
-                'http://ndn-healthnet.elasticbeanstalk.com/login',
-                { form: { key: 'value' } },
-                function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        console.log(body)
-                    }
-                }
-            );
+            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving index.html: " + err);
+                } else {
 
-            // TODO - notify user of successful login
+                    // TODO - improve on cookie use
+                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+
+                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                    res.send(renderedHtml);
+                }
+            });
+
         } else {
-            // TODO - notify user of unsuccessful login
 
             // notify user of unsuccessful login
-            request.post(
-                'http://ndn-healthnet.elasticbeanstalk.com/login',
-                { form: { key: 'value' } },
-                function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        console.log(body)
+            fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving login.html: " + err);
+                } else {
+
+                    var renderedHtml;
+                    if (userAlreadyExists && !passwordMatched) {
+                         renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+                    } else {
+
+                        // only remaining option: user does not exist
+                        renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
                     }
+
+                    res.send(renderedHtml);
                 }
-            );
+            });
         }
-
     });
-    */
-    // TODO - at end, redirect user
-
 });
 
 app.post('/registerAction', function(req, res) {
 
-    // NOTE: temporary redirect to invalid page
-    res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
-
     // check that passwords match
-   /* if (req.body.user_password[0] === req.body.user_password[1]) {
-
-        // attempt to submit user
+    if (req.body.user_password[0] === req.body.user_password[1]) {
 
         // TODO - perform input validation on email, password, name, and entity
 
@@ -119,56 +260,51 @@ app.post('/registerAction', function(req, res) {
             userType = StringConst.DOCTOR_ENTITY;
         }
 
-        LoginDB.insertNewUser(req.body.user_name, req.body.user_password, req.body.user_email, userType,
+        LoginDB.insertNewUser(req.body.user_name, req.body.user_password[0], req.body.user_email, userType,
 
             function(rowsTouched) {
 
                 if (rowsTouched === 1) {
-                    // TODO - notify user of successful register
 
                     // notify user of successful register
-                    request.post(
-                        'http://ndn-healthnet.elasticbeanstalk.com/signup',
-                        { form: { key: 'value' } },
-                        function (error, response, body) {
-                            if (!error && response.statusCode == 200) {
-                                console.log(body)
-                            }
+                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                        if (err) {
+                            console.log("Error serving index.html: " + err);
+                        } else {
+
+                            // TODO - improve on cookie use
+                            res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+
+                            var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                            res.send(renderedHtml);
                         }
-                    );
+                    })
                 } else {
-                    // TODO - notify user of bad input
 
                     // notify user of bad input
-                    request.post(
-                        'http://ndn-healthnet.elasticbeanstalk.com/signup',
-                        { form: { key: 'value' } },
-                        function (error, response, body) {
-                            if (!error && response.statusCode == 200) {
-                                console.log(body)
-                            }
+                    fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                        if (err) {
+                            console.log("Error serving signup.html: " + err);
+                        } else {
+                            var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
+                            res.send(renderedHtml);
                         }
-                    );
+                    })
                 }
         });
 
     } else {
-        // TODO - notify user of password mismatch
 
         // notify user of password mismatch
-        request.post(
-            'http://ndn-healthnet.elasticbeanstalk.com/signup',
-            { form: { key: 'value' } },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(body)
-                }
+        fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving signup.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
+                res.send(renderedHtml);
             }
-        );
-    }*/
-
-    // TODO - at end, redirect user
-
+        })
+    }
 });
 
 app.post('/contactAction', function(req, res) {

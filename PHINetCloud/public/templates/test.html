@@ -18,8 +18,14 @@
         <div class="slogan"></div>
       </div>
        <div class="loginArea">
+           <% if(user) { %>
+             <%= user %> |   <a href="/logout">logout</a>
+            <% } else { %>
+
           <a href="/login">login</a> |
             <a href="/signup">signup</a>
+
+        <% } %>
         </div>
       <div id="menubar">
         <ul id="menu">

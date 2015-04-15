@@ -321,6 +321,11 @@ ul#menu li a:hover
   margin: 0;
   font: normal 140% 'Roboto', sans-serif;}
  
+.error {
+  color:orange;
+  font-size: 200%;
+}
+
 table
 { margin: 10px 0 30px 0;}
 

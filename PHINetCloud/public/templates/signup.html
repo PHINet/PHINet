@@ -18,8 +18,14 @@
 
       </div>
        <div class="loginArea">
+          <% if(user) { %>
+             <%= user %> |   <a href="/logout">logout</a>
+        <% } else { %>
+
           <a href="/login">login</a> |
             <a href="/signup">signup</a>
+
+        <% } %>
         </div>
       <div id="menubar">
         <ul id="menu">
@@ -56,6 +62,11 @@
             <p style="padding-top: 15px"><span>&nbsp;</span><input class="submit" type="submit" name="contact_submitted" value="submit" /></p>
           </div>
         </form>
+
+<% if(error) { %>
+            <p class="error"> <%= error %>  </p>
+            <% } %>
+
         <p>&nbsp;</p>
         <p>&nbsp;</p>
 
