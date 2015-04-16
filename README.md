@@ -16,7 +16,17 @@ Our client application will soon be available for download on android devices.
 
 # Contributing
 
-All contributions are welcome. Soon a TODO list and submission guidelines will be posted.
+All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas; it contains primary objectives that aren't assigned to our team of developers.
+
+WEB
+- improve website UI 
+- integrate ndn library (https://github.com/named-data/ndn-js)
+- handle client-server synchronization
+
+CLIENT
+- integrate ndn library (https://github.com/named-data/jndn)
+- issue client-server synchronization
+- allow sensor-entry and collection interval specifications
 
 # Support 
 
