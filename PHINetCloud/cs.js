@@ -8,10 +8,16 @@ var StringConst = require('./string_const').StringConst;
 var postgresDB = require('pg'); // postgres database module
 var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 
+var dbName = StringConst.CS_DB;
+
 /**
  * Returns object that allows manipulation of ContentStore.
+ *
+ * @param tableName specifies whether table or test-table will be used
  */
-exports.CS = function () {
+exports.CS = function (tableName) {
+
+    dbName = tableName;
 
     /**
      * Function invocation connects to DB
@@ -40,7 +46,7 @@ exports.CS = function () {
                 if (userID === undefined || userID === null || timeString == undefined || timeString == null) {
                     return false;
                 } else {
-                    client.query( "DELETE FROM ContentStore WHERE "
+                    client.query( "DELETE FROM " + dbName + " WHERE "
                         + StringConst.KEY_USER_ID + " = \'" +  userID + "\' AND " +
                         StringConst.KEY_TIME_STRING + " = \'" + timeString + "\'",
 
@@ -78,7 +84,7 @@ exports.CS = function () {
                     return false;
                 } else {
 
-                    client.query( "UPDATE ContentStore SET " + StringConst.KEY_PROCESS_ID + " = \'"
+                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_PROCESS_ID + " = \'"
                         + dbDataObject.getProcessID() + "\', " + StringConst.KEY_DATA_CONTENTS + " = \'"
                         + dbDataObject.getDataFloat() + "\', " + StringConst.KEY_SENSOR_ID + " = \'"
                         + dbDataObject.getSensorID() + "\' WHERE " + StringConst.KEY_USER_ID + " = \'" + dbDataObject.getUserID()
@@ -117,7 +123,7 @@ exports.CS = function () {
                     return false;
                 } else {
 
-                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
                         function(err, result) {
 
                             if (err) {
@@ -171,7 +177,7 @@ exports.CS = function () {
                     return false;
                 } else {
 
-                    client.query( "SELECT * FROM ContentStore WHERE " + StringConst.KEY_USER_ID + " = \'" +
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'" +
                         userID + "\' AND " + StringConst.KEY_TIME_STRING + "= \'" + timeString + "\'", function(err, result) {
 
                         if (err) {
@@ -216,7 +222,7 @@ exports.CS = function () {
                    return false;
                } else {
 
-                   client.query("INSERT INTO ContentStore(" + StringConst.KEY_USER_ID
+                   client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID
                        + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + ","
                        + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
                        +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),

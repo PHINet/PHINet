@@ -33,13 +33,20 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: "pg://db_admin:8n0i2m0d6a7@ndnhealthdb.cunk36nc1e3u.us-west-2.rds.amazonaws.com:5432/ndnhealthnetdb",
+    DB_CONNECTION_STRING: "ASK-FOR-PERMISSION",
 
     // db variables
     CS_DB : "ContentStore",
+    CS_TEST_DB: "TestContentStore",
+
     PIT_DB : "PendingInterestTable",
+    PIT_TEST_DB: "TestPendingInterestTable",
+
     FIB_DB : "ForwardingInformationBase",
+    FIB_TEST_DB: "TestForwardingInformationBase",
+
     LOGIN_DB: "LoginCredentials",
+    LOGIN_TEST_DB: "TestLoginCredentials",
 
     KEY_USER_ID : "_userID",
     KEY_SENSOR_ID : "sensorID",
@@ -54,29 +61,53 @@ exports.StringConst = {
     DOCTOR_ENTITY: "DOCTOR", // denotes doctor status in LOGIN_DB
     PATIENT_ENTITY: "PATIENT", // denotes patient status in LOGIN_DB
 
-    createPITQuery : function () {
-      return "CREATE TABLE " + this.PIT_DB + "("
+    /**
+     * Creates and returns string that generates table and test-table.
+     *
+     * @param dbName allows code resuse when creating (identical) table and test-table
+     * @returns {string} postgres query that creates table
+     */
+    createPITQuery : function (dbName) {
+      return "CREATE TABLE " + dbName + "("
           +this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
           this.KEY_TIME_STRING + " TEXT," +this.KEY_PROCESS_ID + " TEXT," +this.KEY_IP_ADDRESS + " TEXT,"
           + "PRIMARY KEY(" + this.KEY_USER_ID + "," + this.KEY_TIME_STRING + ", "
           + this.KEY_IP_ADDRESS+ "))";
-    } ,
+    },
 
-    createFIBQuery : function() {
-      return "CREATE TABLE " + this.FIB_DB + "("
+    /**
+     * Creates and returns string that generates table and test-table.
+     *
+     * @param dbName allows code resuse when creating (identical) table and test-table
+     * @returns {string} postgres query that creates table
+     */
+    createFIBQuery : function(dbName) {
+      return "CREATE TABLE " + dbName + "("
           +this.KEY_USER_ID + " TEXT PRIMARY KEY," + this.KEY_TIME_STRING +
           " TEXT, " +this.KEY_IP_ADDRESS + " TEXT)";
-    } ,
+    },
 
-    createCSQuery : function() {
-        return "CREATE TABLE " + this.CS_DB + "("
+    /**
+     * Creates and returns string that generates table and test-table.
+     *
+     * @param dbName allows code resuse when creating (identical) table and test-table
+     * @returns {string} postgres query that creates table
+     */
+    createCSQuery : function(dbName) {
+        return "CREATE TABLE " + dbName + "("
         + this.KEY_USER_ID + " TEXT ," + this.KEY_SENSOR_ID + " TEXT," +
         this.KEY_TIME_STRING + " TEXT ," + this.KEY_PROCESS_ID + " TEXT," +this.KEY_DATA_CONTENTS +
         " TEXT, " + "PRIMARY KEY(" + this.KEY_USER_ID + ", " + this.KEY_TIME_STRING + "))";
     },
 
-    createLoginDBQuery : function() {
-        return "CREATE TABLE " + this.LOGIN_DB + "("
+    /**
+     * Creates and returns string that generates table and test-table.
+     *
+     * @param dbName allows code resuse when creating (identical) table and test-table
+     * @returns {string} postgres query that creates table
+     */
+    createLoginDBQuery : function(dbName) {
+        return "CREATE TABLE " + dbName + "("
         + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," +
         this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
     }

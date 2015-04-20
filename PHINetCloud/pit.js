@@ -8,10 +8,16 @@ var StringConst = require('./string_const').StringConst;
 var pg = require('pg');
 var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
 
+var dbName = StringConst.PIT_DB;
+
 /**
  * Returns object that allows manipulation of PIT.
+ *
+ * @param tableName specifies whether table or test-table will be used
  */
-exports.PIT = function () {
+exports.PIT = function (tableName) {
+
+    dbName = tableName;
 
     /**
      * Function invocation connects to DB
@@ -44,7 +50,7 @@ exports.PIT = function () {
                                 ipAddr === undefined || ipAddr === null || delCallback === undefined) {
                     return false;
                 } else {
-                    client.query( "DELETE FROM PendingInterestTable WHERE "
+                    client.query( "DELETE FROM " + dbName + " WHERE "
                     + StringConst.KEY_USER_ID + " = \'" +  userID + "\' AND " + StringConst.KEY_TIME_STRING + " = \'"
                      + timeString + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'" + ipAddr + "\'",
 
@@ -82,7 +88,7 @@ exports.PIT = function () {
                     return false;
                 } else {
 
-                    client.query( "UPDATE PendingInterestTable SET " + StringConst.KEY_TIME_STRING + "= \'"
+                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + "= \'"
                     + dbDataObject.getTimeString() + "\' WHERE "+ StringConst.KEY_PROCESS_ID + " = \'"
                         + dbDataObject.getProcessID() + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'"
                         + dbDataObject.getIpAddr() + "\' AND " + StringConst.KEY_SENSOR_ID + " = \'"
@@ -124,7 +130,7 @@ exports.PIT = function () {
                 if (userID === null || userID === undefined || ipAddr === null || ipAddr == undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM PendingInterestTable WHERE " + StringConst.KEY_USER_ID +
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID +
                         " =\'" + userID + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'" + ipAddr + "\'"
                         , function(err, result) {
 
@@ -180,7 +186,7 @@ exports.PIT = function () {
                     return false;
                 } else {
 
-                    client.query( "SELECT * FROM PendingInterestTable WHERE " + StringConst.KEY_USER_ID + " = \'" +
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'" +
                     userID + "\' AND " + StringConst.KEY_TIME_STRING + " = \'" + timeString + "\' AND "
                     + StringConst.KEY_IP_ADDRESS + "= \'" + ipAddr + "\'",
 
@@ -226,7 +232,7 @@ exports.PIT = function () {
                 if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query("INSERT INTO PendingInterestTable(" + StringConst.KEY_USER_ID
+                    client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID
                         + "," + StringConst.KEY_SENSOR_ID + "," +StringConst. KEY_TIME_STRING + ","
                         + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_IP_ADDRESS
                         +") values($1, $2, $3, $4, $5)",

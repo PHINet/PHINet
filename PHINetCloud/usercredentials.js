@@ -8,10 +8,16 @@ var postgresDB = require('pg'); // postgres database module
 var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 var UserClass = require('./user');
 
+var dbName = StringConst.LOGIN_DB;
+
 /**
  * Returns object that allows manipulation of LoginCredential database.
+ *
+ * @param tableName specifies whether table or test-table will be used
  */
-exports.LoginCredentials = function () {
+exports.LoginCredentials = function (tableName) {
+
+    dbName = tableName;
 
     /**
      * Function invocation connects to DB
@@ -21,8 +27,6 @@ exports.LoginCredentials = function () {
             if(err) {
                 return console.error('could not connect to postgres', err);
             }
-
-            client.query("TRUNCATE LoginCredentials; DELETE FROM LoginCredentials")
         });
     })();
 
@@ -51,7 +55,7 @@ exports.LoginCredentials = function () {
                         return false;
                     }
 
-                    client.query("INSERT INTO LoginCredentials(" + StringConst.KEY_USER_ID + ", "
+                    client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID + ", "
                             + StringConst.KEY_EMAIL + ", " + StringConst.KEY_ENTITY_TYPE + ", "
                             + StringConst.KEY_PASSWORD + ") values($1, $2, $3, $4)",
                             [userID, email, entityType, password],
@@ -86,7 +90,7 @@ exports.LoginCredentials = function () {
                 if (userID === undefined || userID === null || getCallback === null || getCallback === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM LoginCredentials WHERE " + StringConst.KEY_USER_ID + " = \'"
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
                             + userID + "\'",
 
                         function(err, result) {
@@ -142,7 +146,7 @@ exports.LoginCredentials = function () {
                         return false;
                     }
 
-                    client.query( "UPDATE LoginCredentials SET " + StringConst.KEY_EMAIL + " = \'"
+                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_EMAIL + " = \'"
                         + email + "\', " + StringConst.KEY_PASSWORD + " = \'" + password + "\', "
                         + StringConst.KEY_ENTITY_TYPE + " = \'" + entityType + "\' WHERE "
                         + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
@@ -177,7 +181,7 @@ exports.LoginCredentials = function () {
                 if (userID === undefined || userID === null) {
                     return false;
                 } else {
-                    client.query( "DELETE FROM LoginCredentials WHERE " + StringConst.KEY_USER_ID
+                    client.query( "DELETE FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID
                             + " = \'" + userID + "\'",
 
                         function(err, result) {

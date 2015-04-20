@@ -8,10 +8,16 @@ var StringConst = require('./string_const').StringConst;
 var pg = require('pg');
 var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
 
+var dbName = StringConst.FIB_DB;
+
 /**
  * Returns object that allows manipulation of FIB.
+ *
+ * @param tableName specifies whether table or test-table will be used
  */
-exports.FIB =  function () {
+exports.FIB =  function (tableName) {
+
+    dbName = tableName;
 
     /**
      * Function invocation connects to DB
@@ -40,7 +46,7 @@ exports.FIB =  function () {
                 if (userID === null || userID === undefined) {
                     return false;
                 } else {
-                    client.query( "DELETE FROM ForwardingInformationBase WHERE "
+                    client.query( "DELETE FROM " + dbName + " WHERE "
                     + StringConst.KEY_USER_ID + " = \'" +  userID + "\'",
 
                         function(err, result) {
@@ -77,7 +83,7 @@ exports.FIB =  function () {
                 if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query( "UPDATE ForwardingInformationBase SET " + StringConst.KEY_TIME_STRING + " = \'"
+                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + " = \'"
                     + dbDataObject.getTimeString() + "\' ," + StringConst.KEY_IP_ADDRESS + " = \'"
                     + dbDataObject.getIpAddr() + "\'" + " WHERE " + StringConst.KEY_USER_ID + " = \'"
                     + dbDataObject.getUserID() + "\'" , function(err, result) {
@@ -113,7 +119,7 @@ exports.FIB =  function () {
                 if (userID === null || userID === undefined) {
                     return false;
                 } else {
-                    client.query( "SELECT * FROM ForwardingInformationBase WHERE " + StringConst.KEY_USER_ID
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID
                     + " = \'" + userID + "\'" , function(err, result) {
 
                         if (err) {
@@ -158,7 +164,7 @@ exports.FIB =  function () {
                 if (getAllCallback == null || getAllCallback == undefined) {
                     return false;
                 } else {
-                    client.query("SELECT * FROM ForwardingInformationBase", function (err, result) {
+                    client.query("SELECT * FROM " + dbName, function (err, result) {
 
                         if (err) {
                             getAllCallback(0);  // error occurred - 0 rows modified; return
@@ -207,7 +213,7 @@ exports.FIB =  function () {
                             || dbDataObject.getUserID() === undefined) {
                     return false;
                 } else {
-                    client.query("INSERT INTO ForwardingInformationBase(" + StringConst.KEY_USER_ID
+                    client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID
                     + "," + StringConst.KEY_TIME_STRING + ","  + StringConst.KEY_IP_ADDRESS
                     +") values($1, $2, $3)", [dbDataObject.getUserID(), dbDataObject.getTimeString(), dbDataObject.getIpAddr()],
                     function(err, result) {

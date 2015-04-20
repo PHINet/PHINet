@@ -3,7 +3,6 @@
  * segment of execution for this web application
  **/
 
-var request = require('request'); // handles POST
 var StringConst = require('./string_const').StringConst;
 var cookieParser = require('cookie-parser');
 var express = require('express');
@@ -11,7 +10,7 @@ var udp_comm = require('./udp_comm').UDPComm();
 var http = require('http');
 var ejs = require('ejs');
 var fs = require('fs');
-var LoginDB = require('./usercredentials.js').LoginCredentials();
+var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB);
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
@@ -142,9 +141,15 @@ app.get('/profile', function (req, res) {
 
             // verify that user exists before displaying profile page
             if (req.cookies && req.cookies.user) {
-                var renderedHtml = ejs.render(content, {user: req.cookies.user});
+                LoginDB.getUser(req.cookies.user, function(rowsTouched, queryResult) {
 
-                res.send(renderedHtml);
+                    var renderedHtml = ejs.render(content, {user: req.cookies.user, email: queryResult.getEmail(),
+                                                                type: queryResult.getEntityType()});
+
+                    res.send(renderedHtml);
+
+                });
+
             } else {
 
                 // user doesn't exist, direct to main page
@@ -153,7 +158,7 @@ app.get('/profile', function (req, res) {
                         console.log("Error serving profile.html: " + err);
                     } else {
 
-                        res.send( ejs.render(content, {user: ""}));
+                        res.send( ejs.render(content, {user: "", email:"", type:""}));
                     }
                 });
             }
@@ -398,7 +403,8 @@ client.connect(function(err) {
  * @param dbCreationQuery creation query to be invoked if table doesn't exist
  */
 function ifNonexistentCreateDB(dbName, dbCreationQuery) {
-  client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
+
+   client.query( "SELECT COUNT(*) FROM " + dbName, function(err, result) {
 
     if (err) {
 
@@ -420,22 +426,26 @@ function ifNonexistentCreateDB(dbName, dbCreationQuery) {
 
 function createPIT() {
 
-  ifNonexistentCreateDB(StringConst.PIT_DB, StringConst.createPITQuery());
+    ifNonexistentCreateDB(StringConst.PIT_DB, StringConst.createPITQuery(StringConst.PIT_DB));
+    ifNonexistentCreateDB(StringConst.PIT_TEST_DB, StringConst.createPITQuery(StringConst.PIT_TEST_DB));
 }
 
 function createCS() {
   
-  ifNonexistentCreateDB(StringConst.CS_DB, StringConst.createCSQuery());
+    ifNonexistentCreateDB(StringConst.CS_DB, StringConst.createCSQuery(StringConst.CS_DB));
+    ifNonexistentCreateDB(StringConst.CS_TEST_DB, StringConst.createCSQuery(StringConst.CS_TEST_DB));
 }
 
 function createFIB() {
 
-  ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery());
+    ifNonexistentCreateDB(StringConst.FIB_DB, StringConst.createFIBQuery(StringConst.FIB_DB));
+    ifNonexistentCreateDB(StringConst.FIB_TEST_DB, StringConst.createFIBQuery(StringConst.FIB_TEST_DB));
 }
 
 function createLoginDB() {
 
-    ifNonexistentCreateDB(StringConst.LOGIN_DB, StringConst.createLoginDBQuery());
+    ifNonexistentCreateDB(StringConst.LOGIN_DB, StringConst.createLoginDBQuery(StringConst.LOGIN_DB));
+    ifNonexistentCreateDB(StringConst.LOGIN_TEST_DB, StringConst.createLoginDBQuery(StringConst.LOGIN_TEST_DB));
 }
 
 createFIB();

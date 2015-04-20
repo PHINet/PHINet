@@ -8,9 +8,9 @@ var DataPacketClass = require('./datapacket');
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
 
-var PIT = require('./pit').PIT();
-var FIB = require('./fib').FIB();
-var CS = require('./cs').CS();
+var PIT = require('./pit').PIT(StringConst.PIT_DB);
+var FIB = require('./fib').FIB(StringConst.FIB_DB);
+var CS = require('./cs').CS(StringConst.CS_DB);
 
 var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var dgram = require("dgram");

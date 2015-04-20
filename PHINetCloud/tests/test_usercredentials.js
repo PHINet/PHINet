@@ -3,8 +3,8 @@
  */
 
 var expect = require("chai").expect;
-var LoginDB = require('../usercredentials.js').LoginCredentials();
 var StringConst = require('../string_const').StringConst;
+var LoginDB = require('../usercredentials.js').LoginCredentials(StringConst.LOGIN_TEST_DB);
 var UserClass = require('../user');
 
 // --- test entries ---

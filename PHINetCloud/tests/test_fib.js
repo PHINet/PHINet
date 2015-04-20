@@ -3,9 +3,9 @@
  */
 
 var expect = require("chai").expect;
-var FIB = require('../fib.js').FIB();
-var DBDataClass = require('../data');
 var StringConst = require('../string_const').StringConst;
+var FIB = require('../fib.js').FIB(StringConst.FIB_TEST_DB);
+var DBDataClass = require('../data');
 
 // --- test entries ---
 

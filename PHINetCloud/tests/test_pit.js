@@ -3,9 +3,9 @@
  */
 
 var expect = require("chai").expect;
-var PIT = require('../PIT.js').PIT();
-var DBDataClass = require('../data');
 var StringConst = require('../string_const').StringConst;
+var PIT = require('../PIT.js').PIT(StringConst.PIT_TEST_DB);
+var DBDataClass = require('../data');
 
 // --- test entries ---
 

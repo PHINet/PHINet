@@ -3,9 +3,9 @@
  */
 
 var expect = require("chai").expect;
-var ContentStore = require('../cs.js').CS();
-var DBDataClass = require('../data');
 var StringConst = require('../string_const').StringConst;
+var ContentStore = require('../cs.js').CS(StringConst.CS_TEST_DB);
+var DBDataClass = require('../data');
 
 // --- test entries ---
 

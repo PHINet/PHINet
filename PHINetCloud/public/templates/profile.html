@@ -19,7 +19,7 @@
             </div>
 
             <div class="loginArea">
-                <% if(user) { %><%= user %>| <a href="/logout">logout</a>
+                <% if(user) { %><%= user %> | <a href="/logout">logout</a>
                 <% } else { %> <a href="/login">login</a> | <a href=
                 "/signup">signup</a> <% } %>
             </div>
@@ -73,18 +73,17 @@
                         <td>
                             <br>
 
-                            <p>First name:</p>
+                            <p>Name:  <% if(user) { %><b><%= user %> </b>
+                                <% } %></p>
 
-                            <p>Last name:</p>
+                            <p>Email: <% if(email) { %><b><%= email %></b>
+                                <% } %></p>
 
-                            <p>Email:</p>
-
-                            <p>Address:</p>
-
-                            <p>User type:</p>
+                            <p>User Type: <% if(type) { %><b><%= type %></b>
+                                <% } %></p>
                         </td>
 
-                        <td>(Statistic Picture)</td>
+                        <td>Picture</td>
                     </tr>
                 </table>
 
