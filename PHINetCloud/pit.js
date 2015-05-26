@@ -1,23 +1,22 @@
 /** 
- * File contains code for the Pending Interest
- * Table specified in the NDN documentation
+ * File contains code for the Pending Interest Table specified in the NDN documentation
  **/
 
 var DBDataClass = require('./data');
 var StringConst = require('./string_const').StringConst;
-var pg = require('pg');
-var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+var postgresDB = require('pg');  // the postgres Node.js module
+var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 
 var dbName = StringConst.PIT_DB;
 
 /**
  * Returns object that allows manipulation of PIT.
  *
- * @param tableName specifies whether table or test-table will be used
+ * @param tableName specifies if table or test-table will be used (separate to avoid data corruption during testing)
  */
 exports.PIT = function (tableName) {
 
-    dbName = tableName;
+    dbName = tableName; // set dbName (may be table or test-table name)
 
     /**
      * Function invocation connects to DB
@@ -25,10 +24,8 @@ exports.PIT = function (tableName) {
     (function connectClient () {
         client.connect(function(err) {
             if(err) {
-
                 return console.error('could not connect to postgres', err);
             }
-
         });
     })();
 
@@ -41,13 +38,13 @@ exports.PIT = function (tableName) {
          * @param timeString associated with entry to be deleted
          * @param ipAddr associated with entry to be deleted
          * @param delCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if entry successfully deleted, false otherwise
+         * @return boolean - true if valid query, false otherwise
          */
         deletePITData: function (userID, timeString, ipAddr, delCallback) {
 
             try {
                 if (userID === undefined || userID === null || timeString === undefined || timeString === null ||
-                                ipAddr === undefined || ipAddr === null || delCallback === undefined) {
+                        ipAddr === undefined || ipAddr === null || delCallback === undefined || delCallback === null) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE "
@@ -78,13 +75,14 @@ exports.PIT = function (tableName) {
          *
          * @param dbDataObject object containing updated row contents
          * @param updateCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if entry successfully updated, false otherwise
+         * @return boolean - true if valid query, false otherwise
          */
 		updatePITData: function (dbDataObject, updateCallback) {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
-                        || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
+                        || updateCallback === null || updateCallback === undefined) {
+
                     return false;
                 } else {
 
@@ -122,12 +120,13 @@ exports.PIT = function (tableName) {
          * @param userID specifies which PIT entries should be returned, together with ipAddr
          * @param ipAddr specifies which PIT entries should be returned
          * @param getGenCallback testing callback: rowCount is returned and checked against expected value
-         * @return ArrayList of data for userID param
+         * @return boolean - true if valid query, false otherwise
          */
 		getGeneralPITData: function (userID, ipAddr, getGenCallback) {
 
             try {
-                if (userID === null || userID === undefined || ipAddr === null || ipAddr == undefined) {
+                if (userID === null || userID === undefined || ipAddr === null || ipAddr == undefined
+                        || getGenCallback === null || getGenCallback === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID +
@@ -162,6 +161,8 @@ exports.PIT = function (tableName) {
                                 }
                             }
                     });
+
+                    return true;
                 }
             }
             catch (err) {
@@ -177,12 +178,14 @@ exports.PIT = function (tableName) {
          * @param ipAddr associated with entry to be returned
          * @param timeString associated with entry to be returned
          * @param getSpecCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
          */
         getSpecificPITData: function(userID, timeString, ipAddr, getSpecCallback) {
 
             try {
                 if (userID === undefined || userID === null || timeString === undefined || timeString == null
-                        || ipAddr === undefined || ipAddr === null) {
+                        || ipAddr === undefined || ipAddr === null || getSpecCallback === null
+                        || getSpecCallback === undefined) {
                     return false;
                 } else {
 
@@ -212,6 +215,8 @@ exports.PIT = function (tableName) {
                             }
                         }
                     });
+
+                    return true;
                 }
             } catch (err) {
                 console.log("!!Error in PendingInterestTable.getSpecificPITData(): " + err);
@@ -224,12 +229,13 @@ exports.PIT = function (tableName) {
          *
          * @param dbDataObject data object to be entered
          * @param insCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if data was successfully entered into DB, false otherwise
+         * @return boolean - true if valid query, false otherwise
          */
 		insertPITData: function(dbDataObject, insCallback)  {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
+                        || insCallback === null || insCallback === undefined) {
                     return false;
                 } else {
                     client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID

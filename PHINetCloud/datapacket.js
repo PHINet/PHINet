@@ -1,6 +1,5 @@
 /** 
- * File contains code for creating 
- * NDN-compliant data packets
+ * File contains code for creating NDN-compliant data packets
  **/
 
 var NameField = require('./namefield');
@@ -15,8 +14,17 @@ var Utils = require('./utils').Utils;
  * Specification found here: http://named-data.net/doc/ndn-tlv/data.html
  */
 exports.DataPacket = function () {
+    
     return {
-
+        
+        // --- member variables that may be manipulated ---
+        nameField: null,
+        content: null,
+        contentType: null,
+        freshnessPeriod: null,
+        signatureType: null,
+        // --- member variables that may be manipulated ---
+        
         /**
          * Constructor allows specified freshnessPeriod, signatureType,
          * and contentType - all params that user may tune for their benefit.
@@ -43,36 +51,36 @@ exports.DataPacket = function () {
             this.content = content;
             this.contentType = contentType;
             this.freshnessPeriod= freshnessPeriod;
-            this.SignatureType = signatureType;
+            this.signatureType = signatureType;
 
             // 3 content types are currently defined
-            this.CONTENT_TYPE_DEFAULT = 0;
-            this.CONTENT_TYPE_LINK = 1;
-            this.CONTENT_TYPE_KEY = 2;
+            var CONTENT_TYPE_DEFAULT = 0;
+            var CONTENT_TYPE_LINK = 1;
+            var CONTENT_TYPE_KEY = 2;
 
             // 3 types of signatures are currently defined
-            this.SIGNATURE_DIGEST_SHA = 0;
-            this.SIGNATURE_SHA_WITH_RSA = 1;
-            this.SIGNATURE_SHA_WITH_ECDSA = 3;
+            var SIGNATURE_DIGEST_SHA = 0;
+            var SIGNATURE_SHA_WITH_RSA = 1;
+            var SIGNATURE_SHA_WITH_ECDSA = 3;
 
-            this.DEFAULT_FRESH = 100000; // arbitrarily chosen
+            var DEFAULT_FRESH = 100000; // arbitrarily chosen
 
             // perform input validation on content type
-            if (contentType === this.CONTENT_TYPE_KEY) {
-                this.contentType = this.CONTENT_TYPE_KEY;
-            } else if (contentType === this.CONTENT_TYPE_LINK) {
-                this.contentType = this.CONTENT_TYPE_LINK;
+            if (contentType === CONTENT_TYPE_KEY) {
+                this.contentType = CONTENT_TYPE_KEY;
+            } else if (contentType === CONTENT_TYPE_LINK) {
+                this.contentType = CONTENT_TYPE_LINK;
             } else {
-                this.contentType = this.CONTENT_TYPE_DEFAULT; // if no others match, assign default
+                this.contentType = CONTENT_TYPE_DEFAULT; // if no others match, assign default
             }
 
             // perform input validation on signature type
-            if (signatureType === this.SIGNATURE_SHA_WITH_ECDSA) {
-                this.signatureType = this.SIGNATURE_SHA_WITH_ECDSA;
-            } else if (signatureType === this.SIGNATURE_SHA_WITH_RSA) {
-                this.signatureType = this.SIGNATURE_SHA_WITH_RSA;
+            if (signatureType === SIGNATURE_SHA_WITH_ECDSA) {
+                this.signatureType = SIGNATURE_SHA_WITH_ECDSA;
+            } else if (signatureType === SIGNATURE_SHA_WITH_RSA) {
+                this.signatureType = SIGNATURE_SHA_WITH_RSA;
             } else {
-                this.signatureType = this.SIGNATURE_DIGEST_SHA; // if no others match, assign digest sha
+                this.signatureType = SIGNATURE_DIGEST_SHA; // if no others match, assign digest sha
             }
 
             // perform input validation on freshness period
@@ -92,12 +100,12 @@ exports.DataPacket = function () {
          * FinalBlockId?
          * --------------
          *
-         * @return MetaInfo as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          */
         createMetaInfo: function () {
             var content = this.createContentType();
-            content += " " + this.createFreshnessPeriod()
-            content += " " + this.createFinalBlockId()
+            content += " " + this.createFreshnessPeriod();
+            content += " " + this.createFinalBlockId();
 
             return "META-INFO-TYPE 0 " + (content.length).toString() + " " + content;
         },
@@ -109,8 +117,8 @@ exports.DataPacket = function () {
          * nonNegativeInteger
          * --------------
          *
-         * @return ContentType as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createContentType: function () {
             var content = (this.contentType).toString();
             return "CONTENT-TYPE-TYPE " + (content.length).toString() + " " + content;
@@ -123,8 +131,8 @@ exports.DataPacket = function () {
          * nonNegativeInteger
          * --------------
          *
-         * @return FreshnessPeriod as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createFreshnessPeriod: function () {
 
             /** the integer here specifies
@@ -147,7 +155,7 @@ exports.DataPacket = function () {
          * NameComponent
          * --------------
          *
-         * @return FinalBlockId as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          **/
         createFinalBlockId: function () {
             var content = this.nameField.createNameComponent();
@@ -161,8 +169,8 @@ exports.DataPacket = function () {
          * CONTENT-TYPE TLV-LENGTH Byte*
          * --------------
          *
-         * @return Content as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createContent: function () {
             var content = this.content; 
             return "CONTENT-TYPE " + (content.length).toString() + " " + content;
@@ -174,10 +182,11 @@ exports.DataPacket = function () {
          * SignatureInfo SignatureBits
          * --------------
          *
-         * @return Signature as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createSignature: function () {
             var signatureBits = "null"; // TODO - rework
+
             return this.createSignatureInfo() + " " + signatureBits;
         },
 
@@ -190,11 +199,12 @@ exports.DataPacket = function () {
          * ... (SignatureType-specific TLVs)
          * --------------
          *
-         * @return SignatureInfo as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createSignatureInfo: function () {
             var content = this.createSignatureType();
-            content += " " + this.createKeyLocator()
+            content += " " + this.createKeyLocator();
+            
             return "SIGNATURE-INFO-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -204,10 +214,11 @@ exports.DataPacket = function () {
          * KEY-LOCATOR-TYPE TLV-LENGTH (Name | KeyDigest)
          * --------------
          *
-         * @return KeyLocator as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          */
          createKeyLocator: function() {
             var content = "null"; // TODO - rework
+            
             return "KEY-LOCATOR-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -218,8 +229,8 @@ exports.DataPacket = function () {
          * nonNegativeInteger
          * --------------
          *
-         * @return SignatureType as definition above shows (see NDN specification)
-         **/
+         * @return String as definition above shows (see NDN specification)
+         */
         createSignatureType: function () {
             var content = (this.signatureType).toString(); 
             return "SIGNATURE-TYPE-TYPE " + (content.length).toString() + " " + content;
@@ -235,7 +246,7 @@ exports.DataPacket = function () {
          * Signature
          * --------------
          *
-         * @return Data packet as definition above shows (see NDN specification)
+         * @return String (data packet) as definition above shows (see NDN specification)
          **/
         createDATA: function () {
             var content = this.nameField.createName();
@@ -253,4 +264,4 @@ exports.DataPacket = function () {
             return this.createDATA();
         }
     };
-}
+};

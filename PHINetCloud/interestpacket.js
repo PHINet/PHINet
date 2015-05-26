@@ -16,9 +16,12 @@ var Utils = require('./utils').Utils;
  */
 exports.InterestPacket = function () {
    
-   return { 
+   return {
 
-        LIFETIME_CONST : 100,
+       // --- member variables that may be manipulated ---
+       LIFETIME_CONST : 100,
+       nameField: null,
+       // --- member variables that may be manipulated ---
 
        /**
         * InterestPacket constructor.
@@ -37,7 +40,7 @@ exports.InterestPacket = function () {
 
             this.nameField = NameField.NameField();
             this.nameField.NameField(userDataID, sensorID, timeString, processID);
-            this.NON_NEG_INT_CONST = 0; // TODO - rework
+            // var NON_NEG_INT_CONST = 0; // TODO - rework
         },
 
        /**
@@ -50,7 +53,7 @@ exports.InterestPacket = function () {
         * The combination of Name and Nonce should uniquely identify an Interest packet.
         * This is used to detect looping Interests."
         *
-        * @return Nonce as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         **/
         createNonce: function () {
 
@@ -84,7 +87,7 @@ exports.InterestPacket = function () {
         * MustBeFresh?
         * --------------
         *
-        * @return Selectors as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         **/
         createSelectors: function () {
             var content = this.createMinSuffixComponents();
@@ -104,7 +107,7 @@ exports.InterestPacket = function () {
         * nonNegativeInteger
         * --------------
         *
-        * @return MinSuffixeComponents as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createMinSuffixComponents: function () {
             var content = "0"; // TODO - rework later
@@ -118,7 +121,7 @@ exports.InterestPacket = function () {
         * nonNegativeInteger
         * --------------
         *
-        * @return MaxSuffixeComponents as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createMaxSuffixComponents: function () {
             var content = "0"; // TODO - rework later
@@ -131,7 +134,7 @@ exports.InterestPacket = function () {
         * KeyLocator
         * --------------
         *
-        * @return PublisherPublicKeyLocator as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createPublisherPublicKeyLocator: function () {
             return "null"; // TODO - rework later
@@ -143,7 +146,7 @@ exports.InterestPacket = function () {
         * ANY-TYPE TLV-LENGTH(=0)
         * --------------
         *
-        * @return Any as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createAny: function () {
             return "ANY-TYPE 0"; // TODO - rework
@@ -155,7 +158,7 @@ exports.InterestPacket = function () {
         * EXCLUDE-TYPE TLV-LENGTH Any? (NameComponent (Any)?)+
         * --------------
         *
-        * @return Exclude as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createExclude: function () {
             var content = this.createAny();
@@ -169,10 +172,11 @@ exports.InterestPacket = function () {
         * nonNegativeInteger
         * --------------
         *
-        * @return ChildSelector as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createChildSelector: function () {
             var content = "0"; // TODO - rework
+
             return "CHILD-SELECTOR-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -182,7 +186,7 @@ exports.InterestPacket = function () {
         * MUST-BE-FRESH-TYPE TLV-LENGTH(=0)
         * --------------
         *
-        * @return MustBeFresh as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createMustBeFresh: function () {
             return "MUST-BE-FRESH-TYPE 0"; // TODO - rework
@@ -194,10 +198,11 @@ exports.InterestPacket = function () {
         * INTEREST-LIFETIME-TYPE TLV-LENGTH nonNegativeInteger
         * --------------
         *
-        * @return InterestLifeTime as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         **/
         createInterestLifetime: function () {
             var content = this.LIFETIME_CONST.toString(); // TODO - add user-selected interval
+
             return "INTEREST-LIFETIME-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -207,10 +212,11 @@ exports.InterestPacket = function () {
         * SCOPE-TYPE TLV-LENGTH nonNegativeInteger
         * --------------
         *
-        * @return Scope as definition above shows (see NDN specification)
+        * @return String as definition above shows (see NDN specification)
         */
         createScope: function () {
             var content = "0"; // TODO - rework
+
             return "SCOPE-TYPE " + (content.length).toString() + " " + content;
         },
 
@@ -225,7 +231,7 @@ exports.InterestPacket = function () {
         * Interest Lifetime?
         * --------------
         *
-        * @return Interest packet as definition above shows (see NDN specification)
+        * @return String (Interest packet) as definition above shows (see NDN specification)
         **/
         createINTEREST: function () {
             var content = this.nameField.createName();

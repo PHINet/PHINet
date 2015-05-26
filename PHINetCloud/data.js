@@ -1,6 +1,5 @@
 /** 
- * File contains code for the data-object  
- * used to handle patient information
+ * File contains code for the data-object used to handle patient information (i.e., the Patient Class)
  */
 
 var StringConst = require('./string_const').StringConst;
@@ -13,6 +12,15 @@ exports.DATA = function () {
 
     return {
 
+        // --- member variables that may be manipulated ---
+        sensorID: null,
+        processID: null,
+        timeString: null,
+        userID: null,
+        dataFloat: null,
+        ipAddr: null,
+        // --- member variables that may be manipulated ---
+
         /**
          * constructor for CS
          *
@@ -22,8 +30,7 @@ exports.DATA = function () {
          * @param userID associated with CS data
          * @param dataFloat contents associated with CS data
          */
-    	csData: function (userID, sensorID, processID, timeString,
-                     dataFloat) {
+    	csData: function (userID, sensorID, processID, timeString, dataFloat) {
 
              // if current time requested, provide it
             if (timeString === StringConst.CURRENT_TIME) {
@@ -38,7 +45,7 @@ exports.DATA = function () {
         },
 
         /**
-         * constructor for either PIT
+         * constructor for PIT
          *
          * @param sensorID associated with PIT data
          * @param processID associated with PIT data
@@ -46,8 +53,7 @@ exports.DATA = function () {
          * @param userID associated with PIT data
          * @param ipAddr associated with request
          */
-        pitData: function (userID, sensorID, processID, timeString,
-                    ipAddr) {
+        pitData: function (userID, sensorID, processID, timeString, ipAddr) {
 
             // if current time requested, provide it
             if (timeString === StringConst.CURRENT_TIME) {
@@ -62,7 +68,7 @@ exports.DATA = function () {
         },
 
         /**
-         * unambiguous FIB DBData constructor
+         * constructor for FIB
          *
          * @param userID associated with FIB data
          * @param timeString associated with FIB data
@@ -101,7 +107,7 @@ exports.DATA = function () {
         },
 
         /**
-         * Method sets object's timeString. If CURRENT_TIME chose, invoke Utils method.
+         * Method allows setting of object's timeString. If CURRENT_TIME chosen, set using Utils method.
          */
         setTimeString: function (timeString) {
 

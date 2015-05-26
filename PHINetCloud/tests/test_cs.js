@@ -5,19 +5,19 @@
 var expect = require("chai").expect;
 var StringConst = require('../string_const').StringConst;
 var ContentStore = require('../cs.js').CS(StringConst.CS_TEST_DB);
-var DBDataClass = require('../data');
+var DBData = require('../data.js'); // used to create objects used by the database
 
 // --- test entries ---
 
-var entry1 = DBDataClass.DATA();
+var entry1 = DBData.DATA();
 entry1.csData("serverTestUser1", "serverTestSensor1", 
 		StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
 
-var entry2 = DBDataClass.DATA();
+var entry2 = DBData.DATA();
 entry2.csData("serverTestUser2", "serverTestSensor2", 
 		StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10,11,12,13,14,15");
 
-var entry3 = DBDataClass.DATA();
+var entry3 = DBData.DATA();
 entry3.csData("serverTestUser2", "serverTestSensor3",
             StringConst.DATA_CACHE, "yesterday", "55,66");
 
@@ -42,7 +42,7 @@ describe('ContentStore', function(){
             // test clearly bad input; should be rejected at start
             expect(ContentStore.insertCSData(null)).to.equal(false);
             expect(ContentStore.insertCSData(undefined)).to.equal(false);
-            expect(ContentStore.insertCSData(DBDataClass.DATA())).to.equal(false); // "empty" object should fail
+            expect(ContentStore.insertCSData(DBData.DATA())).to.equal(false); // "empty" object should fail
 
             // test good input
             ContentStore.insertCSData(entry1, function(rowsTouched) {
@@ -90,7 +90,7 @@ describe('ContentStore', function(){
             // test rejection given bad input
             expect(ContentStore.updateCSData(null)).to.equal(false);
             expect(ContentStore.updateCSData(undefined)).to.equal(false);
-            expect(ContentStore.updateCSData(DBDataClass.DATA())).to.equal(false); // an "empty" object
+            expect(ContentStore.updateCSData(DBData.DATA())).to.equal(false); // an "empty" object
 
             // now, place data into DB
             ContentStore.insertCSData(entry1, function(rowsTouched) {

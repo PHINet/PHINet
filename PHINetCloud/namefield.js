@@ -1,10 +1,3 @@
-/** 
- * File contains code for creating 
- * NDN-compliant name components for packets
- */
-
-
-
 /**
  * Enables creation of an NDN-compliant name for use within packets, but
  * the name itself is structure defined specifically for this application.
@@ -12,6 +5,11 @@
 exports.NameField = function () {
 
     return {
+
+        // --- member variable that may be manipulated ---
+        name: null,
+        // --- member variable that may be manipulated ---
+
         /**
          * Constructor our Our Name Format:
          * "/ndn/userID/sensorID/timeString/processID"
@@ -35,7 +33,7 @@ exports.NameField = function () {
          * GenericNameComponent | ImplicitSha256DigestComponent
          * --------------
          *
-         * @return NameComponent as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          **/
         createNameComponent: function () {
             return this.createGenericNameComponent() + " " + this.createImplicitSha256DigestComponent();
@@ -47,7 +45,7 @@ exports.NameField = function () {
          * NAME-COMPONENT-TYPE TLV-LENGTH Byte*
          * --------------
          *
-         * @return GenericNameComponent as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          **/
         createGenericNameComponent: function () {
             var content = this.name;
@@ -60,7 +58,7 @@ exports.NameField = function () {
          * IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE TLV-LENGTH(=32) Byte{32}
          * --------------
          *
-         * @return ImplicitSha256DigestComponent as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          **/
         createImplicitSha256DigestComponent: function () {
 
@@ -77,7 +75,7 @@ exports.NameField = function () {
          * NAME-TYPE TLV-LENGTH NameComponent
          * --------------
          *
-         * @return Name as definition above shows (see NDN specification)
+         * @return String as definition above shows (see NDN specification)
          **/
         createName: function () {
             var content = this.createNameComponent();

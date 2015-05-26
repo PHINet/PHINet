@@ -5,15 +5,15 @@
 var expect = require("chai").expect;
 var StringConst = require('../string_const').StringConst;
 var PIT = require('../PIT.js').PIT(StringConst.PIT_TEST_DB);
-var DBDataClass = require('../data');
+var DBData = require('../data'); // used to create objects used by the database
 
 // --- test entries ---
 
-var entry1 = DBDataClass.DATA();
+var entry1 = DBData.DATA();
 entry1.pitData("serverTestUser1", "serverTestSensor1",
 		StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10.12.13.14");
 
-var entry2 = DBDataClass.DATA();
+var entry2 = DBData.DATA();
 entry2.pitData("serverTestUser2", "serverTestSensor2",
 		StringConst.DATA_CACHE, StringConst.CURRENT_TIME, "10.88.11.22");
 
@@ -40,7 +40,7 @@ describe('PIT', function(){
             // test clearly bad input; should be rejected at start
             expect(PIT.insertPITData(null)).to.equal(false);
             expect(PIT.insertPITData(undefined)).to.equal(false);
-            expect(PIT.insertPITData(DBDataClass.DATA())).to.equal(false); // "empty" object should fail
+            expect(PIT.insertPITData(DBData.DATA())).to.equal(false); // "empty" object should fail
 
             // test good input
             PIT.insertPITData(entry1, function(rowsTouched) {
@@ -94,7 +94,7 @@ describe('PIT', function(){
             // test rejection given bad input
             expect(PIT.updatePITData(null)).to.equal(false);
             expect(PIT.updatePITData(undefined)).to.equal(false);
-            expect(PIT.updatePITData(DBDataClass.DATA())).to.equal(false); // an "empty" object
+            expect(PIT.updatePITData(DBData.DATA())).to.equal(false); // an "empty" object
 
             // now, place data into DB
             PIT.insertPITData(entry1, function(rowsTouched) {
@@ -115,6 +115,7 @@ describe('PIT', function(){
             });
 
             PIT.updatePITData(entry2, function(rowsTouched) {
+
                 expect(rowsTouched === 1).to.equal(true); // verify that 1 row was updated
             });
 

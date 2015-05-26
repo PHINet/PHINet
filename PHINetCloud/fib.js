@@ -1,23 +1,22 @@
 /** 
- * File contains code for the Forwarding Information
- * Base specified in the NDN documentation
+ * File contains code for the Forwarding Information Base specified in the NDN documentation
  **/
 
-var DBDataClass = require('./data');
+var DBData = require('./data'); // used to create objects used by the database
 var StringConst = require('./string_const').StringConst;
-var pg = require('pg');
-var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+var postgresDB = require('pg'); // the Node.js postgres database module
+var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 
 var dbName = StringConst.FIB_DB;
 
 /**
  * Returns object that allows manipulation of FIB.
  *
- * @param tableName specifies whether table or test-table will be used
+ * @param tableName specifies if table or test-table will be used (separate to avoid data corruption during testing)
  */
 exports.FIB =  function (tableName) {
 
-    dbName = tableName;
+    dbName = tableName; // set dbName (may be table or test-table name)
 
     /**
      * Function invocation connects to DB
@@ -37,13 +36,13 @@ exports.FIB =  function (tableName) {
          *
          * @param userID associated with entry to be deleted
          * @param delCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if entry successfully deleted, false otherwise
+         * @return boolean - true if entry successfully deleted, false otherwise
          */
 		deleteFIBData: function (userID, delCallback) {
 
             try {
 
-                if (userID === null || userID === undefined) {
+                if (userID === null || userID === undefined || delCallback === undefined || delCallback === null) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE "
@@ -75,12 +74,13 @@ exports.FIB =  function (tableName) {
          *
          * @param dbDataObject object containing updated row contents
          * @param updateCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if entry successfully updated, false otherwise
+         * @return boolean - true if entry successfully updated, false otherwise
          */
 		updateFIBData: function (dbDataObject, updateCallback) {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined) {
+                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
+                        || updateCallback === null || updateCallback === undefined) {
                     return false;
                 } else {
                     client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + " = \'"
@@ -111,12 +111,12 @@ exports.FIB =  function (tableName) {
          *
          * @param userID associated with entry to be returned
          * @param getSpecCallback testing callback: rowCount is returned and checked against expected value
-         * @return entry if found, otherwise null returned
+         * @return boolean - true if valid query, otherwise false
          */
 		getSpecificFIBData: function (userID, getSpecCallback) {
 
             try {
-                if (userID === null || userID === undefined) {
+                if (userID === null || userID === undefined || getSpecCallback === null || getSpecCallback === undefined) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID
@@ -128,7 +128,7 @@ exports.FIB =  function (tableName) {
                         } else {
 
                             if (result.rowCount > 0 ) {
-                                var queriedRow = DBDataClass.DATA();
+                                var queriedRow = DBData.DATA();
                                 queriedRow.setUserID(result.rows[0]._userid);
                                 queriedRow.setTimeString(result.rows[0].timestring);
                                 queriedRow.setIpAddr(result.rows[0].ipaddress);
@@ -155,7 +155,7 @@ exports.FIB =  function (tableName) {
          * Method used to query entire FIB table; useful when multi-casting interests
          *
          * @param getAllCallback testing callback: rowCount is returned and checked against expected value
-         * @return entries if any exist, otherwise null returned
+         * @return boolean - true if valid query, otherwise false
          */
 		getAllFIBData: function (getAllCallback) {
 
@@ -175,7 +175,7 @@ exports.FIB =  function (tableName) {
                                 var queryResults = [];
 
                                 for (var i = 0; i < result.rows.length; i++) {
-                                    var queriedRow = DBDataClass.DATA();
+                                    var queriedRow = DBData.DATA();
                                     queriedRow.setUserID(result.rows[i]._userid);
                                     queriedRow.setTimeString(result.rows[i].timestring);
                                     queriedRow.setIpAddr(result.rows[i].ipaddress);
@@ -204,13 +204,13 @@ exports.FIB =  function (tableName) {
          *
          * @param dbDataObject data object to be entered
          * @param insCallback testing callback: rowCount is returned and checked against expected value
-         * @return true if data was successfully entered into DB, false otherwise
+         * @return boolean - true if data was successfully entered into DB, false otherwise
          */
 		insertFIBData: function(dbDataObject, insCallback)  {
 
             try {
                 if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
-                            || dbDataObject.getUserID() === undefined) {
+                            || dbDataObject.getUserID() === null || insCallback === null || insCallback === undefined) {
                     return false;
                 } else {
                     client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID

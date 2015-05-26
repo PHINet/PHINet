@@ -5,14 +5,14 @@
 var expect = require("chai").expect;
 var StringConst = require('../string_const').StringConst;
 var FIB = require('../fib.js').FIB(StringConst.FIB_TEST_DB);
-var DBDataClass = require('../data');
+var DBData = require('../data'); // used to create objects used by the database
 
 // --- test entries ---
 
-var entry1 = DBDataClass.DATA();
+var entry1 = DBData.DATA();
 entry1.fibData("serverTestUser1", StringConst.CURRENT_TIME, "10.10.10.10");
 
-var entry2 = DBDataClass.DATA();
+var entry2 = DBData.DATA();
 entry2.fibData("serverTestUser2", StringConst.CURRENT_TIME, "20.20.20.20");
 
 // --- test entries ---
@@ -36,7 +36,7 @@ describe('FIB', function(){
             // test clearly bad input; should be rejected at start
             expect(FIB.insertFIBData(null)).to.equal(false);
             expect(FIB.insertFIBData(undefined)).to.equal(false);
-            expect(FIB.insertFIBData(DBDataClass.DATA())).to.equal(false); // "empty" object should fail
+            expect(FIB.insertFIBData(DBData.DATA())).to.equal(false); // "empty" object should fail
 
             // test good input
             FIB.insertFIBData(entry1, function(rowsTouched) {
@@ -85,7 +85,7 @@ describe('FIB', function(){
             // test clearly bad input; should be rejected at start
             expect(FIB.updateFIBData(null)).to.equal(false);
             expect(FIB.updateFIBData(undefined)).to.equal(false);
-            expect(FIB.updateFIBData(DBDataClass.DATA())).to.equal(false); // "empty" object should fail
+            expect(FIB.updateFIBData(DBData.DATA())).to.equal(false); // "empty" object should fail
 
             // test good input
             FIB.insertFIBData(entry1, function(rowsTouched) {

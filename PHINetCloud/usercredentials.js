@@ -13,11 +13,11 @@ var dbName = StringConst.LOGIN_DB;
 /**
  * Returns object that allows manipulation of LoginCredential database.
  *
- * @param tableName specifies whether table or test-table will be used
+ * @param tableName specifies if table or test-table will be used (separate to avoid data corruption during testing)
  */
 exports.LoginCredentials = function (tableName) {
 
-    dbName = tableName;
+    dbName = tableName; // set dbName (may be table or test-table name)
 
     /**
      * Function invocation connects to DB
@@ -40,6 +40,7 @@ exports.LoginCredentials = function (tableName) {
          * @param email of new user
          * @param entityType of new user
          * @param insCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
          */
         insertNewUser: function(userID, password, email, entityType, insCallback) {
 
@@ -83,6 +84,7 @@ exports.LoginCredentials = function (tableName) {
          * 
          * @param userID of requested user
          * @param getCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
          */
         getUser: function(userID, getCallback) {
 
@@ -131,6 +133,7 @@ exports.LoginCredentials = function (tableName) {
          * @param email used to update user information
          * @param entityType used to update user information
          * @param updateCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
          */
         updateUser: function(userID, password, email, entityType, updateCallback) {
 
@@ -174,6 +177,7 @@ exports.LoginCredentials = function (tableName) {
          *
          * @param userID used to find and delete user
          * @param delCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
          */
         deleteUser: function(userID, delCallback) {
 

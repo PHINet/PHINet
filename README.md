@@ -2,7 +2,7 @@
 
 PHINet is a Health-IoT testbed for the future Named Data Networking Internet architecture. 
 
-This project is described in a paper submitted to the IEEE Mobile Services conference.
+This project is described in a paper accepted by the IEEE Mobile Services conference (link will be provided soon).
 
 ## Abstract of Work
 
@@ -30,7 +30,7 @@ CLIENT
 
 # Support 
 
-Send all questions to seales.rc@gmail.com.
+Send all questions to cseales6@gmail.com.
 
 # License
 

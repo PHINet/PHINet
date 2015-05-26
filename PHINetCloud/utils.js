@@ -5,9 +5,9 @@
 exports.Utils = {
 
     /**
-     * Date format is "YYYY-MM-DDTHH:mm:ss.SSS", where SSS is milliseconds and T is a parsing character
+     * Date format is "YYYY-MM-DDTHH:mm:ss.SSS", where 'SSS' is milliseconds and 'T' is a parsing character
      *
-     * @return UTC-compliant current time
+     * @return String UTC-compliant current time
      */
 	getCurrentTime: function () {
 

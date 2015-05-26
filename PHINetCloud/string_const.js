@@ -1,12 +1,10 @@
 
 /**
- * File contains constant strings that are sent withing
- * packets to identify what processing should be invoked.
- *
- * Also contained are other useful string constants.
+ * File contains constant strings as well as methods for generating DB Schema.
  */
 
 exports.StringConst = {
+
 	// notify neighbor that fib is desired (sent in interest packet)
     INTEREST_FIB : "INTEREST_FIB",
 
@@ -33,7 +31,7 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: "ASK-FOR-PERMISSION",
+    DB_CONNECTION_STRING: "YOU MUST FIRST ASK FOR PERMISSION",
 
     // db variables
     CS_DB : "ContentStore",

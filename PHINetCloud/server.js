@@ -3,20 +3,20 @@
  * segment of execution for this web application
  **/
 
-var StringConst = require('./string_const').StringConst;
-var cookieParser = require('cookie-parser');
-var express = require('express');
-var udp_comm = require('./udp_comm').UDPComm();
-var http = require('http');
-var ejs = require('ejs');
-var fs = require('fs');
+var StringConst = require('./string_const').StringConst; // TODO - document
+var cookieParser = require('cookie-parser'); // TODO - document
+var express = require('express'); // TODO - document
+var udp_comm = require('./udp_comm').UDPComm(); // TODO - document
+var http = require('http'); // TODO - document
+var ejs = require('ejs'); // TODO - document
+var fs = require('fs'); // TODO - document
 var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB);
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
 udp_comm.initializeListener();
 
-var app = express()
+var app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({
@@ -26,6 +26,9 @@ app.use(bodyParser.urlencoded({
 app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
+/**
+ * handles main web page
+ */
 app.get('/', function (req, res) {
 
     fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
@@ -45,6 +48,9 @@ app.get('/', function (req, res) {
     });
 });
 
+/**
+ * handles login page
+ */
 app.get('/login', function (req, res) {
 
     fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
@@ -64,6 +70,9 @@ app.get('/login', function (req, res) {
     });
 });
 
+/**
+ * handles signup page
+ */
 app.get('/signup', function (req, res) {
     fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
         if (err) {
@@ -82,6 +91,9 @@ app.get('/signup', function (req, res) {
     });
 });
 
+/**
+ * handles logout request
+ */
 app.get('/logout', function(req, res) {
     fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
         if (err) {
@@ -97,6 +109,9 @@ app.get('/logout', function(req, res) {
     });
 });
 
+/**
+ * handles documentation page
+ */
 app.get('/document', function (req, res) {
     fs.readFile(__dirname + '/public/templates/document.html', 'utf-8', function(err, content) {
         if (err) {
@@ -115,6 +130,9 @@ app.get('/document', function (req, res) {
     });
 });
 
+/**
+ * handles contact page
+ */
 app.get('/contact', function (req, res) {
     fs.readFile(__dirname + '/public/templates/contact.html', 'utf-8', function(err, content) {
         if (err) {
@@ -133,6 +151,9 @@ app.get('/contact', function (req, res) {
     });
 });
 
+/**
+ * handles profile page
+ */
 app.get('/profile', function (req, res) {
     fs.readFile(__dirname + '/public/templates/profile.html', 'utf-8', function(err, content) {
         if (err) {
@@ -166,6 +187,9 @@ app.get('/profile', function (req, res) {
     });
 });
 
+/**
+ * handles test page
+ */
 app.get('/test', function (req, res) {
     fs.readFile(__dirname + '/public/templates/test.html', 'utf-8', function(err, content) {
         if (err) {
@@ -184,6 +208,9 @@ app.get('/test', function (req, res) {
     });
 });
 
+/**
+ * handles all other queries; responds with 404 page
+ */
 app.get('*', function(req, res){
 
     fs.readFile(__dirname + '/public/templates/404.html', 'utf-8', function(err, content) {
@@ -204,6 +231,9 @@ app.get('*', function(req, res){
     });
 });
 
+/**
+ * code handles user login-attempt
+ */
 app.post('/loginAction', function(req, res) {
 
      LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
@@ -258,6 +288,9 @@ app.post('/loginAction', function(req, res) {
     });
 });
 
+/**
+ * code handles user register-attempt
+ */
 app.post('/registerAction', function(req, res) {
 
     // check that passwords match
@@ -321,6 +354,9 @@ app.post('/registerAction', function(req, res) {
     }
 });
 
+/**
+ * code handles user contact-attempt
+ */
 app.post('/contactAction', function(req, res) {
     console.dir(req.body);
     // TODO - handle contact
@@ -331,65 +367,12 @@ app.post('/contactAction', function(req, res) {
     res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
 });
 
-// ---- Code Tests UDP Functionality ---
 
-// TODO - implement the testing portion of site
+// --- Below Code Handles DB Creation ---
 
-//var DataPacketClass = require('./datapacket');
-//var InterestPacketClass = require('./interestpacket');
+var postgresDB = require('pg'); // the postgres Node.js module
 
-// method allows user to test networking functionality
-/*app.post('/submitIP', function(req, res) {
-
-  if (req.body.user.ipAddrPing !== undefined) {
-    // user requested ping
-  
-    var sys = require('sys')
-    var exec = require('child_process').exec;
-
-    function puts(error, stdout, stderr) { 
-      console.log(stdout);
-    }
-
-    exec("ping -c 3 " + req.body.user.ipAddrPing, puts);
-
-  } else if (req.body.user.ipAddrTrace !== undefined) {
-    // user requested traceroute
-
-    var traceroute = require('traceroute');
-
-    traceroute.trace(req.body.user.ipAddrTrace, 
-      function (err,hops) {
-          if (!err) { 
-            console.log(hops); 
-          } else {
-            console.log("error: " + err);
-          }
-    });
-
-  } else {
-    // user requested fake packets sent to them
-
-    var dataPacket = new DataPacketClass.DataPacket();
-    dataPacket.DataPacket("CLOUD-SERVER", StringConst.NULL_FIELD, StringConst.CURRENT_TIME, 
-        StringConst.DATA_CACHE, "0,99,100,101,102");
-
-    var interestPacket = new InterestPacketClass.InterestPacket();
-    interestPacket.InterestPacket("CLOUD-SERVER", StringConst.NULL_FIELD, 
-      StringConst.CURRENT_TIME, StringConst.INTEREST_CACHE_DATA, "0,99,100,101,102");
-
-    udp_comm.sendMessage(dataPacket.createDATA(), req.body.user.ipAddr);
-    udp_comm.sendMessage(interestPacket.createINTEREST(), req.body.user.ipAddr);
-  }
-
-});*/
-// ---- Code Tests UDP Functionality ---
-
-// --- Code Handles DB Creation ---
-
-var pg = require('pg');
-
-var client = new pg.Client(StringConst.DB_CONNECTION_STRING);
+var client = new postgresDB.Client(StringConst.DB_CONNECTION_STRING);
 client.connect(function(err) {
   if(err) {
     return console.error('could not connect to postgres', err);
@@ -453,7 +436,7 @@ createCS();
 createPIT();
 createLoginDB();
 
-// --- Code Handles DB Creation ---
+// --- Above Code Handles DB Creation ---
 
 http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + app.get('port'));

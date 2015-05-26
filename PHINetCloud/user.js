@@ -8,6 +8,13 @@ exports.User = function () {
 
     return {
 
+        // --- member variables that may be manipulated ---
+        userID: null,
+        password: null,
+        email: null,
+        entityType: null,
+        // --- member variables that may be manipulated ---
+
         /**
          * constructor for user
          *
