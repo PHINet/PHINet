@@ -42,7 +42,7 @@ exports.FIB =  function (tableName) {
 
             try {
 
-                if (userID === null || userID === undefined || delCallback === undefined || delCallback === null) {
+                if (!userID || !delCallback) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE "
@@ -79,8 +79,7 @@ exports.FIB =  function (tableName) {
 		updateFIBData: function (dbDataObject, updateCallback) {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
-                        || updateCallback === null || updateCallback === undefined) {
+                if (!dbDataObject || !updateCallback) {
                     return false;
                 } else {
                     client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + " = \'"
@@ -116,7 +115,7 @@ exports.FIB =  function (tableName) {
 		getSpecificFIBData: function (userID, getSpecCallback) {
 
             try {
-                if (userID === null || userID === undefined || getSpecCallback === null || getSpecCallback === undefined) {
+                if (!userID || !getSpecCallback) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID
@@ -161,7 +160,7 @@ exports.FIB =  function (tableName) {
 
             try {
 
-                if (getAllCallback == null || getAllCallback == undefined) {
+                if (!getAllCallback) {
                     return false;
                 } else {
                     client.query("SELECT * FROM " + dbName, function (err, result) {
@@ -209,8 +208,7 @@ exports.FIB =  function (tableName) {
 		insertFIBData: function(dbDataObject, insCallback)  {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
-                            || dbDataObject.getUserID() === null || insCallback === null || insCallback === undefined) {
+                if (!dbDataObject || !dbDataObject.getUserID() || !insCallback) {
                     return false;
                 } else {
                     client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID

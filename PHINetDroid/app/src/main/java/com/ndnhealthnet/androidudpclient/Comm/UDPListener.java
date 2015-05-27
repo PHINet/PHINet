@@ -154,30 +154,40 @@ public class UDPListener extends Thread {
      * @param packetUserID userID of entity that requested FIB contents
      * @param packetSensorID sensorID of entity that requested FIB contents
      * @param packetIP ip of entity that requested FIB contents
+     * @return true if valid input, false otherwise (useful during testing)
      */
-    static void handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
+    public static boolean handleInterestFIBRequest(String packetUserID, String packetSensorID, String packetIP)
     {
-        ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
-
-        String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
-        String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
-
-        if (allFIBData == null || allFIBData.size() == 0) {
-
-            DataPacket dataPacket = new DataPacket(packetUserID, packetSensorID,
-                    StringConst.CURRENT_TIME, StringConst.DATA_FIB, MainActivity.deviceIP);
-
-            new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
-                    .execute(dataPacket.toString()); // reply to interest with DATA from cache*/
+        if (packetUserID == null || packetSensorID == null || packetIP == null) {
+            return false;
         } else {
 
-            for (int i = 0; i < allFIBData.size(); i++) {
+            ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
-                // don't send data to same node that requested; check first
-                if (!allFIBData.get(i).getIpAddr().equals(packetIP)) {
+            String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+            String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
-                    // content returned in format: "userID,userIP"
-                    String fibContent = allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr();
+            if (allFIBData == null || allFIBData.size() == 0) {
+
+                // FIB was empty, only send own device's information
+                DataPacket dataPacket = new DataPacket(packetUserID, packetSensorID,
+                        StringConst.CURRENT_TIME, StringConst.DATA_FIB, MainActivity.deviceIP);
+
+                new UDPSocket(MainActivity.devicePort, packetIP, StringConst.DATA_TYPE)
+                        .execute(dataPacket.toString()); // reply to interest with DATA from cache*/
+            } else {
+
+                String fibContent = "";
+
+                // loop over all valid fib entries and group together
+                for (int i = 0; i < allFIBData.size(); i++) {
+
+                    // don't send data to same node that requested; check first
+                    if (!allFIBData.get(i).getIpAddr().equals(packetIP)) {
+
+                        // syntax of FIB entry sent in DATA packet: "userID,userIP++"
+                        fibContent += allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr() + "++";
+                    }
 
                     DataPacket dataPacket = new DataPacket(myUserID, mySensorID,
                             StringConst.CURRENT_TIME,  StringConst.DATA_FIB, fibContent);
@@ -186,6 +196,8 @@ public class UDPListener extends Thread {
                             .execute(dataPacket.toString()); // send interest packet
                 }
             }
+
+            return true;
         }
     }
 
@@ -212,7 +224,7 @@ public class UDPListener extends Thread {
             for (int i = 0; i < csDATA.size(); i++) {
 
                 // only reply to interest with data that matches date-request
-              if (isValidForTimeInterval(packetTimeString, csDATA.get(i).getTimeString())) {
+              if (Utils.isValidForTimeInterval(packetTimeString, csDATA.get(i).getTimeString())) {
 
                   // append all data to single string since all going to single source
                     dataPayload += csDATA.get(i).getDataFloat()+ ",";
@@ -285,54 +297,6 @@ public class UDPListener extends Thread {
     }
 
     /**
-     * Method returns true if the data interval is within request interval
-     *
-     * @param requestInterval a request interval; necessarily must contain two times (start and end)
-     * @param dataInterval the time stamp on specific data
-     * @return determination of whether dataInterval is within requestInterval
-     */
-    static public boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
-
-        if (requestInterval == null || dataInterval == null) {
-            return false; // reject bad input
-        }
-
-        String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
-
-        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS"
-                            // the former is start interval, latter is end interval
-
-        boolean beforeStartDate = false;
-        boolean afterEndDate = false;
-
-        Date startDate, endDate, dataDate;
-
-        try {
-            // replace "T" with empty char "", so that comparison is easier
-            requestIntervals[0] = requestIntervals[0].replace("T", " ");
-            requestIntervals[1] = requestIntervals[1].replace("T", " ");
-            dataInterval = dataInterval.replace("T", " ");
-
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-            startDate = df.parse(requestIntervals[0]);
-            endDate = df.parse(requestIntervals[1]);
-            dataDate = df.parse(dataInterval);
-
-            beforeStartDate = dataDate.before(startDate);
-            afterEndDate = dataDate.after(endDate);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // some problem occurred, default return is false
-        }
-
-        // if dataInterval is not before start and not after end, then its with interval
-        return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataInterval)
-                || requestIntervals[1].equals(dataInterval);
-    }
-
-    /**
      * handles DATA packet as per NDN specification
      * Method parses packet then stores in cache if requested,
      * and sends out to satisfy any potential Interests.
@@ -386,7 +350,7 @@ public class UDPListener extends Thread {
             int requestCount = 0;
             for (int i = 0; i < allValidPITEntries.size(); i++) {
 
-                if (isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
+                if (Utils.isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
                     requestCount++;
                 }
             }

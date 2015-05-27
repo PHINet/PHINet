@@ -4,38 +4,52 @@
 
 var expect = require("chai").expect;
 var StringConst = require('../string_const').StringConst;
-var udp_comm = require('../udp_comm').UDPComm();
+var udp_comm = require('../udp_comm').UDPComm(StringConst.PIT_TEST_DB, StringConst.FIB_TEST_DB, StringConst.CS_TEST_DB);
+
+var DBData = require('../data'); // used to create objects used by the database
 
 // the udp_comm module has several branches (i.e.,
 // we send the packet along as more specific things are detected)
 // here, we will only test the final branches
 
 
+var NDN_SENSOR_NET_PORT = 50056; // same across all applications; useful for testing
+
+// --- test FIB entries ---
+
+var entry1 = DBData.DATA();
+entry1.fibData("serverTestUser1", StringConst.CURRENT_TIME, "10.10.10.10");
+
+// --- test FIB entries ---
+
 /**
- *
+ *  Tests UDPComm.handleInterestFIBRequest() functionality.
  */
 describe('UDPComm', function(){
-    describe('#handleInterestFIBRequest', function(){
-        it('X', function(done){
+    describe('#handleInterestFIBRequest()', function(){
+        it('TODO - document what this function should return', function(done){
 
-            // 1. test if empty fib
+            // test valid input on empty FIB
+            expect(udp_comm.handleInterestFIBRequest(entry1.getUserID(), entry1.getSensorID(),
+                    entry1.getIpAddr(), NDN_SENSOR_NET_PORT)).to.equal(false);
 
-            // 2. test if non-empty fib
+            // test bad input
+            expect(udp_comm.handleInterestFIBRequest(null, entry1.getSensorID(),
+                entry1.getIpAddr(), null)).to.equal(false);
 
-            // 3. test bad input
+            // TODO - more robust testing
 
-
-            done();
+            done(); // the invocation of done() tells testing framework that all tests are complete
         })
     })
 });
 
 /**
- *
+ * Tests UDPComm.handleInterestCacheRequest() functionality.
  */
 describe('UDPComm', function(){
-    describe('#handleInterestCacheRequest', function(){
-        it('X', function(done){
+    describe('#handleInterestCacheRequest()', function(){
+        it('TODO - document what this function should return', function(done){
 
             // 1. handle with empty cache
 
@@ -47,18 +61,20 @@ describe('UDPComm', function(){
 
             // 5. test bad data
 
-            done();
+            // TODO - more robust testing
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
 
         })
     })
 });
 
 /**
- *
+ * Tests UDPComm.handleCacheData() functionality.
  */
 describe('UDPComm', function(){
-    describe('#handleCacheData', function(){
-        it('X', function(done){
+    describe('#handleCacheData()', function(){
+        it('TODO - document what this function should return', function(done){
 
             // 1. test bad input
 
@@ -70,73 +86,33 @@ describe('UDPComm', function(){
 
             // 4. handle without pit requests
 
-            done();
+            // TODO - more robust testing
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
         })
     })
 });
 
 /**
- *
+ * Tests UDPComm.handleFIBData() functionality.
  */
 describe('UDPComm', function() {
     describe('#handleFIBData', function () {
-        it('X', function (done) {
+        it('TODO - document what this function should return', function (done) {
 
-            /* var IP1 = "11.11.11.11";
-             var IP2 = "12.12.12.12";
-             var userID1 = "user1";
-             var deviceID = "deviceID";
+            // TODO - more robust testing
 
-             // it's necessary to have a userID entered for device so that a FIB entry isn't added for self
-             Utils.saveToPrefs(this.context, StringConst.PREFS_LOGIN_USER_ID_KEY, deviceID);
-
-             var goodFIBEntry = userID1 + "," + IP1;
-             var updateToGoodFIBEntry = userID1 + "," + IP2;
-             var deviceFIBEntry = deviceID + "," + IP1; // should be rejected on basis of ID
-             var badFIBEntry1 = "a,a";
-             var badFIBEntry2 = "apsidfasdf";
-
-             datasource.deleteEntireFIB(); // clear FIB before testing functionality
-
-             // test on bad input
-             expect(udp_comm.handleFIBData(null)).to.equal(false);
-             expect(udp_comm.handleFIBData("")).to.equal(false);
-             expect(udp_comm.handleFIBData(badFIBEntry1)).to.equal(false);
-             expect(udp_comm.handleFIBData(badFIBEntry2)).to.equal(false);
-
-             // handle handle with self-FIB entry; should be rejected because it's the device's own ID
-             expect(udp_comm.handleFIBData(deviceFIBEntry)).to.equal(false);
-
-             // --- handle with FIB entry of other entity ---
-
-             udp_comm.handleFIBData(goodFIBEntry);
-
-             expect(udp_comm.handleFIBData(goodFIBEntry)).to.equal(true);
-
-             DBData fibEntry = datasource.getFIBData(userID1);
-
-             expect(fibEntry.getIpAddr()).to.equal(IP1); // test entry was added to FIB
-
-             expect(udp_comm.handleFIBData(updateToGoodFIBEntry)).to.equal(true);
-
-             DBData updatedFIBEntry = datasource.getFIBData(userID1);
-
-             expect(updatedFIBEntry.getIpAddr()).to.equal(IP2); // test entry was updated in FIB
-
-             // --- handle with FIB entry of other entity ---*/
-
-            done();
-
+            done(); // the invocation of done() tells testing framework that all tests are complete
         })
     })
 });
 
 /**
- *
+ * Tests UDPComm.isValidForTimeInterval() functionality.
  */
 describe('UDPComm', function(){
     describe('#isValidForTimeInterval', function(){
-        it('X', function(done){
+        it('returns true if valid time interval, otherwise false', function(done){
             var goodRequestInterval = "2012-05-04T08:08:08.888||2014-05-04T08:08:08.888";
             var badRequestInterval = "2012-ERROR:08.888||2014-ERROR8:08.888";
             

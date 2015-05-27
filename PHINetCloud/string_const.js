@@ -31,7 +31,7 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: "YOU MUST FIRST ASK FOR PERMISSION",
+    DB_CONNECTION_STRING: "ASK FOR PERMISSION",
 
     // db variables
     CS_DB : "ContentStore",

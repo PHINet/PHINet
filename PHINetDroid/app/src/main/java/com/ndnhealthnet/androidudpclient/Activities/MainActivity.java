@@ -23,8 +23,9 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1;
 
-	Button tempDeletePITBtn, userCredentialBtn, netLinkBtn, selfBeatBtn, getAvgBtn, cliBeatBtn;
-	TextView credentialWarningText, doctorText, patientText;
+	Button tempDeletePITBtn, logoutBtn, myDataBtn, cliBeatBtn,
+            loginBtn, signupBtn, sensorBtn;
+	TextView credentialWarningText, doctorText, patientText, testText, loggedInText;
 	UDPListener receiverThread;
 
     // used to specify when listener "receiverThread" should actively listen for packets
@@ -42,6 +43,8 @@ public class MainActivity extends Activity {
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         DBData dbData = new DBData();
+
+        // TODO - update with correct ipAddr & userID
         dbData.setIpAddr("52.149.194.227"); // public server IP
         dbData.setUserID("CLOUD-SERVER");
 
@@ -60,53 +63,71 @@ public class MainActivity extends Activity {
     {
         setContentView(R.layout.activity_main);
 
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+        if (currentUserID != "" || currentUserID != null) {
+            loggedInText = (TextView) findViewById(R.id.loggedInTextView);
+            loggedInText.setText(currentUserID);
+        }
+
         String mySensorID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
-        credentialWarningText = (TextView) findViewById(R.id.credentialWarning_textView);
-        doctorText = (TextView) findViewById(R.id.doctor_textView);
-        patientText = (TextView) findViewById(R.id.patient_textView);
+        credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
+        doctorText = (TextView) findViewById(R.id.doctorTextView);
+        patientText = (TextView) findViewById(R.id.patientTextView);
+        testText = (TextView) findViewById(R.id.testingNotifierTextView);
 
-        userCredentialBtn = (Button) findViewById(R.id.userCredentialBtn);
-        userCredentialBtn.setOnClickListener(new View.OnClickListener(){
+        loginBtn = (Button) findViewById(R.id.loginBtn);
+        loginBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivityForResult(new Intent(MainActivity.this, UserCredentialActivity.class),
-                        CREDENTIAL_RESULT_CODE);
+                startActivityForResult(new Intent(MainActivity.this, LoginActivity.class), CREDENTIAL_RESULT_CODE);
             }
         });
 
-        selfBeatBtn = (Button) findViewById(R.id.selfBeatBtn);
-        selfBeatBtn.setOnClickListener(new View.OnClickListener(){
+        signupBtn = (Button) findViewById(R.id.signupBtn);
+        signupBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, RecordHeartbeatActivity.class));
+                startActivityForResult(new Intent(MainActivity.this, SignupActivity.class), CREDENTIAL_RESULT_CODE);
             }
         });
 
-        netLinkBtn = (Button) findViewById(R.id.netLinkBtn);
-        netLinkBtn.setOnClickListener(new View.OnClickListener(){
+        logoutBtn = (Button) findViewById(R.id.logoutBtn);
+        logoutBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, ConfigNetLinksActivity.class));
+                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+
+                onCreateHelper();
             }
         });
 
-        getAvgBtn = (Button) findViewById(R.id.getAvgBtn);
-        getAvgBtn.setOnClickListener(new View.OnClickListener(){
+        sensorBtn = (Button) findViewById(R.id.sensorSettingsBtn);
+        sensorBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, ViewMyDataActivity.class));
+                startActivity(new Intent(MainActivity.this, SensorListActivity.class));
+            }
+        });
+
+        myDataBtn = (Button) findViewById(R.id.myDataBtn);
+        myDataBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, MyDataActivity.class));
             }
         });
 
         cliBeatBtn = (Button) findViewById(R.id.cliBeatBtn);
         cliBeatBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, GetCliBeatActivity.class));
+                startActivity(new Intent(MainActivity.this, PatientListActivity.class));
             }
         });
 
         // NOTE: temporary debugging method that allows user to clear the database
-        tempDeletePITBtn = (Button) findViewById(R.id.deletePITBtn);
+        tempDeletePITBtn = (Button) findViewById(R.id.deleteDataBtn);
         tempDeletePITBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePIT();
@@ -119,17 +140,20 @@ public class MainActivity extends Activity {
 
             //destroy all buttons until user enters credentials
             cliBeatBtn.setVisibility(View.GONE);
-            getAvgBtn.setVisibility(View.GONE);
-            netLinkBtn.setVisibility(View.GONE);
-            selfBeatBtn.setVisibility(View.GONE);
+            myDataBtn.setVisibility(View.GONE);
             patientText.setVisibility(View.GONE);
             doctorText.setVisibility(View.GONE);
             tempDeletePITBtn.setVisibility(View.GONE);
+            logoutBtn.setVisibility(View.GONE);
+            testText.setVisibility(View.GONE);
+            sensorBtn.setVisibility(View.GONE);
 
         } else {
 
-            // user has entered credentials, remove warning
+            // user has entered credentials, remove warning and buttons
             credentialWarningText.setVisibility(View.GONE);
+            loginBtn.setVisibility(View.GONE);
+            signupBtn.setVisibility(View.GONE);
         }
     }
 

@@ -42,8 +42,7 @@ exports.CS = function (tableName) {
 		deleteCSData: function (userID, timeString, delCallback) {
 
             try {
-                if (userID === undefined || userID === null || timeString == undefined || timeString == null
-                        || delCallback === null || delCallback === undefined) {
+                if (!userID || !timeString || !delCallback) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE "
@@ -79,8 +78,7 @@ exports.CS = function (tableName) {
 
             try {
                 // perform minimal input validation
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
-                        || updateCallback == undefined || updateCallback == null) {
+                if (!dbDataObject || !dbDataObject.getUserID() || !updateCallback) {
                     return false;
                 } else {
 
@@ -120,7 +118,7 @@ exports.CS = function (tableName) {
 		getGeneralCSData: function (userID, getGenCallback) {
 
             try {
-                if (userID === null || userID === undefined || getGenCallback === undefined || getGenCallback === null) {
+                if (!userID || !getGenCallback) {
                     return false;
                 } else {
 
@@ -176,8 +174,7 @@ exports.CS = function (tableName) {
 		getSpecificCSData: function (userID, timeString, getSpecCallback) {
 
             try {
-                if (userID === undefined || userID === null || timeString === undefined || timeString == null
-                        || getSpecCallback === null || getSpecCallback === undefined) {
+                if (!userID || !timeString || !getSpecCallback) {
                     return false;
                 } else {
 
@@ -222,8 +219,7 @@ exports.CS = function (tableName) {
 		insertCSData: function(dbDataObject, insCallback)  {
 
            try {
-               if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === undefined
-                        || dbDataObject.getUserID() === null || insCallback === undefined || insCallback === null) {
+               if (!dbDataObject || !dbDataObject.getUserID() || !insCallback) {
                    return false;
                } else {
 

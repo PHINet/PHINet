@@ -42,4 +42,6 @@ public class StringConst {
     public static final String PREFS_LOGIN_USER_ID_KEY = "__USER_ID__" ;
     public static final String PREFS_LOGIN_SENSOR_ID_KEY = "__SENSOR_ID__" ;
 
+    // denotes the heartbeat sensor in SensorListActivity
+    public static final String HEARTBEAT_SENSOR = "Heartbeat Sensor";
 }

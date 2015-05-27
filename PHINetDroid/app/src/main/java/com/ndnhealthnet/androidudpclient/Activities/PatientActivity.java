@@ -35,11 +35,11 @@ import java.util.ArrayList;
  * 1. requesting and viewing patient data
  * 2. editing/saving patient information
  */
-public class PatientDataActivity extends Activity {
+public class PatientActivity extends Activity {
 
     Button backBtn, requestBtn, submitBtn, deleteBtn;
     EditText ipEditText;
-    TextView dataStatusText, nameText;
+    TextView dataStatusText, nameText, loggedInText;
     GraphView graph;
     String patientIP, patientUserID;
 
@@ -53,16 +53,22 @@ public class PatientDataActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_patientdata);
+        setContentView(R.layout.activity_patient);
+
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+        loggedInText = (TextView) findViewById(R.id.loggedInTextView);
+        loggedInText.setText(currentUserID);
 
         // use IP and ID from intent to find patient among all patients
-        patientIP = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_IP);
-        patientUserID = getIntent().getExtras().getString(GetCliBeatActivity.PATIENT_USER_ID);
+        patientIP = getIntent().getExtras().getString(PatientListActivity.PATIENT_IP);
+        patientUserID = getIntent().getExtras().getString(PatientListActivity.PATIENT_USER_ID);
 
         ArrayList<DBData> patientCacheData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(patientUserID);
 
         // textview used to notify user whether data for patient exists
-        dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
+        dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
 
         // display graph is data is present
         graph = (GraphView) findViewById(R.id.graph);
@@ -85,7 +91,7 @@ public class PatientDataActivity extends Activity {
             graph.setVisibility(View.INVISIBLE); // no data, make graph go away
         }
 
-        nameText = (TextView) findViewById(R.id.name_Text);
+        nameText = (TextView) findViewById(R.id.nameText);
         nameText.setText(patientUserID);
 
         ipEditText = (EditText) findViewById(R.id.ip_editText);
@@ -108,7 +114,7 @@ public class PatientDataActivity extends Activity {
 
                 // check before save AND notify user if invalid ip
                 if (!Utils.validIP(ipEditText.getText().toString())) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
 
                     builder.setTitle("Invalid IP entered. Submit anyways?");
 
@@ -261,8 +267,8 @@ public class PatientDataActivity extends Activity {
      * @return returns the dialog so that it can be initiated elsewhere
      */
     AlertDialog.Builder generateIntervalSelector(String title) {
-        final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(PatientDataActivity.this);
+        final DatePicker intervalSelector = new DatePicker(PatientActivity.this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
         builder.setTitle(title);
         builder.setView(intervalSelector);
 
@@ -283,7 +289,7 @@ public class PatientDataActivity extends Activity {
                     startDay = day;
 
                     // call again to get end interval
-                    final DatePicker intervalSelector = new DatePicker(PatientDataActivity.this);
+                    final DatePicker intervalSelector = new DatePicker(PatientActivity.this);
                     AlertDialog.Builder secondInterval = generateIntervalSelector(INTERVAL_TITLE_2);
                     secondInterval.setView(intervalSelector);
 

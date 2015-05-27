@@ -23,26 +23,28 @@ import java.util.ArrayList;
  * Uses include
  * 1. viewing patient data
  */
-public class ViewMyDataActivity extends Activity {
+public class MyDataActivity extends Activity {
 
     Button backBtn;
-    TextView dataStatusText;
+    TextView dataStatusText, loggedInText;
     GraphView graph;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_viewmydata);
+        setContentView(R.layout.activity_mydata);
+
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+        loggedInText = (TextView) findViewById(R.id.loggedInTextView);
+        loggedInText.setText(currentUserID);
 
         // TextView used to notify user whether data for patient exists
-        dataStatusText = (TextView) findViewById(R.id.currentDataStatus_textView);
+        dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
 
         // display graph is data is present
         graph = (GraphView) findViewById(R.id.graph);
-
-        // get user id for querying db
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
         ArrayList<DBData> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(currentUserID);
         ArrayList<Float> myFloatData;

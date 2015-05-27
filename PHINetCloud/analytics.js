@@ -18,9 +18,14 @@ exports.analytics = function() {
          */
         mean : function(data) {
 
-            var vector = new gauss.vector(data);
+            if (data) {
+                var vector = new gauss.Vector(data);
 
-            return vector.mean();
+                return vector.mean();
+            } else {
+
+                throw "!!Error: analytics.mean() input is invalid.";
+            }
         },
 
         /**
@@ -31,9 +36,14 @@ exports.analytics = function() {
          */
         mode : function(data) {
 
-            var vector = new gauss.vector(data);
+            if (data) {
+                var vector = new gauss.Vector(data);
 
-            return vector.mode();
+                return vector.mode();
+
+            } else {
+                throw "!!Error: analytics.mode() input is invalid.";
+            }
         },
 
         /**
@@ -43,9 +53,14 @@ exports.analytics = function() {
          * @returns real valued median
          */
         median: function(data) {
-            var vector = new gauss.vector(data);
 
-            return vector.median();
+            if (data) {
+                var vector = new gauss.Vector(data);
+
+                return vector.median();
+            } else {
+                throw "!!Error: analytics.median() input is invalid";
+            }
         }
     }
 };

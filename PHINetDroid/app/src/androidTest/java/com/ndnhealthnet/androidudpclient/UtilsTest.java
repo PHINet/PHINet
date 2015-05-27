@@ -46,7 +46,7 @@ public class UtilsTest extends TestCase {
         assertFalse(Utils.saveToPrefs(null, null, null));
 
         // test bad key input
-        assertFalse(Utils.saveToPrefs(context,"bad key", "sensorid_test"));
+        assertFalse(Utils.saveToPrefs(context, "bad key", "sensorid_test"));
 
         // test good input
         assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "sensorid_test"));
@@ -100,5 +100,43 @@ public class UtilsTest extends TestCase {
 
         // test good IP input
         assertTrue(Utils.validIP("10.10.10.10"));
+    }
+
+    /**
+     *
+     * @throws Exception for failed tests
+     */
+    public void testIsValidForTimeInterval() throws Exception {
+
+        final String goodRequestInterval = "2012-05-04T08:08:08.888||2014-05-04T08:08:08.888";
+        final String badRequestInterval = "2012-ERROR:08.888||2014-ERROR8:08.888";
+
+        final String goodDataInterval1 = "2012-07-04T08:08:08.888"; // date is within goodRequestInterval
+        final String goodDataInterval2 = "2012-01-04T08:08:08.888"; // date is before goodRequestInterval
+        final String goodDataInterval3 = "2014-07-04T08:08:08.888"; // date is after goodRequestInterval
+
+        final String testInterval1 = "2015-02-22T00:00:00.000||2015-04-22T00:00:00.000";
+        final String dataTime1 = "2015-03-22T22:58:10.878";
+
+        // --- test bad input ---
+        assertFalse(Utils.isValidForTimeInterval(null, null)); // null entries
+
+        // syntax error in request interval
+        assertFalse(Utils.isValidForTimeInterval(badRequestInterval, goodDataInterval1));
+
+        // two data intervals and no request interval
+        assertFalse(Utils.isValidForTimeInterval(goodDataInterval1, goodDataInterval1));
+
+        // --- test bad input ---
+
+        // test input rejection if before interval
+        assertFalse(Utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval2));
+
+        // test input rejection if after interval
+        assertFalse(Utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval3));
+
+        // test input acceptance if during interval
+        assertTrue(Utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
+        assertTrue(Utils.isValidForTimeInterval(testInterval1, dataTime1));
     }
 }

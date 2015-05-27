@@ -7,21 +7,27 @@ var DataPacket = require('./datapacket'); // used to create objects that constru
 var DBData = require('./data'); // used to create objects used by the database
 var StringConst = require('./string_const').StringConst;
 
-var PIT = require('./pit').PIT(StringConst.PIT_DB); // PendingInterestTable database module
-var FIB = require('./fib').FIB(StringConst.FIB_DB); // ForwardingInformationBBase database module
-var CS = require('./cs').CS(StringConst.CS_DB); // ContentStore database module
+var PIT, FIB, CS;
 
-var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var dgram = require("dgram"); // Node.js udp socket module
 var socket = dgram.createSocket('udp4');
 
+var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
 var myUserID = "CLOUD-SERVER"; // TODO - rework to find standard ID for server
 
 /**
  * Returns object that handles majority of UDP communication.
+ *
+ * @param PIT_STRING - used by PIT to query correct database (test or non-test DB)
+ * @param FIB_STRING - used by FIB to query correct database (test or non-test DB)
+ * @param CS_STRING - used by CS to query correct database (test or non-test DB)
  */
-exports.UDPComm = function() {
+exports.UDPComm = function(PIT_STRING, FIB_STRING, CS_STRING) {
+
+    PIT = require('./pit').PIT(PIT_STRING); // PendingInterestTable database module
+    FIB = require('./fib').FIB(FIB_STRING); // ForwardingInformationBase database module
+    CS = require('./cs').CS(CS_STRING); // ContentStore database module
 
 	return {
 
@@ -150,33 +156,42 @@ exports.UDPComm = function() {
          */
         handleInterestFIBRequest: function (packetUserID, packetSensorID, packetIP, packetPort)
         {
-            FIB.getAllFIBData(function(rowsTouched, allFIBData) {
+            if (!packetUserID || !packetSensorID || !packetIP || !packetPort) {
+                return false;
+            } else {
 
-                if (allFIBData === null || allFIBData.length === 0) {
+                FIB.getAllFIBData(function(rowsTouched, allFIBData) {
 
-                    // shouldn't be empty; client connects to server (i.e., enter server's FIB) before requesting data
-                    throw "!!Error: FIB was empty!";
+                    if (allFIBData === null || allFIBData.length === 0) {
 
-                } else {
+                        // shouldn't be empty; client connects to server (i.e., enter server's FIB) before requesting data
+                        return false;
 
-                    for (var i = 0; i < allFIBData.length; i++) {
+                    } else {
 
-                        // don't send requester node its own data; check first
-                        if (allFIBData[i].ipAddr !== packetIP) {
+                        var fibContent = "";
 
-                            // content returned in format: "userID,userIP"
-                            var fibContent = allFIBData[i].userID + "," + allFIBData[i].ipAddr;
+                        for (var i = 0; i < allFIBData.length; i++) {
 
-                            // TODO - use real time string
-                            var dataPacket = DataPacket.DataPacket();
-                            dataPacket.DataPacket(myUserID, mySensorID,
-                                StringConst.CURRENT_TIME,  StringConst.DATA_FIB, fibContent);
+                            // don't send requester node its own data; check first
+                            if (allFIBData[i].ipAddr !== packetIP) {
 
-                            this.sendMessage(dataPacket.toString(), packetIP, packetPort); // send interest packet
+                                // FIB entry syntax: "userID,userIP++"
+                                fibContent +=  allFIBData[i].userID + "," + allFIBData[i].ipAddr + "++";
+                            }
                         }
+
+                        // create DATA packet and send entire FIB as single unit
+                        var dataPacket = DataPacket.DataPacket();
+                        dataPacket.DataPacket(myUserID, mySensorID,
+                            StringConst.CURRENT_TIME,  StringConst.DATA_FIB, fibContent);
+
+                        this.sendMessage(dataPacket.toString(), packetIP, packetPort); // send interest packet
+
+                        return true;
                     }
-                }
-            });
+                });
+            }
         },
 
         /**
@@ -200,11 +215,12 @@ exports.UDPComm = function() {
             CS.getGeneralCSData(packetUserID, function(rowsTouched, csQueryResults) {
 
                 // data was in cache; send to requester
-                if (csQueryResults !== null) {
+                if (csQueryResults) {
 
                     for (var i = 0; i < csQueryResults.length; i++) {
 
-                        // TODO - again, rework with specific date once TIME_STRING valid; remove loop and send segment
+                        // TODO - again, rework with specific date once TIME_STRING valid;
+                        // TODO - remove loop and send as single unit
 
                         var dataPacket = DataPacket.DataPacket();
                         dataPacket.DataPacket(csQueryResults[i].getUserID(), csQueryResults[i].getSensorID(),
@@ -222,7 +238,7 @@ exports.UDPComm = function() {
                     PIT.getGeneralPITData(packetUserID, packetIP, function(rowsTouched, queryResults) {
 
                         // query returned NULL: no INTEREST sent yet; do so now
-                        if (rowsTouched === null || queryResults === null) {
+                        if (!rowsTouched || !queryResults) {
 
                             // add new request to PIT, then look into FIB before sending request
                             var newPITEntry = DBData.DATA();
@@ -247,7 +263,8 @@ exports.UDPComm = function() {
                                             interestPacket.InterestPacket(packetUserID, packetSensorID,
                                                 packetTimeString,  packetProcessID);
 
-                                            this.sendMessage(interestPacket.toString(), allFIBData[i].ipAddr, NDN_SENSOR_NET_PORT); // send interest packet
+                                            // ask for data from nodes in FIB via INTEREST packet
+                                            this.sendMessage(interestPacket.toString(), allFIBData[i].ipAddr, NDN_SENSOR_NET_PORT);
                                         }
                                     }
                                 }
@@ -311,7 +328,7 @@ exports.UDPComm = function() {
                 afterEndDate = dataDate > endDate; // test if dataDate is after endDate
 
             } catch  (e) {
-                console.log(e);
+                console.log("!!Error when assessing validity of time interval: " + e);
                 return false; // some problem occurred, default return is false
             }
 
@@ -398,7 +415,6 @@ exports.UDPComm = function() {
          * Method handles incoming FIB data: if user data stored, it updates; otherwise, it inserts.
          *
          * @param packetFloatContent contents of FIB Data packet (i.e., "userID,userIP" string)
-         * @return boolean - true if a packet sent, false otherwise (true indicates valid input; useful during testing)
          */
         handleFIBData: function (packetFloatContent) {
             // expected format: "userID,userIP"
@@ -436,7 +452,6 @@ exports.UDPComm = function() {
          * @param packetProcessID processID associated with incoming Data packet
          * @param packetFloatContent contents of incoming Data packet
          * @param allValidPITEntries ArrayList of all PIT entries requesting this data
-         * @return boolean - true if a packet sent, false otherwise (true indicates valid input; useful during testing)
          */
         handleCacheData: function (packetUserID, packetSensorID, packetTimeString,
                                   packetProcessID, packetFloatContent, allValidPITEntries) {
@@ -467,19 +482,15 @@ exports.UDPComm = function() {
 
                 require('dns').lookup(require('os').hostname(), function (err, myIPAddress, fam) {
 
-                    if (allValidPITEntries[i].ipAddr === myIPAddress) {
-                        // this device requested the data, notify
-                        // TODO - notify of reception of requested data
+                    // a device other than this requested the DATA
+                    if (allValidPITEntries[i].ipAddr !== myIPAddress) {
 
-                    } else {
-
-                        // NOTE: params list = Context context, timeString, processID, content
                         var dataPacket = DataPacket.DataPacket();
                         dataPacket.DataPacket(packetUserID,
                             packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
 
-                        this.sendMessage(dataPacket.toString(), allValidPITEntries[i].ipAddr, NDN_SENSOR_NET_PORT); // send DATA packet
-                        this.sendMessage(dataPacket.toString(), allValidPITEntries[i].ipAddr, NDN_SENSOR_NET_PORT); // send DATA packet
+                        // send DATA packet to node that requested it
+                        this.sendMessage(dataPacket.toString(), allValidPITEntries[i].ipAddr, NDN_SENSOR_NET_PORT);
                     }
                 });
             }

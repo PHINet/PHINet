@@ -36,7 +36,7 @@ public class RecordHeartbeatActivity extends Activity {
     private static SurfaceHolder previewHolder = null;
     private static Camera camera = null;
     private static View image = null;
-    private static TextView text = null;
+    private static TextView text = null, loggedinText;
 
     private static WakeLock wakeLock = null;
 
@@ -63,13 +63,23 @@ public class RecordHeartbeatActivity extends Activity {
     Button backBtn, recordBtn;
     
     /**
-     * {@inheritDoc}
+     * TODO - document
      */
     @SuppressWarnings("deprecation")
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recordbeat);
+
+        // --- place username on screen ---
+
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+        loggedinText = (TextView) findViewById(R.id.loggedInTextView);
+        loggedinText.setText(currentUserID);
+
+        // --- place username on screen ---
 
         preview = (SurfaceView) findViewById(R.id.preview);
         previewHolder = preview.getHolder();
@@ -137,7 +147,7 @@ public class RecordHeartbeatActivity extends Activity {
     }
 
     /**
-     * {@inheritDoc}
+     * TODO - document
      */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -145,7 +155,7 @@ public class RecordHeartbeatActivity extends Activity {
     }
 
     /**
-     * {@inheritDoc}
+     * TODO - document
      */
     @Override
     public void onResume() {
@@ -159,7 +169,7 @@ public class RecordHeartbeatActivity extends Activity {
     }
 
     /**
-     * {@inheritDoc}
+     * TODO - document
      */
     @Override
     public void onPause() {
@@ -173,6 +183,9 @@ public class RecordHeartbeatActivity extends Activity {
         camera = null;
     }
 
+    /**
+     * TODO - document
+     */
     private static PreviewCallback previewCallback = new PreviewCallback() {
 
         /**
@@ -266,7 +279,7 @@ public class RecordHeartbeatActivity extends Activity {
     private static SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
 
         /**
-         * {@inheritDoc}
+         * TODO - document
          */
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
@@ -279,7 +292,7 @@ public class RecordHeartbeatActivity extends Activity {
         }
 
         /**
-         * {@inheritDoc}
+         * TODO - document
          */
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -295,7 +308,7 @@ public class RecordHeartbeatActivity extends Activity {
         }
 
         /**
-         * {@inheritDoc}
+         * TODO - document
          */
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {

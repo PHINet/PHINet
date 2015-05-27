@@ -6,7 +6,7 @@
 var StringConst = require('./string_const').StringConst; // TODO - document
 var cookieParser = require('cookie-parser'); // TODO - document
 var express = require('express'); // TODO - document
-var udp_comm = require('./udp_comm').UDPComm(); // TODO - document
+var udp_comm = require('./udp_comm').UDPComm(StringConst.PIT_DB, StringConst.FIB_DB, StringConst.CS_DB); // TODO - document
 var http = require('http'); // TODO - document
 var ejs = require('ejs'); // TODO - document
 var fs = require('fs'); // TODO - document
@@ -236,56 +236,72 @@ app.get('*', function(req, res){
  */
 app.post('/loginAction', function(req, res) {
 
-     LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
+    if (!req.body.user_name || !req.body.user_password) {
 
-         var userAlreadyExists = rowsTouched === 1;
-         var passwordMatched;
+        // notify user of unsuccessful login
+        fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving login.html: " + err);
+            } else {
 
-         if (queryResults === null) {
-             passwordMatched = false; // user doesn't exist; passwords cannot match
-         } else {
-             passwordMatched = queryResults.getPassword() === req.body.user_password;
-         }
+                var renderedHtml = ejs.render(content, {error: "Login unsuccessful: provide all input.", user:""});
 
-        // checks to see if user already exists and password matches
-        if (userAlreadyExists && passwordMatched) {
+                res.send(renderedHtml);
+            }
+        });
 
-            // notify user of successful login
-            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                if (err) {
-                    console.log("Error serving index.html: " + err);
-                } else {
+    } else {
+        LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
 
-                    // TODO - improve on cookie use
-                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+            var userAlreadyExists = rowsTouched === 1;
+            var passwordMatched;
 
-                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                    res.send(renderedHtml);
-                }
-            });
+            if (queryResults === null) {
+                passwordMatched = false; // user doesn't exist; passwords cannot match
+            } else {
+                passwordMatched = queryResults.getPassword() === req.body.user_password;
+            }
 
-        } else {
+            // checks to see if user already exists and password matches
+            if (userAlreadyExists && passwordMatched) {
 
-            // notify user of unsuccessful login
-            fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
-                if (err) {
-                    console.log("Error serving login.html: " + err);
-                } else {
-
-                    var renderedHtml;
-                    if (userAlreadyExists && !passwordMatched) {
-                         renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+                // notify user of successful login
+                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                    if (err) {
+                        console.log("Error serving index.html: " + err);
                     } else {
 
-                        // only remaining option: user does not exist
-                        renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
-                    }
+                        // TODO - improve on cookie use
+                        res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
 
-                    res.send(renderedHtml);
-                }
-            });
-        }
-    });
+                        var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                        res.send(renderedHtml);
+                    }
+                });
+
+            } else {
+
+                // notify user of unsuccessful login
+                fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                    if (err) {
+                        console.log("Error serving login.html: " + err);
+                    } else {
+
+                        var renderedHtml;
+                        if (userAlreadyExists && !passwordMatched) {
+                            renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+                        } else {
+
+                            // only remaining option: user does not exist
+                            renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
+                        }
+
+                        res.send(renderedHtml);
+                    }
+                });
+            }
+        });
+    }
 });
 
 /**
@@ -293,64 +309,85 @@ app.post('/loginAction', function(req, res) {
  */
 app.post('/registerAction', function(req, res) {
 
-    // check that passwords match
-    if (req.body.user_password[0] === req.body.user_password[1]) {
-
-        // TODO - perform input validation on email, password, name, and entity
-
-        var userType = "";
-        if (req.body.user_type === 'p') {
-            userType = StringConst.PATIENT_ENTITY;
-        } else {
-
-            // only valid type remaining is DOCTOR
-            userType = StringConst.DOCTOR_ENTITY;
-        }
-
-        LoginDB.insertNewUser(req.body.user_name, req.body.user_password[0], req.body.user_email, userType,
-
-            function(rowsTouched) {
-
-                if (rowsTouched === 1) {
-
-                    // notify user of successful register
-                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                        if (err) {
-                            console.log("Error serving index.html: " + err);
-                        } else {
-
-                            // TODO - improve on cookie use
-                            res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
-
-                            var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                            res.send(renderedHtml);
-                        }
-                    })
-                } else {
-
-                    // notify user of bad input
-                    fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-                        if (err) {
-                            console.log("Error serving signup.html: " + err);
-                        } else {
-                            var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
-                            res.send(renderedHtml);
-                        }
-                    })
-                }
-        });
-
-    } else {
-
-        // notify user of password mismatch
+    if (!req.body.user_password || !req.body.user_name || !req.body.user_type) {
+        // notify user of unsuccessful login
         fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
             if (err) {
-                console.log("Error serving signup.html: " + err);
+                console.log("Error serving login.html: " + err);
             } else {
-                var renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
+
+                var renderedHtml = ejs.render(content, {error: "Register unsuccessful: provide all input.", user:""});
+
                 res.send(renderedHtml);
             }
-        })
+        });
+    } else {
+        // check that passwords match and enforce five character PW
+        if (req.body.user_password[0] === req.body.user_password[1] && req.body.user_password[0].length > 5) {
+
+            // TODO - perform input validation on email, password, name, and entity
+
+            var userType = "";
+            if (req.body.user_type === 'p') {
+                userType = StringConst.PATIENT_ENTITY;
+            } else {
+
+                // only valid type remaining is DOCTOR
+                userType = StringConst.DOCTOR_ENTITY;
+            }
+
+            if (!req.body.user_email) {
+                req.body.user_email = "null"; // email not provided; list as null
+            }
+
+            LoginDB.insertNewUser(req.body.user_name, req.body.user_password[0], req.body.user_email, userType,
+
+                function(rowsTouched) {
+
+                    if (rowsTouched === 1) {
+
+                        // notify user of successful register
+                        fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                            if (err) {
+                                console.log("Error serving index.html: " + err);
+                            } else {
+
+                                // TODO - improve on cookie use
+                                res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+
+                                var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                                res.send(renderedHtml);
+                            }
+                        })
+                    } else {
+
+                        // notify user of bad input
+                        fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                            if (err) {
+                                console.log("Error serving signup.html: " + err);
+                            } else {
+                                var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
+                                res.send(renderedHtml);
+                            }
+                        })
+                    }
+                });
+
+        } else {
+
+            // notify user of password mismatch
+            fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving signup.html: " + err);
+                } else if (req.body.user_password[0] !== req.body.user_password[1]) {
+                    var renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
+                    res.send(renderedHtml);
+                } else {
+                    var renderedHtml = ejs.render(content, {user: "", error: "Minimum password length is 5 characters."});
+                    res.send(renderedHtml);
+                }
+            })
+        }
     }
 });
 

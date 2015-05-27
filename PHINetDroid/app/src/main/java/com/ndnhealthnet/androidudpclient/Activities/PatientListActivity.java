@@ -27,12 +27,12 @@ import java.util.ArrayList;
  * 1. add new patient
  * 2. select patient and move to activity where modification/data-requests are possible
  */
-public class GetCliBeatActivity extends ListActivity {
+public class PatientListActivity extends ListActivity {
 
     Button backBtn;
     Button addNewPatientBtn;
     private String[] patientInputString;
-    TextView emptyListTextView;
+    TextView emptyListTextView, loggedInText;
 
     // used to identify intent-data
     final static String PATIENT_IP = "PATIENT_IP";
@@ -48,7 +48,13 @@ public class GetCliBeatActivity extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_getclibeat);
+        setContentView(R.layout.activity_patientlist);
+
+        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+        loggedInText = (TextView) findViewById(R.id.loggedInTextView);
+        loggedInText.setText(currentUserID); // place username on screen
 
         ArrayList<DBData> patientList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
         if (patientList == null) {
@@ -67,7 +73,7 @@ public class GetCliBeatActivity extends ListActivity {
         }
 
         /** Returns to MainActivity **/
-        backBtn = (Button) findViewById(R.id.getCliBeatBackBtn);
+        backBtn = (Button) findViewById(R.id.backBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 finish();
@@ -78,8 +84,8 @@ public class GetCliBeatActivity extends ListActivity {
         addNewPatientBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                final EditText patientInput = new EditText(GetCliBeatActivity.this);
-                final AlertDialog.Builder builder = new AlertDialog.Builder(GetCliBeatActivity.this);
+                final EditText patientInput = new EditText(PatientListActivity.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(PatientListActivity.this);
                 builder.setTitle("Input Format (IP is optional): 'IP,Name'");
                 builder.setView(patientInput);
 
@@ -151,7 +157,7 @@ public class GetCliBeatActivity extends ListActivity {
                             adapter.notifyDataSetChanged();
                             emptyListTextView.setVisibility(View.GONE); // hide "no patients" text
                         } else {
-                            Toast toast = Toast.makeText(GetCliBeatActivity.this,
+                            Toast toast = Toast.makeText(PatientListActivity.this,
                                     "Invalid IP or name length (3-15 characters).", Toast.LENGTH_LONG);
                             toast.show();
                         }
@@ -197,21 +203,21 @@ public class GetCliBeatActivity extends ListActivity {
             final DBData dbData = listData.get(position);
 
             // creates individual button in ListView for each patient
-            Button patientButton = (Button)convertView.findViewById(R.id.list_patientButton);
+            Button patientButton = (Button)convertView.findViewById(R.id.listPatientButton);
             patientButton.setText("IP: "  + dbData.getIpAddr() + "\nName: "+ dbData.getUserID());
             patientButton.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
 
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(GetCliBeatActivity.this);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(PatientListActivity.this);
                     builder.setTitle("Go to patient page?");
 
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            Intent intent = new Intent(GetCliBeatActivity.this, PatientDataActivity.class);
+                            Intent intent = new Intent(PatientListActivity.this, PatientActivity.class);
 
                             // through intent, pass patient information to activity
                             intent.putExtra(PATIENT_IP, dbData.getIpAddr());

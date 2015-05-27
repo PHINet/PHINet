@@ -44,6 +44,14 @@
         </activity>
         <activity
             android:name=".Activities.RecordHeartbeatActivity"
+            android:parentActivityName=".Activities.SensorListActivity"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.LoginActivity"
             android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
@@ -51,7 +59,7 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".Activities.ConfigNetLinksActivity"
+            android:name=".Activities.MyDataActivity"
             android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
@@ -59,7 +67,7 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".Activities.ViewMyDataActivity"
+            android:name=".Activities.SignupActivity"
             android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
@@ -67,7 +75,7 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".Activities.UserCredentialActivity"
+            android:name=".Activities.SensorListActivity"
             android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
@@ -75,13 +83,21 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".Activities.PatientDataActivity"
-            android:parentActivityName=".Activities.GetCliBeatActivity"
+            android:name=".Activities.PatientActivity"
+            android:parentActivityName=".Activities.PatientListActivity"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".Activities.GetCliBeatActivity"
+            android:name=".Activities.PatientListActivity"
             android:parentActivityName=".Activities.MainActivity"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.SensorSettingsActivity"
+            android:parentActivityName=".Activities.SensorListActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

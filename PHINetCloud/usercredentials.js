@@ -45,8 +45,7 @@ exports.LoginCredentials = function (tableName) {
         insertNewUser: function(userID, password, email, entityType, insCallback) {
 
             try {
-                if (userID === undefined || userID === null || password == undefined || password == null
-                        || email === undefined || email === null || entityType === undefined || entityType === null) {
+                if (!userID || !password  || !email || !entityType || !insCallback) {
                     return false;
                 } else {
 
@@ -89,7 +88,7 @@ exports.LoginCredentials = function (tableName) {
         getUser: function(userID, getCallback) {
 
             try {
-                if (userID === undefined || userID === null || getCallback === null || getCallback === undefined) {
+                if (!userID === undefined || !getCallback) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
@@ -138,8 +137,7 @@ exports.LoginCredentials = function (tableName) {
         updateUser: function(userID, password, email, entityType, updateCallback) {
 
             try {
-                if (userID === undefined || userID === null || password == undefined || password == null
-                    || email === undefined || email === null || entityType === undefined || entityType === null) {
+                if (!userID || !password || !email || !entityType || !updateCallback) {
                     return false;
                 } else {
 
@@ -182,7 +180,7 @@ exports.LoginCredentials = function (tableName) {
         deleteUser: function(userID, delCallback) {
 
             try {
-                if (userID === undefined || userID === null) {
+                if (!userID || !delCallback) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID

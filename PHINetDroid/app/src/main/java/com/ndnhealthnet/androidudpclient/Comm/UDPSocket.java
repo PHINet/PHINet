@@ -30,11 +30,17 @@ public class UDPSocket extends AsyncTask<String, Void, Void> {
 
         try {
             final DatagramSocket clientSocket = new DatagramSocket();
+
+            System.out.println("dest addr: " + destAddr);
+
             InetAddress IPAddress = InetAddress.getByName(destAddr);
             byte[] sendData = message[0].getBytes();
 
             // NOTE: temporary debugging print
             System.out.println("sent packet: " + message[0]);
+            System.out.println("IPADDR: " + IPAddress);
+            System.out.println("port: " + destPort);
+
 
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);

@@ -9,16 +9,25 @@
     android:weightSum="1">
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text=""
+        android:textStyle="bold"
+        android:id="@+id/loggedInTextView"
+        android:layout_margin="5dp" />
+
+    <TextView
         android:id="@+id/titleBar"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="20dp"
-        android:text="@string/patientDataTitle"
+        android:text="@string/patientData"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#000000"
         android:textStyle="bold"
-        android:textSize="25dp" />
+        android:textSize="25sp" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -32,18 +41,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Name: "
+            android:text="@string/userName"
             android:layout_margin="10dp"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:id="@+id/name_textView" />
+            android:id="@+id/nameTextView" />
 
         <TextView
             android:layout_width="251dp"
             android:layout_height="match_parent"
-            android:id="@+id/name_Text"
-            android:text="sample"
-            android:textSize="25dp" />
+            android:id="@+id/nameText"
+            android:text=""
+            android:textSize="25sp" />
 
     </LinearLayout>
 
@@ -59,7 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="IP: "
+            android:text="@string/ip"
             android:layout_margin="10dp"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -69,8 +78,9 @@
             android:layout_width="252dp"
             android:layout_height="match_parent"
             android:id="@+id/ip_editText"
-            android:gravity="right"
-            android:layout_marginLeft="35dp" />
+            android:gravity="end"
+            android:layout_marginLeft="35dp"
+            android:layout_marginStart="35dp" />
 
     </LinearLayout>
 
@@ -86,11 +96,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Data Status: "
+            android:text="@string/dataStatus"
             android:layout_margin="10dp"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:id="@+id/datastatus_textView" />
+            android:id="@+id/dataStatusTextView" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -99,20 +109,17 @@
             android:text=""
             android:layout_margin="10dp"
             android:textSize="20sp"
-            android:id="@+id/currentDataStatus_textView" />
+            android:id="@+id/currentDataStatusTextView" />
 
     </LinearLayout>
 
-
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"
-        android:layout_height="145dp"
+        android:layout_height="0dp"
         android:background="@color/white"
         android:id="@+id/graph"
         android:layout_margin="10dp"
         android:layout_weight="0.89" />
-
-
 
     <LinearLayout
         android:orientation="horizontal"
@@ -124,7 +131,7 @@
             android:id="@+id/patientDataRequestBtn"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
-            android:text="Request Data"
+            android:text="@string/requestData"
             android:background="@drawable/black_button"
             style="@style/button_text"
             android:textSize="20sp" />
@@ -133,13 +140,11 @@
             android:id="@+id/patientDataSubmitBtn"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
-            android:text="Save Changes"
+            android:text="@string/saveChanges"
             android:background="@drawable/black_button"
             style="@style/button_text"
             android:textSize="20sp" />
-
     </LinearLayout>
-
 
     <LinearLayout
         android:orientation="horizontal"
@@ -151,7 +156,7 @@
             android:id="@+id/deletePatientBtn"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
-            android:text="Delete Patient"
+            android:text="@string/deletePatient"
             android:background="@drawable/black_button"
             style="@style/button_text"
             android:layout_gravity="center|bottom"
@@ -161,14 +166,11 @@
             android:id="@+id/patientDataBackBtn"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
-            android:text="@string/backBtnText"
+            android:text="@string/backBtn"
             android:background="@drawable/black_button"
             style="@style/button_text"
             android:layout_gravity="center|bottom"
             android:textSize="20sp" />
 
     </LinearLayout>
-
-
-
 </LinearLayout>

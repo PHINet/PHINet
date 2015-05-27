@@ -43,8 +43,7 @@ exports.PIT = function (tableName) {
         deletePITData: function (userID, timeString, ipAddr, delCallback) {
 
             try {
-                if (userID === undefined || userID === null || timeString === undefined || timeString === null ||
-                        ipAddr === undefined || ipAddr === null || delCallback === undefined || delCallback === null) {
+                if (!userID || !timeString || !ipAddr || !delCallback) {
                     return false;
                 } else {
                     client.query( "DELETE FROM " + dbName + " WHERE "
@@ -80,8 +79,7 @@ exports.PIT = function (tableName) {
 		updatePITData: function (dbDataObject, updateCallback) {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
-                        || updateCallback === null || updateCallback === undefined) {
+                if (!dbDataObject || !updateCallback) {
 
                     return false;
                 } else {
@@ -125,8 +123,7 @@ exports.PIT = function (tableName) {
 		getGeneralPITData: function (userID, ipAddr, getGenCallback) {
 
             try {
-                if (userID === null || userID === undefined || ipAddr === null || ipAddr == undefined
-                        || getGenCallback === null || getGenCallback === undefined) {
+                if (!userID || !ipAddr || !getGenCallback) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID +
@@ -183,9 +180,7 @@ exports.PIT = function (tableName) {
         getSpecificPITData: function(userID, timeString, ipAddr, getSpecCallback) {
 
             try {
-                if (userID === undefined || userID === null || timeString === undefined || timeString == null
-                        || ipAddr === undefined || ipAddr === null || getSpecCallback === null
-                        || getSpecCallback === undefined) {
+                if (!userID || !timeString || !ipAddr || !getSpecCallback) {
                     return false;
                 } else {
 
@@ -234,8 +229,7 @@ exports.PIT = function (tableName) {
 		insertPITData: function(dbDataObject, insCallback)  {
 
             try {
-                if (dbDataObject === null || dbDataObject === undefined || dbDataObject.getUserID() === null
-                        || insCallback === null || insCallback === undefined) {
+                if (!dbDataObject || !dbDataObject.getUserID() || !insCallback) {
                     return false;
                 } else {
                     client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID

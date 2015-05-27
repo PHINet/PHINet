@@ -14,21 +14,11 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:layout_margin="20dp"
-    android:text="@string/userCredentialText"
+    android:text="@string/login"
     android:textAppearance="?android:attr/textAppearanceMedium"
     android:textColor="#000000"
     android:textStyle="bold"
-        android:textSize="30dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/userCredentialInfoText"
-        android:id="@+id/credentialInfo_textView"
-        android:layout_margin="10dp"
-        android:textStyle="bold"
-        android:textSize="25dp" />
+    android:textSize="30sp" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -42,20 +32,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="User ID: "
+            android:text="@string/userName"
             android:layout_margin="10dp"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:id="@+id/userid_textView" />
-
-
+            android:id="@+id/usernameTextView" />
 
         <EditText
             android:layout_width="190dp"
             android:layout_height="match_parent"
-            android:id="@+id/userid_editText"
-            android:gravity="right"
-            android:layout_marginLeft="58dp" />
+            android:id="@+id/usernameEditText"
+            android:gravity="end"
+            android:layout_marginLeft="28dp"
+            android:layout_marginStart="28dp"/>
 
     </LinearLayout>
 
@@ -65,33 +54,46 @@
         android:background="@color/background"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:weightSum="1"
-        android:layout_marginBottom="5dp">
+        android:weightSum="1">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Sensor ID: "
+            android:text="@string/password"
             android:layout_margin="10dp"
-            android:textSize="20sp"
             android:textStyle="bold"
-            android:id="@+id/sensorid_textView" />
+            android:textSize="20sp"
+            android:id="@+id/passwordTextView" />
 
         <EditText
             android:layout_width="190dp"
             android:layout_height="match_parent"
-            android:id="@+id/sensorid_editText"
-            android:gravity="right"
-            android:layout_marginLeft="35dp" />
+            android:id="@+id/passwordEditText"
+            android:gravity="end"
+            android:inputType="textPassword"
+            android:layout_marginLeft="38dp"
+            android:layout_marginStart="38dp"/>
 
     </LinearLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text=""
+        android:layout_margin="10dp"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:id="@+id/inputErrorTextView"
+        android:textIsSelectable="true"
+        android:textColor="@color/orange" />
+
     <Button
-        android:id="@+id/credentialSaveBtn"
+        android:id="@+id/loginSubmitBtn"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:text="Save"
+        android:text="@string/login"
         android:background="@drawable/black_button"
         style="@style/button_text"
         android:layout_gravity="center|bottom"
@@ -99,10 +101,10 @@
         android:layout_marginTop="20dp" />
 
     <Button
-        android:id="@+id/credentialBackBtn"
+        android:id="@+id/loginBackBtn"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:text="@string/backBtnText"
+        android:text="@string/backBtn"
         android:background="@drawable/black_button"
         style="@style/button_text"
         android:layout_gravity="center|bottom"

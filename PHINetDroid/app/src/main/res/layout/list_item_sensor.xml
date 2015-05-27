@@ -4,7 +4,7 @@
     android:layout_height="wrap_content" >
 
     <Button
-        android:id="@+id/listPatientButton"
+        android:id="@+id/listSensorButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -12,6 +12,6 @@
         android:layout_alignParentTop="true"
         android:background="@drawable/black_button"
         style="@style/button_text"
-        android:textSize="18sp" />
+        android:textSize="24sp" />
 
 </RelativeLayout>

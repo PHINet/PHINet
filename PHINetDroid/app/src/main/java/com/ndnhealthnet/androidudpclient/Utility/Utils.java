@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 
 import java.net.InetAddress;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -125,5 +126,89 @@ public class Utils {
 
             return validIP;
         }
+    }
+
+    /**
+     * Method returns true if the data interval is within request interval
+     *
+     * @param requestInterval a request interval; necessarily must contain two times (start and end)
+     * @param dataInterval the time stamp on specific data
+     * @return determination of whether dataInterval is within requestInterval
+     */
+    static public boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
+
+        if (requestInterval == null || dataInterval == null) {
+            return false; // reject bad input
+        }
+
+        String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
+
+        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS"
+        // the former is start interval, latter is end interval
+
+        boolean beforeStartDate = false;
+        boolean afterEndDate = false;
+
+        Date startDate, endDate, dataDate;
+
+        try {
+            // replace "T" with empty char "", so that comparison is easier
+            requestIntervals[0] = requestIntervals[0].replace("T", " ");
+            requestIntervals[1] = requestIntervals[1].replace("T", " ");
+            dataInterval = dataInterval.replace("T", " ");
+
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+            startDate = df.parse(requestIntervals[0]);
+            endDate = df.parse(requestIntervals[1]);
+            dataDate = df.parse(dataInterval);
+
+            beforeStartDate = dataDate.before(startDate);
+            afterEndDate = dataDate.after(endDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // some problem occurred, default return is false
+        }
+
+        // if dataInterval is not before start and not after end, then its with interval
+        return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataInterval)
+                || requestIntervals[1].equals(dataInterval);
+    }
+
+    /**
+     * // TODO - test
+     *
+     * attempts to determine whether userID input is valid
+     *
+     * TODO - define correct pw syntax & user regular expressions
+     *
+     * @param userID input to have validity assessed
+     * @return boolean regarding validity of input
+     */
+    public static boolean validInputUserName(String userID) {
+        // TODO - perform sophisticated input validation
+
+        return userID.length() > 5 && userID.length() < 15;
+    }
+
+    /**
+     * TODO - test
+     *
+     * attempts to determine whether password is valid
+     *
+     * TODO - define correct pw syntax  & user regular expressions
+     *
+     * @param sensorID input to have validity assessed
+     * @return boolean regarding validity of input
+     */
+    public static boolean validInputPassword(String sensorID) {
+
+
+  /*      for (int i = 0; i < sensorID.length(); i++) {
+            allDigits &= Character.isDigit(sensorID.charAt(i));
+        }
+*/
+        return sensorID.length() >= 3;
     }
 }
