@@ -12,6 +12,7 @@
     <string name="myData">My Data</string>
     <string name="patients">Patients</string>
     <string name="patientData">Patient Data</string>
+    <string name="packets">Packets</string>
 
     <string name="userName">User Name: </string>
     <string name="password">Password: </string>
@@ -37,11 +38,12 @@
     <string name="record">Record</string>
     <string name="sensorConnect">Connect Sensor</string>
     <string name="deleteSensor">Delete Sensor</string>
+    <string name="viewPackets">View Packets</string>
 
     <string name="initialText">You must login/signup before accessing other features.</string>
 
-    <string name="notifyTesting">For testing: </string>
     <string name="patientNotifier">For patients: </string>
     <string name="doctorNotifier">For doctors: </string>
     <string name="noPatientNotifier">You have no patients.\nAdd one now.</string>
+    <string name="noPacketNotifier">You haven\'t exchanged\nany packets yet.</string>
 </resources>

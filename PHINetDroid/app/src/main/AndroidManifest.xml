@@ -83,6 +83,14 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
+            android:name=".Activities.PacketListActivity"
+            android:parentActivityName=".Activities.MainActivity"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activities.MainActivity" />
+        </activity>
+        <activity
             android:name=".Activities.PatientActivity"
             android:parentActivityName=".Activities.PatientListActivity"
             android:screenOrientation="portrait" >

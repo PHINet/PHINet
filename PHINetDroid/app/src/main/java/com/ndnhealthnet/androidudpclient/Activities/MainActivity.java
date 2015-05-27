@@ -23,9 +23,9 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1;
 
-	Button tempDeletePITBtn, logoutBtn, myDataBtn, cliBeatBtn,
-            loginBtn, signupBtn, sensorBtn;
-	TextView credentialWarningText, doctorText, patientText, testText, loggedInText;
+	Button clearDatabaseBtn, logoutBtn, myDataBtn, cliBeatBtn,
+            loginBtn, signupBtn, sensorBtn, viewPacketsBtn;
+	TextView credentialWarningText, doctorText, patientText, loggedInText;
 	UDPListener receiverThread;
 
     // used to specify when listener "receiverThread" should actively listen for packets
@@ -79,7 +79,6 @@ public class MainActivity extends Activity {
         credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
         doctorText = (TextView) findViewById(R.id.doctorTextView);
         patientText = (TextView) findViewById(R.id.patientTextView);
-        testText = (TextView) findViewById(R.id.testingNotifierTextView);
 
         loginBtn = (Button) findViewById(R.id.loginBtn);
         loginBtn.setOnClickListener(new View.OnClickListener() {
@@ -105,6 +104,14 @@ public class MainActivity extends Activity {
             }
         });
 
+        viewPacketsBtn = (Button) findViewById(R.id.packetsBtn);
+        viewPacketsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, PacketListActivity.class));
+            }
+        });
+
         sensorBtn = (Button) findViewById(R.id.sensorSettingsBtn);
         sensorBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -127,11 +134,12 @@ public class MainActivity extends Activity {
         });
 
         // NOTE: temporary debugging method that allows user to clear the database
-        tempDeletePITBtn = (Button) findViewById(R.id.deleteDataBtn);
-        tempDeletePITBtn.setOnClickListener(new View.OnClickListener(){
+        clearDatabaseBtn = (Button) findViewById(R.id.deleteDataBtn);
+        clearDatabaseBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePIT();
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireCS();
+                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePacketDB();
             }
         });
 
@@ -143,10 +151,10 @@ public class MainActivity extends Activity {
             myDataBtn.setVisibility(View.GONE);
             patientText.setVisibility(View.GONE);
             doctorText.setVisibility(View.GONE);
-            tempDeletePITBtn.setVisibility(View.GONE);
+            clearDatabaseBtn.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
-            testText.setVisibility(View.GONE);
             sensorBtn.setVisibility(View.GONE);
+            viewPacketsBtn.setVisibility(View.GONE);
 
         } else {
 

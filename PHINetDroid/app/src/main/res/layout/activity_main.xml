@@ -69,16 +69,15 @@
         android:layout_gravity="center"
         android:textSize="25sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/packetsBtn"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/notifyTesting"
-        android:id="@+id/testingNotifierTextView"
-        android:layout_gravity="center_horizontal"
-        android:textStyle="bold"
-        android:layout_margin="5dp"
-        android:textSize="20sp"/>
+        android:text="@string/viewPackets"
+        android:layout_width="180dp"
+        android:background="@drawable/black_button"
+        style="@style/button_text"
+        android:layout_gravity="center"
+        android:textSize="25sp" />
 
     <Button
         android:id="@+id/deleteDataBtn"

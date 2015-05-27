@@ -33,12 +33,22 @@ public class SensorListActivity extends ListActivity {
     final static String SENSOR_NAME = "SENSOR_NAME";
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        this.onCreate(null); // force activity to reload
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensorlist);
 
-        ArrayList<String> sensorList = new ArrayList<>();
-        sensorList.add(StringConst.HEARTBEAT_SENSOR);
+        ArrayList<DBData> sensorList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllSensorData();
+
+        if (sensorList == null) {
+            // this should not be called; the sensor should always be present
+            sensorList = new ArrayList<>();
+        }
 
         final SensorAdapter adapter = new SensorAdapter(this, sensorList);
         setListAdapter(adapter);
@@ -67,7 +77,9 @@ public class SensorListActivity extends ListActivity {
 
                             Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
 
-                            String sensorName = sensorInput.getText().toString();
+
+                            // TODO - perform a better removal of spaces (such as notify user)
+                            String sensorName = sensorInput.getText().toString().replace(" ", "");
 
                             // through intent, pass sensor information to activity
                             intent.putExtra(SENSOR_NAME, sensorName);
@@ -104,12 +116,12 @@ public class SensorListActivity extends ListActivity {
     /**
      * Used by sensor list view.
      */
-    private class SensorAdapter extends ArrayAdapter<String> {
+    private class SensorAdapter extends ArrayAdapter<DBData> {
 
         Activity activity = null;
-        ArrayList<String> listData;
+        ArrayList<DBData> listData;
 
-        public SensorAdapter(ListActivity li, ArrayList<String> allSensors)
+        public SensorAdapter(ListActivity li, ArrayList<DBData> allSensors)
         {
             super(li, 0, allSensors);
             listData = allSensors;
@@ -124,7 +136,7 @@ public class SensorListActivity extends ListActivity {
                         .inflate(R.layout.list_item_sensor, null);
             }
 
-            final String sensorName = listData.get(position);
+            final String sensorName = listData.get(position).getSensorID();
 
             // creates individual button in ListView for each patient
             Button sensorButton = (Button)convertView.findViewById(R.id.listSensorButton);

@@ -53,6 +53,7 @@
             android:id="@+id/specificSensorNameTextView"
             android:text="sample name"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:layout_marginLeft="104dp"
             android:layout_marginStart="104dp"/>
 

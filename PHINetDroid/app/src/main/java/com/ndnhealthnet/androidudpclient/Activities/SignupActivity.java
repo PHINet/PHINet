@@ -8,7 +8,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
+import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
  * Enables user to join to PHINet; request is sent to server for validation, notification sent back.
@@ -49,6 +52,11 @@ public class SignupActivity extends Activity {
                     verifyPWEdit.setText("");
 
                 } else {
+
+                    String hashedPW = BCrypt.hashpw(pwEdit.getText().toString(), BCrypt.gensalt());
+
+                    // send this Hashed PW
+
                     // TODO - send initial Interest to server and place entry in PIT
 
                     // TODO - server will send back blank DATA (to conform to NDN); remove entry from PIT

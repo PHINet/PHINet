@@ -6,7 +6,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
@@ -32,7 +35,15 @@ public class SensorSettingsActivity extends Activity {
         // use IP and ID from intent to find patient among all patients
         sensorName = getIntent().getExtras().getString(SensorListActivity.SENSOR_NAME);
 
+        DBData specificSensor = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+
         intervalEdit = (EditText) findViewById(R.id.intervalEditText);
+
+        if (specificSensor == null) {
+            intervalEdit.setText("24"); // initial, arbitrarily chosen, interval
+        } else {
+            intervalEdit.setText(Integer.toString(specificSensor.getSensorCollectionInterval()));
+        }
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID);
@@ -48,23 +59,63 @@ public class SensorSettingsActivity extends Activity {
         connectBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // TODO -
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Not yet implemented", Toast.LENGTH_LONG);
+                toast.show();
             }
         });
 
         saveBtn = (Button) findViewById(R.id.sensorDataSubmitBtn);
-        saveBtn.setOnClickListener(new View.OnClickListener(){
+        saveBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                // TODO - perform input validation
+                int chosenInterval = Integer.parseInt(intervalEdit.getText().toString());
 
-                // TODO - save settings
+                if (chosenInterval <= 0) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval", Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+
+                    if (sensorQueryResult == null) {
+                        // result was null; sensor hasn't been added yet - do so now
+
+                        DBData newEntry = new DBData(sensorName, chosenInterval);
+
+                        DBSingleton.getInstance(getApplicationContext()).getDB().addSensorData(newEntry);
+                    } else {
+                        // result wasn't null; sensor has already been added - just update it
+
+                        DBData updatedEntry = new DBData(sensorName, chosenInterval);
+
+                        DBSingleton.getInstance(getApplicationContext()).getDB().updateSensorData(updatedEntry);
+                    }
+
+                    Toast toast = Toast.makeText(getApplicationContext(), "Save successful", Toast.LENGTH_LONG);
+                    toast.show();
+
+                    // TODO - initiate collection interval (create thread to collect, etc)
+                }
             }
         });
 
         deleteSensorBtn = (Button) findViewById(R.id.deleteSensorBtn);
         deleteSensorBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // TODO - delete sensor
+                DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+
+
+                if (sensorQueryResult != null) {
+                    // sensor exists within db; delete it now
+
+                    DBSingleton.getInstance(getApplicationContext()).getDB().deleteSensorEntry(sensorName);
+
+                }
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Deletion successful", Toast.LENGTH_LONG);
+                toast.show();
+
+                finish();
             }
         });
 

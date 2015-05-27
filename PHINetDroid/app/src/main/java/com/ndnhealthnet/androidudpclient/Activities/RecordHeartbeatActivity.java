@@ -111,15 +111,13 @@ public class RecordHeartbeatActivity extends Activity {
                     toast.show();
                 } else {
 
-                    String mySensorID = Utils.getFromPrefs(getApplicationContext(),
-                            StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
                     String myUserID = Utils.getFromPrefs(getApplicationContext(),
                             StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
                     // store data in cache
                     DBData data = new DBData();
                     data.setUserID(myUserID);
-                    data.setSensorID(mySensorID);
+                    data.setSensorID(StringConst.HEARTBEAT_SENSOR);
                     data.setTimeString(StringConst.CURRENT_TIME);
                     data.setProcessID(StringConst.DATA_CACHE); // no valid process id, set to null
                     data.setDataFloat(Integer.toString(currentBeatInt));

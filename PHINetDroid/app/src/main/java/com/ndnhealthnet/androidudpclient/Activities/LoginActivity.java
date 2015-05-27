@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
@@ -45,11 +46,15 @@ public class LoginActivity extends Activity {
                 // TODO - connection over; now notify user and store/encrypt credentials on phone
 
                 String userID = userNameEdit.getText().toString();
-                String sensorID = pwEdit.getText().toString();
+                String password = pwEdit.getText().toString();
 
-                if (Utils.validInputUserName(userID) && Utils.validInputPassword(sensorID)) {
+                if (Utils.validInputUserName(userID) && Utils.validInputPassword(password)) {
                     Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_USER_ID_KEY, userID);
-                    Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_SENSOR_ID_KEY, sensorID);
+
+                    String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
+
+                    // store the hashed password
+                    Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_SENSOR_ID_KEY, hashedPW);
 
                     Toast toast = Toast.makeText(getApplicationContext(), "Save successful.", Toast.LENGTH_LONG);
                     toast.show();

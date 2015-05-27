@@ -225,6 +225,15 @@ public class InterestPacket {
         return "INTEREST-TYPE " + Integer.toString(content.length()) + " " + content;
     }
 
+    /**
+     * TODO - document
+     *
+     * @return
+     */
+    public String getName() {
+        return nameField.createName();
+    }
+
     @Override
     public String toString() {
         return createINTEREST();

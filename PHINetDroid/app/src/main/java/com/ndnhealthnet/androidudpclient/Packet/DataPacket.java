@@ -272,6 +272,15 @@ public class DataPacket {
         return "DATA-TLV " + Integer.toString(content.length()) + " " + content;
     }
 
+    /**
+     * TODO - document
+     *
+     * @return
+     */
+    public String getName() {
+        return nameField.createName();
+    }
+
     @Override
     public String toString() {
         return createDATA();

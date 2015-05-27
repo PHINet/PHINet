@@ -1,6 +1,7 @@
 package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
@@ -8,6 +9,7 @@ import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import junit.framework.TestCase;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -43,7 +45,7 @@ public class DatabaseHandlerTest extends TestCase {
             StringConst.CURRENT_TIME, "USER2", "12,12,12,12");
 
     DBData csData3 = new DBData(StringConst.CS_DB, "SENSOR1", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER1", "12");
+            "2015-04-27T00:00:00.000", "USER1", "12");
 
     // --- test CS data ---
 
@@ -55,6 +57,22 @@ public class DatabaseHandlerTest extends TestCase {
     DBData fibData2 = new DBData("USER2", StringConst.CURRENT_TIME, "11.11.11.11");
 
     // --- test FIB data ---
+
+    // -- test Sensor Data ---
+
+    DBData sensorData1 = new DBData("SENSOR1", 890);
+
+    DBData sensorData2 = new DBData("SENSOR2", 4);
+
+    // -- test Sensor Data ---
+
+    // -- test Packet Data ---
+
+    DBData packetData1 = new DBData("packetName1", "ContentContentContentContent");
+
+    DBData packetData2 = new DBData("packetName2", "packetcontentpacketcontent");
+
+    // -- test Packet Data ---
 
     /**
      * @param context used to create DatabaseHandler object used in testing
@@ -73,15 +91,23 @@ public class DatabaseHandlerTest extends TestCase {
         testAddPITData();
         testAddCSData();
         testAddFIBData();
+        testAddSensorData();
+        testAddPacketData();
         testGetGeneralPITData();
         testGetSpecificPITData();
         testGetGeneralCSData();
         testGetAllFIBData();
+        testGetAllSensorData();
+        testGetAllPacketData();
         testGetSpecificCSData();
+        testGetSpecificSensorData();
         testUpdateFIBData();
         testUpdatePITData();
         testUpdateCSData();
+        testUpdateSensorEntry();
         testDeletePITEntry();
+        testDeleteAllPackets();
+        testDeleteSensorEntry();
         testDeleteFIBEntry();
         testDeleteCSEntry();
         testDeleteEntirePIT();
@@ -141,6 +167,51 @@ public class DatabaseHandlerTest extends TestCase {
         // test addition of null and/or duplicate data
         assertFalse(DBSingleton.getInstance(context).getDB().addFIBData(null));
         assertFalse(DBSingleton.getInstance(context).getDB().addFIBData(fibData1));
+
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB after testing
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testAddSensorData() throws Exception {
+
+        // for safety, delete prior to test
+        DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID());
+        DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID());
+
+        // test adding good data
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
+
+        // test adding bad data (null and/or duplicate entry)
+        assertFalse(DBSingleton.getInstance(context).getDB().addSensorData(null));
+        assertFalse(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+
+        // delete after testing
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testAddPacketData() throws Exception {
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // clear DB before testing
+
+        // test adding good data
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData2));
+
+        // test adding bad data (null and/or duplicate entry)
+        assertFalse(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
+        assertFalse(DBSingleton.getInstance(context).getDB().addPacketData(null));
+
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
     }
 
     /**
@@ -307,6 +378,74 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testGetAllSensorData() throws Exception {
+
+        // add data before testing
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
+
+        ArrayList<DBData> sensorData = DBSingleton.getInstance(context).getDB().getAllSensorData();
+
+        assertTrue(sensorData.size() == 2); // both entries should have been returned
+
+        boolean entry1Found = false;
+        boolean entry2Found = false;
+
+        for (int i = 0; i < sensorData.size(); i++) {
+
+            if (sensorData.get(i).getSensorID().equals(sensorData1.getSensorID())) {
+                entry1Found = true;
+            }
+
+            if (sensorData.get(i).getSensorID().equals(sensorData2.getSensorID())) {
+                entry2Found = true;
+            }
+        }
+
+        assertTrue(entry1Found && entry2Found); // verify that both were detected
+
+        // delete after testing
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testGetAllPacketData() throws Exception {
+
+        // add data before testing
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData2));
+
+        ArrayList<DBData> packetData = DBSingleton.getInstance(context).getDB().getAllPacketData();
+
+        boolean entry1Found = false;
+        boolean entry2Found = false;
+
+        for (int i = 0; i < packetData.size(); i++) {
+
+            if (packetData.get(i).getPacketName().equals(packetData1.getPacketName())) {
+                entry1Found = true;
+            }
+
+            if (packetData.get(i).getPacketName().equals(packetData2.getPacketName())) {
+                entry2Found = true;
+            }
+        }
+
+        assertTrue(entry1Found && entry2Found); // verify that both were detected
+
+        DBSingleton.getInstance(context).getDB().getAllPacketData(); // delete after testing
+    }
+
+    /**
      * @throws Exception for failed tests
      */
     public void testGetSpecificCSData() throws Exception {
@@ -327,6 +466,33 @@ public class DatabaseHandlerTest extends TestCase {
 
         assertEquals(csReturn1.getDataFloat(), csData1.getDataFloat());
         assertEquals(csReturn3.getDataFloat(), csData3.getDataFloat());
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testGetSpecificSensorData() throws Exception {
+
+        // add data before testing
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
+
+        // test against actual entries
+        DBData sensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
+        DBData sensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getSensorID());
+
+        assertTrue(sensor1.getSensorID().equals(sensorData1.getSensorID()));
+        assertTrue(sensor2.getSensorID().equals(sensorData2.getSensorID()));
+
+        // test against false entries
+        DBData sensor3 = DBSingleton.getInstance(context).getDB().getSpecificSensorData("asdpfoiamsdf");
+        assertTrue(sensor3 == null);
+
+        // delete after testing
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
     }
 
     /**
@@ -409,6 +575,31 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testUpdateSensorEntry() throws Exception {
+
+        // add data before testing
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
+
+        // update the interval to a new, arbitrarily chosen, value
+        sensorData1.setSensorCollectionInterval(10 + sensorData1.getSensorCollectionInterval() * 10);
+
+        assertTrue(DBSingleton.getInstance(context).getDB().updateSensorData(sensorData1));
+
+        DBData updatedSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
+
+        assertTrue(updatedSensor1.getSensorCollectionInterval() == sensorData1.getSensorCollectionInterval());
+
+        // delete after testing
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
+    }
+
+    /**
      * @throws Exception for failed tests
      */
     public void testDeletePITEntry() throws Exception {
@@ -429,6 +620,53 @@ public class DatabaseHandlerTest extends TestCase {
 
         // check, now deleted, entry returns null
         assertEquals(DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr()), null);
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testDeleteAllPackets() throws Exception {
+        // for safety, delete prior to test
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
+
+        // test adding good data
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData2));
+
+        // test return is valid object
+        ArrayList<DBData> allPackets = DBSingleton.getInstance(context).getDB().getAllPacketData();
+        assertTrue(allPackets != null);
+
+        // delete
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
+
+        // now, after deletion, test return is a null object
+        ArrayList<DBData> allPacketsAfterDeletion = DBSingleton.getInstance(context).getDB().getAllPacketData();
+
+        assertTrue(allPacketsAfterDeletion == null);
+    }
+
+    /**
+     * TODO - document
+     *
+     * @throws Exception
+     */
+    public void testDeleteSensorEntry() throws Exception {
+        // add data before testing
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
+        assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
+
+        // delete
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
+        assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
+
+        // now, after deletion, test return is a null object
+        DBData afterDeleteSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getUserID());
+        DBData afterDeleteSensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getUserID());
+        assertTrue(afterDeleteSensor1 == null);
+        assertTrue(afterDeleteSensor2 == null);
     }
 
     /**

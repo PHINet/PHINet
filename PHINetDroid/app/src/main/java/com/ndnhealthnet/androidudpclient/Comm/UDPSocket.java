@@ -2,6 +2,8 @@ package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.os.AsyncTask;
 
+import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import java.io.IOException;
@@ -38,9 +40,8 @@ public class UDPSocket extends AsyncTask<String, Void, Void> {
 
             // NOTE: temporary debugging print
             System.out.println("sent packet: " + message[0]);
-            System.out.println("IPADDR: " + IPAddress);
+            System.out.println("IPADDR: " + IPAddress.toString());
             System.out.println("port: " + destPort);
-
 
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
@@ -64,9 +65,10 @@ public class UDPSocket extends AsyncTask<String, Void, Void> {
                         try {
                             clientSocket.receive(receivePacket);
                             String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+                            int packetPort = receivePacket.getPort();
 
                             final String packetData = new String(receivePacket.getData());
-                            UDPListener.handleIncomingNDNPacket(packetData, packetSourceIP);
+                            UDPListener.handleIncomingNDNPacket(packetData, packetSourceIP, packetPort);
 
                         } catch (Exception e) {
                             e.printStackTrace();

@@ -2,6 +2,9 @@
  * File contains code for miscellaneous functions.
  */
 
+var bcrypt = require('bcrypt');
+
+
 exports.Utils = {
 
     /**
@@ -30,5 +33,51 @@ exports.Utils = {
  		}
 
        	return year + "-" + month + "-" + day + "T" + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+	},
+
+	/**
+	 * TODO - document
+	 * TODO - test
+	 *
+	 * @param password
+	 * @param callback
+	 */
+	encryptPassword : function(password, callback) {
+
+		if (!password || !callback) {
+			throw "!!Error: invalid input to utils.encryptPassword()!";
+		} else {
+            bcrypt.genSalt(10, function(err, salt) {
+                if (err)
+                    return callback(err);
+
+                bcrypt.hash(password, salt, function(err, hash) {
+                    return callback(err, hash);
+                });
+
+            })
+        }
+ 	},
+
+	/**
+	 * TODO - document
+	 *
+	 * TODO - test
+	 *
+	 * @param password
+	 * @param userPassword
+	 * @param callback
+	 */
+	comparePassword : function(password, userPassword, callback) {
+
+		if (!password || !userPassword || !callback) {
+			throw "!!Error: invalid input to utils.comparePassword()!";
+		} else {
+            bcrypt.compare(password, userPassword, function(err, isPasswordMatch) {
+                if (err)
+                    return callback(err);
+                return callback(null, isPasswordMatch);
+            });
+        }
 	}
 };

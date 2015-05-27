@@ -11,6 +11,7 @@ var http = require('http'); // TODO - document
 var ejs = require('ejs'); // TODO - document
 var fs = require('fs'); // TODO - document
 var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB);
+var utils = require('./utils').Utils;
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
@@ -253,34 +254,41 @@ app.post('/loginAction', function(req, res) {
     } else {
         LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
 
-            var userAlreadyExists = rowsTouched === 1;
-            var passwordMatched;
+            // only attempt to compare passwords if query was successful
+            if (queryResults != null && rowsTouched == 1) {
 
-            if (queryResults === null) {
-                passwordMatched = false; // user doesn't exist; passwords cannot match
-            } else {
-                passwordMatched = queryResults.getPassword() === req.body.user_password;
-            }
+                utils.comparePassword(req.body.user_password, queryResults.getPassword(),
+                    function(err, isPasswordMatch) {
 
-            // checks to see if user already exists and password matches
-            if (userAlreadyExists && passwordMatched) {
+                        if (isPasswordMatch) {
+                            // notify user of successful login
+                            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                                if (err) {
+                                    console.log("Error serving index.html: " + err);
+                                } else {
 
-                // notify user of successful login
-                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                    if (err) {
-                        console.log("Error serving index.html: " + err);
-                    } else {
+                                    // TODO - improve on cookie use
+                                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
 
-                        // TODO - improve on cookie use
-                        res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+                                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                                    res.send(renderedHtml);
+                                }
+                            });
+                        } else {
+                            // notify user of unsuccessful login
+                            fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                                if (err) {
+                                    console.log("Error serving login.html: " + err);
+                                } else {
 
-                        var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                        res.send(renderedHtml);
-                    }
+                                    var renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+
+                                    res.send(renderedHtml);
+                                }
+                            });
+                        }
                 });
-
             } else {
-
                 // notify user of unsuccessful login
                 fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
                     if (err) {
@@ -288,13 +296,9 @@ app.post('/loginAction', function(req, res) {
                     } else {
 
                         var renderedHtml;
-                        if (userAlreadyExists && !passwordMatched) {
-                            renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
-                        } else {
 
-                            // only remaining option: user does not exist
-                            renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
-                        }
+                        // only remaining option: user does not exist
+                        renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
 
                         res.send(renderedHtml);
                     }
@@ -340,38 +344,42 @@ app.post('/registerAction', function(req, res) {
                 req.body.user_email = "null"; // email not provided; list as null
             }
 
-            LoginDB.insertNewUser(req.body.user_name, req.body.user_password[0], req.body.user_email, userType,
+            utils.encryptPassword(req.body.user_password[0], function(err, hashedPW) {
 
-                function(rowsTouched) {
+                // store hashed pw into DB
+                LoginDB.insertNewUser(req.body.user_name, hashedPW, req.body.user_email, userType,
 
-                    if (rowsTouched === 1) {
+                    function(rowsTouched) {
 
-                        // notify user of successful register
-                        fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                            if (err) {
-                                console.log("Error serving index.html: " + err);
-                            } else {
+                        if (rowsTouched === 1) {
 
-                                // TODO - improve on cookie use
-                                res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+                            // notify user of successful register
+                            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                                if (err) {
+                                    console.log("Error serving index.html: " + err);
+                                } else {
 
-                                var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                                res.send(renderedHtml);
-                            }
-                        })
-                    } else {
+                                    // TODO - improve on cookie use
+                                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
 
-                        // notify user of bad input
-                        fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-                            if (err) {
-                                console.log("Error serving signup.html: " + err);
-                            } else {
-                                var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
-                                res.send(renderedHtml);
-                            }
-                        })
-                    }
-                });
+                                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
+                                    res.send(renderedHtml);
+                                }
+                            })
+                        } else {
+
+                            // notify user of bad input
+                            fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                                if (err) {
+                                    console.log("Error serving signup.html: " + err);
+                                } else {
+                                    var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
+                                    res.send(renderedHtml);
+                                }
+                            })
+                        }
+                    });
+            });
 
         } else {
 

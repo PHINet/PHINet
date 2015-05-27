@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
@@ -226,7 +227,10 @@ public class PatientActivity extends Activity {
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(interestPacket.toString()); // send interest packet
 
-                    fibRequestsSent ++;
+                    // TODO - document
+                    DBSingleton.addToPacketDB(interestPacket.getName(), interestPacket.toString());
+
+                    fibRequestsSent++;
                 }
             }
 

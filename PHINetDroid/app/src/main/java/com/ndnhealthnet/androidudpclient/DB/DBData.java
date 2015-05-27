@@ -14,6 +14,9 @@ public class DBData {
     private String userID;
     private String ipAddr;
     private String dataFloat;
+    private String packetName;
+    private String packetContent;
+    private int sensorCollectionInterval;
 
     public DBData() {}
 
@@ -65,6 +68,28 @@ public class DBData {
         this.userID = userID;
         this.timeString = timeString;
         this.ipAddr = ipAddr;
+    }
+
+    /**
+     * TODO - document
+     *
+     * @param sensorID
+     * @param collectionInterval
+     */
+    public DBData(String sensorID, int collectionInterval) {
+        this.sensorID = sensorID;
+        this.sensorCollectionInterval = collectionInterval;
+    }
+
+    /**
+     * TODO - document
+     *
+     * @param packetName
+     * @param packetContent
+     */
+    public DBData(String packetName, String packetContent) {
+        this.packetName = packetName;
+        this.packetContent = packetContent;
     }
 
     public String getSensorID() {
@@ -121,5 +146,29 @@ public class DBData {
 
     public void setDataFloat(String dataFloat) {
         this.dataFloat = dataFloat;
+    }
+
+    public String getPacketName() {
+        return packetName;
+    }
+
+    public void setPacketName(String packetName) {
+        this.packetName = packetName;
+    }
+
+    public int getSensorCollectionInterval() {
+        return sensorCollectionInterval;
+    }
+
+    public void setSensorCollectionInterval(int sensorCollectionInterval) {
+        this.sensorCollectionInterval = sensorCollectionInterval;
+    }
+
+    public String getPacketContent() {
+        return packetContent;
+    }
+
+    public void setPacketContent(String packetContent) {
+        this.packetContent = packetContent;
     }
 }
