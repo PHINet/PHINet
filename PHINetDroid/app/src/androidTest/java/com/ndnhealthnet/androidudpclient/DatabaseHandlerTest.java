@@ -1,7 +1,6 @@
 package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
@@ -9,7 +8,6 @@ import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
 import junit.framework.TestCase;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**

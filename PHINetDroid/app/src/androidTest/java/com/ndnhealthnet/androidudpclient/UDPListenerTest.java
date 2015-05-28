@@ -3,7 +3,6 @@ package com.ndnhealthnet.androidudpclient;
 import android.content.Context;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;

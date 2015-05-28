@@ -2,11 +2,8 @@ package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.os.AsyncTask;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
-import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;

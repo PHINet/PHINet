@@ -122,7 +122,15 @@ public class MainActivity extends Activity {
         myDataBtn = (Button) findViewById(R.id.myDataBtn);
         myDataBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, MyDataActivity.class));
+
+                Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
+
+                String myUserID = Utils.getFromPrefs(getApplicationContext(),
+                        StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+
+                // to view client's data, pass their user id
+                intent.putExtra(StringConst.ENTITY_NAME, myUserID);
+                startActivity(intent);
             }
         });
 

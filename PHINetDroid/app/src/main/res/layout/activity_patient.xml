@@ -35,6 +35,7 @@
         android:background="@color/background"
         android:baselineAligned="false"
         android:orientation="horizontal"
+        android:layout_margin="5dp"
         android:weightSum="1">
 
         <TextView
@@ -62,6 +63,7 @@
         android:background="@color/background"
         android:baselineAligned="false"
         android:orientation="horizontal"
+        android:layout_margin="5dp"
         android:weightSum="1">
 
         <TextView
@@ -84,48 +86,24 @@
 
     </LinearLayout>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/viewDataBtn"
+        android:layout_width="325dp"
         android:layout_height="wrap_content"
-        android:background="@color/background"
-        android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:weightSum="1">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/dataStatus"
-            android:layout_margin="10dp"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:id="@+id/dataStatusTextView" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text=""
-            android:layout_margin="10dp"
-            android:textSize="20sp"
-            android:id="@+id/currentDataStatusTextView" />
-
-    </LinearLayout>
-
-    <com.jjoe64.graphview.GraphView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@color/white"
-        android:id="@+id/graph"
-        android:layout_margin="10dp"
-        android:layout_weight="0.89" />
+        android:text="@string/viewData"
+        android:background="@drawable/black_button"
+        style="@style/button_text"
+        android:textSize="20sp"
+        android:layout_margin="5dp"
+        android:layout_gravity="center_horizontal" />
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:gravity="center"
+        android:layout_margin="5dp"
+        android:layout_gravity="bottom">
 
         <Button
             android:id="@+id/patientDataRequestBtn"
@@ -150,6 +128,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="5dp"
         android:gravity="center">
 
         <Button

@@ -47,4 +47,6 @@ public class StringConst {
     // denotes the heartbeat sensor in SensorListActivity
     public static final String HEARTBEAT_SENSOR = "HeartbeatSensor";
 
+    // passed within intent to ViewDataActivity to determine proper entity
+    public static final String ENTITY_NAME = "ENTITY_NAME";
 }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -15,10 +16,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
@@ -38,10 +35,9 @@ import java.util.ArrayList;
  */
 public class PatientActivity extends Activity {
 
-    Button backBtn, requestBtn, submitBtn, deleteBtn;
+    Button backBtn, requestBtn, submitBtn, deleteBtn, viewDataBtn;
     EditText ipEditText;
     TextView dataStatusText, nameText, loggedInText;
-    GraphView graph;
     String patientIP, patientUserID;
 
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -66,39 +62,23 @@ public class PatientActivity extends Activity {
         patientIP = getIntent().getExtras().getString(PatientListActivity.PATIENT_IP);
         patientUserID = getIntent().getExtras().getString(PatientListActivity.PATIENT_USER_ID);
 
-        ArrayList<DBData> patientCacheData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(patientUserID);
-
-        // textview used to notify user whether data for patient exists
-        dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
-
-        // display graph is data is present
-        graph = (GraphView) findViewById(R.id.graph);
-        if (patientCacheData != null && patientCacheData.size() > 0) {
-            dataStatusText.setText("Some data present");//
-
-            // TODO - improve presentation
-            ArrayList<Float> patientFloatData = Utils.convertDBRowTFloats(patientCacheData);
-
-            DataPoint[] dataPoints = new DataPoint[patientFloatData.size()];
-            for (int i = 0; i < patientFloatData.size(); i++) {
-                dataPoints[i] = new DataPoint(i, patientFloatData.get(i));
-            }
-
-            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
-            graph.addSeries(series);
-
-        } else {
-            dataStatusText.setText("No Data present");
-            graph.setVisibility(View.INVISIBLE); // no data, make graph go away
-        }
-
         nameText = (TextView) findViewById(R.id.nameText);
         nameText.setText(patientUserID);
 
         ipEditText = (EditText) findViewById(R.id.ip_editText);
         ipEditText.setText(patientIP);
 
-        /** Returns to GetCliBeat **/
+        viewDataBtn = (Button) findViewById(R.id.viewDataBtn);
+        viewDataBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                Intent intent = new Intent(PatientActivity.this, ViewDataActivity.class);
+
+                // to view client's data, pass their user id
+                intent.putExtra(StringConst.ENTITY_NAME, patientUserID);
+                startActivity(intent);
+            }
+        });
+
         requestBtn = (Button) findViewById(R.id.patientDataRequestBtn);
         requestBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -265,6 +245,8 @@ public class PatientActivity extends Activity {
     }
 
     /**
+     * TODO - create a class for this dialog
+     *
      * allows users to select date regarding interval of requested data
      *
      * @param title used to set title of dialog

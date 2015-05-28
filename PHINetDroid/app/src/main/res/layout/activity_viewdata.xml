@@ -18,16 +18,13 @@
         android:layout_margin="5dp" />
 
     <TextView
-        android:id="@+id/titleBar"
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="20dp"
-        android:text="@string/myData"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="#000000"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text=""
         android:textStyle="bold"
-        android:textSize="25sp" />
+        android:id="@+id/entityNameView"
+        android:layout_margin="5dp" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -35,7 +32,8 @@
         android:background="@color/background"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:id="@+id/statusLayout">
 
         <TextView
             android:layout_width="wrap_content"
@@ -55,6 +53,31 @@
             android:layout_margin="10dp"
             android:textSize="20sp"
             android:id="@+id/currentDataStatusTextView" />
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/intervalSelectionBtn"
+            android:layout_width="160dp"
+            android:layout_height="40dp"
+            android:text="@string/selectInterval"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:textSize="20sp" />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:id="@+id/sensorSelectorSpinner" />
+
     </LinearLayout>
 
     <com.jjoe64.graphview.GraphView

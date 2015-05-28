@@ -17,7 +17,6 @@ package com.ndnhealthnet.androidudpclient.Hashing;
 // NOTE: repository can be found here https://github.com/jeremyh/jBCrypt
 
 import java.io.UnsupportedEncodingException;
-
 import java.security.SecureRandom;
 
 /**

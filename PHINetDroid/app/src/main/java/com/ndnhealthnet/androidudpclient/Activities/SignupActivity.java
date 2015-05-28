@@ -6,12 +6,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
-import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
  * Enables user to join to PHINet; request is sent to server for validation, notification sent back.

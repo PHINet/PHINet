@@ -77,18 +77,34 @@ public class Utils {
     /**
      * Method takes query results and converts to a format that can be presented via graph
      *
+     * TODO -
+     *
      * @param myData array list of database data
+     * @param sensor the name of selected sensor
+     * @param startDate
+     * @param endDate
      * @return data from input in graphable format
      */
-    public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData) {
+    public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData, String sensor,
+                    String startDate, String endDate) {
         // TODO - improve display accuracy (order chronologically, etc)
 
         ArrayList<Float> myFloatData = new ArrayList<Float>();
 
+        // syntax for interval: startDate||endDate
+        String requestInterval = startDate + "||" + endDate;
+
         for (int i = 0; i < myData.size(); i++) {
-            String [] floatArray = myData.get(i).getDataFloat().trim().split(",");
-            for (int j = 0; j < floatArray.length; j++) {
-                myFloatData.add(Float.parseFloat(floatArray[j].trim()));
+
+            // only get data if the sensor name matches && is valid for time interval
+            if (myData.get(i).getSensorID().equals(sensor)
+                    && isValidForTimeInterval(requestInterval, myData.get(i).getTimeString())) {
+
+                String [] floatArray = myData.get(i).getDataFloat().trim().split(",");
+                for (int j = 0; j < floatArray.length; j++) {
+
+                    myFloatData.add(Float.parseFloat(floatArray[j].trim()));
+                }
             }
         }
 

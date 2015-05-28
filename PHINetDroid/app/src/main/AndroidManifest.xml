@@ -59,7 +59,7 @@
                 android:value=".Activities.MainActivity" />
         </activity>
         <activity
-            android:name=".Activities.MyDataActivity"
+            android:name=".Activities.ViewDataActivity"
             android:parentActivityName=".Activities.MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
