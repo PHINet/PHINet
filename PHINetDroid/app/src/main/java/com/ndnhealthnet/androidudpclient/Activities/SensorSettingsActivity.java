@@ -58,7 +58,7 @@ public class SensorSettingsActivity extends Activity {
         connectBtn = (Button) findViewById(R.id.sensorConnectBtn);
         connectBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // TODO -
+                // TODO - connect (test with any bluetooth device you possess)
 
                 Toast toast = Toast.makeText(getApplicationContext(), "Not yet implemented", Toast.LENGTH_LONG);
                 toast.show();
@@ -104,12 +104,10 @@ public class SensorSettingsActivity extends Activity {
             public void onClick(View v) {
                 DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
 
-
                 if (sensorQueryResult != null) {
                     // sensor exists within db; delete it now
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().deleteSensorEntry(sensorName);
-
                 }
 
                 Toast toast = Toast.makeText(getApplicationContext(), "Deletion successful", Toast.LENGTH_LONG);

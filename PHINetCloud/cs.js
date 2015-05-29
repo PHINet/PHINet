@@ -27,6 +27,7 @@ exports.CS = function (tableName) {
                 return console.error('could not connect to postgres', err);
             }
         });
+
     })();
 
     return {

@@ -37,7 +37,7 @@ public class PatientActivity extends Activity {
 
     Button backBtn, requestBtn, submitBtn, deleteBtn, viewDataBtn;
     EditText ipEditText;
-    TextView dataStatusText, nameText, loggedInText;
+    TextView nameText, loggedInText;
     String patientIP, patientUserID;
 
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -207,8 +207,9 @@ public class PatientActivity extends Activity {
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(interestPacket.toString()); // send interest packet
 
-                    // TODO - document
-                    DBSingleton.addToPacketDB(interestPacket.getName(), interestPacket.toString());
+                    // add packet content to database for future review
+                    DBSingleton.getInstance(getApplicationContext()).getDB()
+                            .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));
 
                     fibRequestsSent++;
                 }

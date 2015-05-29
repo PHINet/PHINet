@@ -170,8 +170,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testAddSensorData() throws Exception {
@@ -194,8 +192,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testAddPacketData() throws Exception {
@@ -376,8 +372,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testGetAllSensorData() throws Exception {
@@ -412,8 +406,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testGetAllPacketData() throws Exception {
@@ -467,8 +459,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testGetSpecificSensorData() throws Exception {
@@ -573,8 +563,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testUpdateSensorEntry() throws Exception {
@@ -621,8 +609,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testDeleteAllPackets() throws Exception {
@@ -647,8 +633,6 @@ public class DatabaseHandlerTest extends TestCase {
     }
 
     /**
-     * TODO - document
-     *
      * @throws Exception
      */
     public void testDeleteSensorEntry() throws Exception {

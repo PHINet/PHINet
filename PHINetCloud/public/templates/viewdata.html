@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PHINet | 404</title>
+    <title>PHINet | View Data</title>
     <meta content="website description" name="description">
     <meta content="website keywords, website keywords" name="keywords">
     <meta content="text/html; charset=utf-8" http-equiv="content-type">
     <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
-    type='text/css'>
-    <link href="public/static/bootstrap/css/style.css" rel="stylesheet" type=
-    "text/css">
+          type='text/css'>
+    <link href="/public/static/bootstrap/css/style.css" rel="stylesheet" type=
+            "text/css">
 </head>
 
 <body>
@@ -21,7 +21,7 @@
             <div class="loginArea">
                 <% if(user) { %><%= user %> | <a href="/logout">logout</a>
                 <% } else { %> <a href="/login">login</a> | <a href=
-                "/signup">signup</a> <% } %>
+                                                                       "/signup">signup</a> <% } %>
             </div>
 
             <div id="menubar">
@@ -39,11 +39,11 @@
                         <a href="/test">Test</a>
                     </li><% if(user) { %>
 
-                    <li >
+                    <li>
                         <a href="/profile">Profile</a>
                     </li>
 
-                    <li>
+                    <li class="current">
                         <a href="/viewdata">Your Data</a>
                     </li>
                     <% } %>
@@ -60,15 +60,32 @@
 
             <div id="content">
 
-                <h1>404: page not found!</h1>
+                <h1>View Data</h1>
+
+                <p>&nbsp;</p>
+
+
+                <canvas id="myChart" width="800" height="400"></canvas>
+
+                <p>&nbsp;</p>
             </div>
         </div>
 
         <div id="footer">
             <p id="footer_time" style="text-align: center"></p><script>
-    document.getElementById("footer_time").innerHTML = Date();
-            </script>
+            document.getElementById("footer_time").innerHTML = Date();
+        </script>
+
+            <p></p>
         </div>
     </div>
+
+    <script>
+        // define variable using server-side data so that it can be accessed in graph_data.js
+        var queryData = JSON.parse('<%- data %>');
+    </script>
+
+    <script src="/public/static/bootstrap/js/Chart.min.js"></script>
+    <script type="text/javascript" src="/public/static/bootstrap/js/graph_data.js"></script>
 </body>
 </html>

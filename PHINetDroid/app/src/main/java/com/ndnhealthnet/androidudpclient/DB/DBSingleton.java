@@ -18,7 +18,7 @@ public class DBSingleton {
     }
 
     public static DBSingleton getInstance(Context context) {
-        if(instance == null) {
+        if (instance == null) {
             instance = new DBSingleton();
             datasource = new DatabaseHandler(context);
 
@@ -30,15 +30,5 @@ public class DBSingleton {
 
     public static DatabaseHandler getDB() {
         return datasource;
-    }
-
-    /**
-     * TODO - document
-     *
-     * @param packetName
-     * @param packetContent
-     */
-    public static void addToPacketDB(String packetName, String packetContent) {
-        datasource.addPacketData(new DBData(packetName, packetContent));
     }
 }

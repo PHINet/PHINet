@@ -134,8 +134,9 @@ public class UDPListener extends Thread {
         String packetTimeString = nameComponent[4];
         String packetProcessID = nameComponent[5];
 
-        // TODO - document
-        DBSingleton.addToPacketDB(Arrays.toString(nameComponent), Arrays.toString(packetDataArray));
+        // add packet content to database for future review
+        DBData data = new DBData(Arrays.toString(nameComponent), Arrays.toString(packetDataArray));
+        DBSingleton.getInstance(context).getDB().addPacketData(data);
                 
         if (packetProcessID.equals(StringConst.INTEREST_FIB)) {
 
@@ -178,8 +179,8 @@ public class UDPListener extends Thread {
                 new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
                         .execute(dataPacket.toString()); // reply to interest with DATA from cache
 
-                // TODO - document
-                DBSingleton.addToPacketDB(dataPacket.getName(), dataPacket.toString());
+                // add packet content to database for future review
+                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
             } else {
 
                 String fibContent = "";
@@ -200,8 +201,8 @@ public class UDPListener extends Thread {
                     new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
                             .execute(dataPacket.toString()); // send interest packet
 
-                    // TODO - document
-                    DBSingleton.addToPacketDB(dataPacket.getName(), dataPacket.toString());
+                    // add packet content to database for future review
+                    DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
                 }
             }
 
@@ -252,8 +253,8 @@ public class UDPListener extends Thread {
                 new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
                         .execute(dataPacket.toString()); // reply to interest with DATA from cache
 
-                // TODO - document
-                DBSingleton.addToPacketDB(dataPacket.getName(), dataPacket.toString());
+                // add packet content to database for future review
+                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
             }
         } else {
             // second, check PIT
@@ -290,8 +291,9 @@ public class UDPListener extends Thread {
                             new UDPSocket(port, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                                     .execute(interestPacket.toString()); // send interest packet
 
-                            // TODO - document
-                            DBSingleton.addToPacketDB(interestPacket.getName(), interestPacket.toString());
+                            // add packet content to database for future review
+                            DBSingleton.getInstance(context).getDB()
+                                    .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));
                         }
                     }
                 }
@@ -343,8 +345,9 @@ public class UDPListener extends Thread {
             }
         }
 
-        // TODO - document
-        DBSingleton.addToPacketDB(Arrays.toString(nameComponent), Arrays.toString(packetDataArray));
+        // add packet content to database for future review
+        DBSingleton.getInstance(context).getDB()
+                .addPacketData(new DBData(Arrays.toString(nameComponent), Arrays.toString(packetDataArray)));
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"
@@ -442,8 +445,8 @@ public class UDPListener extends Thread {
                 new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr(), StringConst.DATA_TYPE)
                         .execute(dataPacket.toString()); // send DATA packet
 
-                // TODO - document
-                DBSingleton.addToPacketDB(dataPacket.getName(), dataPacket.toString());
+                // add packet content to database for future review
+                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
             }
         }
     }

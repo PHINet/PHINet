@@ -6,7 +6,22 @@
 var StringConst = require('./string_const').StringConst; // TODO - document
 var cookieParser = require('cookie-parser'); // TODO - document
 var express = require('express'); // TODO - document
-var udp_comm = require('./udp_comm').UDPComm(StringConst.PIT_DB, StringConst.FIB_DB, StringConst.CS_DB); // TODO - document
+
+var PIT = require('./pit').PIT(StringConst.PIT_DB); // PendingInterestTable database module
+var FIB = require('./fib').FIB(StringConst.FIB_DB); // ForwardingInformationBase database module
+var CS = require('./cs').CS(StringConst.CS_DB); // ContentStore database module
+
+// --- TEST DATA ---
+var DBData = require('./data'); // used to create objects used by the database
+var newEntry = DBData.DATA();
+
+newEntry.csData("freddie", "sensor1", "p1", "FRIDAY", "99,100,41,98,58,200,111")
+
+CS.insertCSData(newEntry, function(a,b){});
+
+// --- TEST DATA ---
+
+var udp_comm = require('./udp_comm').UDPComm(PIT, FIB, CS); // TODO - document
 var http = require('http'); // TODO - document
 var ejs = require('ejs'); // TODO - document
 var fs = require('fs'); // TODO - document
@@ -178,6 +193,43 @@ app.get('/profile', function (req, res) {
                 fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
                     if (err) {
                         console.log("Error serving profile.html: " + err);
+                    } else {
+
+                        res.send( ejs.render(content, {user: "", email:"", type:""}));
+                    }
+                });
+            }
+        }
+    });
+});
+
+/**
+ * handles yourdata page
+ */
+app.get('/viewdata', function (req, res) {
+    fs.readFile(__dirname + '/public/templates/viewdata.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving viewdata.html: " + err);
+        } else {
+
+            // verify that user exists before displaying page
+            if (req.cookies && req.cookies.user) {
+                CS.getGeneralCSData(req.cookies.user, function(rowsTouched, queryResults) {
+
+                    // TODO - improve upon display (give patients or own data, etc)
+
+                    var renderedHtml = ejs.render(content, {user: req.cookies.user, data:JSON.stringify(queryResults)});
+
+                    res.send(renderedHtml);
+                 //   res.send(renderedHtml, JSON.stringify({data: queryResults}));
+                });
+
+            } else {
+
+                // user doesn't exist, direct to main page
+                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                    if (err) {
+                        console.log("Error serving viewdata.html: " + err);
                     } else {
 
                         res.send( ejs.render(content, {user: "", email:"", type:""}));

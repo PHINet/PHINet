@@ -18,6 +18,8 @@ import java.util.ArrayList;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
+    // TODO - refactor this class into numerous, specific classes
+
     private static final String DATABASE_NAME = "NDNHealthNet7";
     private static final int DATABASE_VERSION = 7;
 

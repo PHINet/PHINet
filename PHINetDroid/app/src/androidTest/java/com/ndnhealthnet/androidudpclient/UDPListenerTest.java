@@ -14,7 +14,7 @@ import junit.framework.TestCase;
  * Tests the functionality of UDPListener.java
  */
 
-// NOTE: the udp_comm module has several branches (i.e.,
+// NOTE: this UDPListener module has several branches (i.e.,
 // we send the packet along as more specific things are detected)
 // here, we will only test the final branches
 public class UDPListenerTest extends TestCase {

@@ -19,15 +19,18 @@ var myUserID = "CLOUD-SERVER"; // TODO - rework to find standard ID for server
 /**
  * Returns object that handles majority of UDP communication.
  *
- * @param PIT_STRING - used by PIT to query correct database (test or non-test DB)
- * @param FIB_STRING - used by FIB to query correct database (test or non-test DB)
- * @param CS_STRING - used by CS to query correct database (test or non-test DB)
+ * TODO - update documentation
+ *
+ * @param PIT_DB - used by PIT to query correct database (test or non-test DB)
+ * @param FIB_DB - used by FIB to query correct database (test or non-test DB)
+ * @param CS_DB - used by CS to query correct database (test or non-test DB)
  */
-exports.UDPComm = function(PIT_STRING, FIB_STRING, CS_STRING) {
+exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
 
-    PIT = require('./pit').PIT(PIT_STRING); // PendingInterestTable database module
-    FIB = require('./fib').FIB(FIB_STRING); // ForwardingInformationBase database module
-    CS = require('./cs').CS(CS_STRING); // ContentStore database module
+    // TODO - document decision (of passing to this file)
+    PIT = PIT_DB;
+    FIB = FIB_DB;
+    CS = CS_DB;
 
 	return {
 

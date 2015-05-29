@@ -77,7 +77,6 @@ public class SensorListActivity extends ListActivity {
 
                             Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
 
-
                             // TODO - perform a better removal of spaces (such as notify user)
                             String sensorName = sensorInput.getText().toString().replace(" ", "");
 

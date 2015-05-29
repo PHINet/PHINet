@@ -32,7 +32,6 @@ public class UtilsTest extends TestCase {
         testConvertDBRowTFloats();
         testGetCurrentTime();
         testValidIP();
-        testEncryption();
 
         // reset user credentials after test
         assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, ""));
@@ -139,25 +138,5 @@ public class UtilsTest extends TestCase {
         // test input acceptance if during interval
         assertTrue(Utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
         assertTrue(Utils.isValidForTimeInterval(testInterval1, dataTime1));
-    }
-
-    /**
-     * TODO - document
-     * @throws Exception
-     */
-    public void testEncryption() throws Exception {
-      /*  String password1 = "myPassword";
-        String password2 = "hunter2";
-
-        String encryptedPW1 = Utils.encrypt(password1);
-        String encryptedPW2 = Utils.encrypt(password2);
-
-        // verify that passwords match against encrypted version
-        assertTrue(Utils.compareAgainstEncrypted(password1, encryptedPW1));
-        assertTrue(Utils.compareAgainstEncrypted(password2, encryptedPW2));
-
-        // verify that method returns false when checked against incorrect version
-        assertFalse(Utils.compareAgainstEncrypted(password1, encryptedPW2));
-        assertFalse(Utils.compareAgainstEncrypted(password2, encryptedPW1));*/
     }
 }

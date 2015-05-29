@@ -88,7 +88,7 @@ exports.LoginCredentials = function (tableName) {
         getUser: function(userID, getCallback) {
 
             try {
-                if (!userID === undefined || !getCallback) {
+                if (!userID || !getCallback) {
                     return false;
                 } else {
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
@@ -97,7 +97,7 @@ exports.LoginCredentials = function (tableName) {
                         function(err, result) {
                             if (err) {
 
-                                insCallback(0);  // error occurred - 0 rows modified; return
+                                getCallback(0, null);  // error occurred - 0 rows modified; return
                             } else {
 
                                 if (result.rowCount > 0) {

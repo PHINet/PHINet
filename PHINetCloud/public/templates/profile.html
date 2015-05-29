@@ -6,96 +6,101 @@
     <meta content="website keywords, website keywords" name="keywords">
     <meta content="text/html; charset=utf-8" http-equiv="content-type">
     <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
-    type='text/css'>
-    <link href="public/static/bootstrap/css/style.css" rel="stylesheet" type=
-    "text/css">
+          type='text/css'>
+    <link href="/public/static/bootstrap/css/style.css" rel="stylesheet" type=
+            "text/css">
 </head>
 
 <body>
-    <div id="main">
-        <div id="header">
-            <div id="logo">
-                <h1>PHINet</h1>
-            </div>
-
-            <div class="loginArea">
-                <% if(user) { %><%= user %> | <a href="/logout">logout</a>
-                <% } else { %> <a href="/login">login</a> | <a href=
-                "/signup">signup</a> <% } %>
-            </div>
-
-            <div id="menubar">
-                <ul id="menu">
-
-                    <li>
-                        <a href="/">Home</a>
-                    </li>
-
-                    <li>
-                        <a href="/document">Documentation</a>
-                    </li>
-
-                    <li>
-                        <a href="/test">Test</a>
-                    </li><% if(user) { %>
-
-                    <li class="current">
-                        <a href="/profile">Profile</a>
-                    </li><% } %>
-
-                    <li>
-                        <a href="/contact">Contact Us</a>
-                    </li><!--  <li><a href="/profile">Profile</a></li>-->
-                </ul>
-            </div>
+<div id="main">
+    <div id="header">
+        <div id="logo">
+            <h1>PHINet</h1>
         </div>
 
-        <div id="site_content">
-            <div id="sidebar_container"></div>
-
-            <div id="content">
-
-                <h1>Profile</h1>
-
-                <p>&nbsp;</p>
-
-                <table >
-                    <tr>
-                        <td colspan="2">
-                            <p style="text-align: center"><strong>Personal
-                            information</strong></p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            <br>
-
-                            <p>Name:  <% if(user) { %><b><%= user %> </b>
-                                <% } %></p>
-
-                            <p>Email: <% if(email) { %><b><%= email %></b>
-                                <% } %></p>
-
-                            <p>User Type: <% if(type) { %><b><%= type %></b>
-                                <% } %></p>
-                        </td>
-
-                        <td>Blank</td>
-                    </tr>
-                </table>
-
-                <p>&nbsp;</p>
-            </div>
+        <div class="loginArea">
+            <% if(user) { %><%= user %> | <a href="/logout">logout</a>
+            <% } else { %> <a href="/login">login</a> | <a href=
+                                                                   "/signup">signup</a> <% } %>
         </div>
 
-        <div id="footer">
-            <p id="footer_time" style="text-align: center"></p><script>
-    document.getElementById("footer_time").innerHTML = Date();
-            </script>
+        <div id="menubar">
+            <ul id="menu">
 
-            <p></p>
+                <li>
+                    <a href="/">Home</a>
+                </li>
+
+                <li>
+                    <a href="/document">Documentation</a>
+                </li>
+
+                <li>
+                    <a href="/test">Test</a>
+                </li><% if(user) { %>
+
+                <li class="current">
+                    <a href="/profile">Profile</a>
+                </li>
+
+                <li>
+                    <a href="/viewdata">Your Data</a>
+                </li>
+                <% } %>
+
+
+                <li>
+                    <a href="/contact">Contact Us</a>
+                </li><!--  <li><a href="/profile">Profile</a></li>-->
+            </ul>
         </div>
     </div>
+
+    <div id="site_content">
+        <div id="sidebar_container"></div>
+
+        <div id="content">
+
+            <h1>Profile</h1>
+
+            <p>&nbsp;</p>
+
+            <table style="width:110%">
+                <tr>
+                    <td>
+                        <p style="text-align: center"><strong>Personal
+                            information</strong></p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <br>
+
+                        <p>Name:  <% if(user) { %><b><%= user %> </b>
+                            <% } %></p>
+
+                        <p>Email: <% if(email) { %><b><%= email %></b>
+                            <% } %></p>
+
+                        <p>User Type: <% if(type) { %><b><%= type %></b>
+                            <% } %></p>
+                    </td>
+
+                </tr>
+            </table>
+
+            <p>&nbsp;</p>
+        </div>
+    </div>
+
+    <div id="footer">
+        <p id="footer_time" style="text-align: center"></p><script>
+        document.getElementById("footer_time").innerHTML = Date();
+    </script>
+
+        <p></p>
+    </div>
+</div>
 </body>
 </html>

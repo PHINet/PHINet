@@ -95,7 +95,10 @@ public class ViewDataActivity extends Activity {
 
                 // reload if different sensor chosen
                 if (!currentSensorSelected.equals(adapter.getItem(position).toString())) {
-                    // TODO - reload
+
+                    // update the currentSensorSelected then reload the graph
+                    currentSensorSelected = adapter.getItem(position).toString();
+                    updateGraph();
                 }
             }
 
@@ -105,7 +108,7 @@ public class ViewDataActivity extends Activity {
             }
         });
 
-        updateGraph(); // TODO - document
+        updateGraph(); // provides the initial rendering of the graph
 
         intervalSelectionBtn = (Button) findViewById(R.id.intervalSelectionBtn);
         intervalSelectionBtn.setOnClickListener(new View.OnClickListener(){
@@ -175,13 +178,7 @@ public class ViewDataActivity extends Activity {
                             endDay = day;
 
                             // now that interval has been entered, update the graph
-
-                            // TODO - update the graph
-                            // reload activity after 3 seconds, so to check if client data arrived
-                          //  finish();
                             updateGraph();
-
-                            //startActivity(getIntent());
 
                         }
                     }); secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -206,18 +203,21 @@ public class ViewDataActivity extends Activity {
     }
 
     /**
-     * TODO - document
+     * Should be invoked when graphing params have been
+     * updated (i.e., new sensor or interval selection).
      *
+     * Method redraws the graph based upon the updated criterion.
      */
     public void updateGraph() {
 
-        if (graph!=null) {
-            graph.removeAllSeries();
+        if (graph != null) {
+            graph.removeAllSeries(); // graph exists, wipe all its data before adding new data
         }
 
+        // holds data before conversion
         ArrayList<DBData> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
 
-        // TODO - provide new data
+        // holds data after conversion
         ArrayList<Float> myFloatData;
 
         // TODO - more robust verification
@@ -238,9 +238,14 @@ public class ViewDataActivity extends Activity {
             endDay = startDay;
         }
 
+        // db query unsuccessful: no user data found in cache
         if (myData == null) {
-            myFloatData = new ArrayList<>(); // no user data found in cache
-        } else {
+
+            myFloatData = new ArrayList<>(); // create empty ArrayList; no data exists for it
+
+        }
+        // db query was successful; populate ArrayList that will be used to generate the graph
+        else {
 
             // date syntax: yyyy-MM-ddTHH:mm:ss.SSS
             String startDate = Integer.toString(startYear) + "-" + Integer.toString(startMonth);
@@ -249,19 +254,20 @@ public class ViewDataActivity extends Activity {
             String endDate = Integer.toString(endYear) + "-" + Integer.toString(endMonth);
               endDate += "-" + Integer.toString(endDay) + "T00:00:00.000"; // append zeros at end
 
-            myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);  // use data from cache
+            // convert valid data to a format that can be displayed
+            myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);
         }
 
-        String startDate = Integer.toString(startMonth) + "/" + Integer.toString(startDay) + "/";
-        startDate +=  Integer.toString(startYear);
+        // generate interval text to display to user
+        String intervalText = Integer.toString(startMonth) + "/" + Integer.toString(startDay) + "/"
+                + Integer.toString(startYear) + " - " + Integer.toString(endMonth) + "/"
+                + Integer.toString(endDay) + "/" + Integer.toString(endYear);
 
-        String endDate = Integer.toString(endMonth) + "/" + Integer.toString(endDay) + "/";
-        endDate +=  Integer.toString(endYear);
+        // database query returned valid data, display it now
+        if (myFloatData.size() > 0) {
 
-        if (myData != null && myData.size() > 0 && myFloatData.size() > 0) {
-
-
-            dataStatusText.setText(startDate + " - " + endDate); // notify user of chosen interval
+            graph.setTitle("Sensor Values / Chronological Data Points");
+            dataStatusText.setText(intervalText); // notify user of chosen interval
 
             // TODO - improve presentation
             DataPoint[] dataPoints = new DataPoint[myFloatData.size()];
@@ -270,14 +276,14 @@ public class ViewDataActivity extends Activity {
             }
 
             LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
-            graph.addSeries(series);
-
-        } else {
-            dataStatusText.setText("Nothing during " + startDate + " - " + endDate);
-
-            //graph.setVisibility(View.INVISIBLE); // no data, make graph go away
+            graph.addSeries(series); // update graph with new data
         }
-        
+        // database query returned nothing , notify the user
+        else {
+            graph.setTitle(""); // no data; remove title
+            dataStatusText.setText("Nothing during " + intervalText);
+        }
+
         // TODO - rework so that resetting isn't necessary
         startDay = 0;
         endDay = 0;

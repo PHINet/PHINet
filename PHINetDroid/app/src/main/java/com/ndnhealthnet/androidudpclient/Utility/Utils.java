@@ -229,43 +229,4 @@ public class Utils {
 */
         return sensorID.length() >= 3;
     }
-
-    /**
-     * TODO - document and test
-     *
-     * @param value
-     * @return
-     */
-    public static String encrypt(String value) {
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-
-            return md.digest(value.getBytes()).toString();
-
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        }
-    }
-
-    /**
-     * TODO - document and test
-     *
-     * @param unencrypted
-     * @param encrypted
-     * @return
-     */
-    public static boolean compareAgainstEncrypted(String unencrypted, String encrypted) {
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-
-            String encryptedVersion = md.digest(unencrypted.getBytes()).toString();
-
-            return encryptedVersion.equals(encrypted);
-
-        } catch (NoSuchAlgorithmException e) {
-            return false;
-        }
-    }
 }

@@ -20,7 +20,8 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 import java.util.ArrayList;
 
 /**
- * TODO - document
+ * Lowers the level of abstraction by providing the user with
+ * the content of all NDN-compliant packets that have been sent
  */
 public class PacketListActivity extends ListActivity {
 

@@ -72,8 +72,6 @@ describe('PIT', function(){
     })
 });
 
-
-
 /**
  * Tests PIT.updatePITData() functionality.
  */
