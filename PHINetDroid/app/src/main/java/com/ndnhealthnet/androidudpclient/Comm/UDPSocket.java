@@ -30,15 +30,9 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
         try {
             final DatagramSocket clientSocket = new DatagramSocket();
 
-
             InetAddress IPAddress = InetAddress.getByName(destAddr);
 
             byte[] packetContent = message[0]; // TODO - does this resolve the2d array input issue?
-
-            // NOTE: temporary debugging print
-            System.out.println("sent packet: " + message[0]);
-            System.out.println("IPADDR: " + IPAddress.toString());
-            System.out.println("port: " + destPort);
 
             DatagramPacket sendPacket = new DatagramPacket(packetContent, packetContent.length, IPAddress, destPort);
             clientSocket.send(sendPacket);

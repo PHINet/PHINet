@@ -129,7 +129,7 @@ public class ViewDataActivity extends Activity {
     /**
      * TODO - create a class for this dialog
      *
-     * allows users to select date regarding interval of requested data
+     * Allows users to select date regarding interval of requested data
      *
      * @param title used to set title of dialog
      * @return returns the dialog so that it can be initiated elsewhere
@@ -184,6 +184,7 @@ public class ViewDataActivity extends Activity {
                     }); secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            resetIntervalParams(); // clear so that future updates may occur
                             dialog.cancel();
                         }
                     });
@@ -195,6 +196,7 @@ public class ViewDataActivity extends Activity {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                resetIntervalParams(); // clear so that future updates may occur
                 dialog.cancel();
             }
         });
@@ -284,7 +286,13 @@ public class ViewDataActivity extends Activity {
             dataStatusText.setText("Nothing during " + intervalText);
         }
 
-        // TODO - rework so that resetting isn't necessary
+        resetIntervalParams(); // after using the parameters, clear so that future updates may occur
+    }
+
+    /**
+     * Resets the interval params so that future requests may start fresh.
+     */
+    public void resetIntervalParams() {
         startDay = 0;
         endDay = 0;
         startMonth = 0;

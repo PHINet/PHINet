@@ -25,8 +25,5 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
         UtilsTest utilsTest = new UtilsTest(context);
         utilsTest.runTests();
-
-        UDPListenerTest udpListenerTest = new UDPListenerTest(context);
-        udpListenerTest.runTests();
     }
 }

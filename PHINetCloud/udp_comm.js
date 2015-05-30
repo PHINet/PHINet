@@ -21,20 +21,18 @@ var Interest = require('./ndn-js/interest.js').Interest;
 var Name = require('./ndn-js/name.js').Name;
 
 /**
- * Returns object that handles majority of UDP communication.
+ * Returns object that handles majority of UDP communication. References to the core
+ * NDN databases are passed to the module so that relevant queries can be performed.
  *
- * TODO - update documentation
- *
- * @param PIT_DB - used by PIT to query correct database (test or non-test DB)
- * @param FIB_DB - used by FIB to query correct database (test or non-test DB)
- * @param CS_DB - used by CS to query correct database (test or non-test DB)
+ * @param pitReference - reference to the PIT database
+ * @param fibReference - reference to the FIB database
+ * @param csReference - reference to the CS database
  */
-exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
+exports.UDPComm = function(pitReference, fibReference, csReference) {
 
-    // TODO - document decision (of passing to this file)
-    PIT = PIT_DB;
-    FIB = FIB_DB;
-    CS = CS_DB;
+    PIT = pitReference;
+    FIB = fibReference;
+    CS = csReference;
 
 	return {
 
@@ -50,25 +48,21 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
             socket.bind(NDN_SENSOR_NET_PORT);
 			socket.on('message', function(msg, rinfo) {
 
-                var message = msg.toString('utf8').split(" ");
-
-                // --- debugging output ---
-			    console.log('Received %d bytes from %s:%d\n', msg.length, rinfo.address, rinfo.port);
-			    console.log("msg", message);
-                // --- debugging output ---
-
+                // attempt to create both Interest and Data packet; only one should be valid
                 var interest = ndnjs_utils.decodeInterest(msg);
                 var data = ndnjs_utils.decodeData(msg);
 
                 if (interest && !data) {
-                    console.log("only interest decode worked");
 
+                    // Interest packet detected
                     handleInterestPacket(interest, rinfo.address, rinfo.port);
                 } else if (!interest && data) {
-                    console.log("only data decode worked");
+
+                    // Data packet detected
                     handleDataPacket(data);
                 } else {
-                    console.log("neither interest or data decode worked");
+
+                    // this shouldn't have happened; ignore for now
 
                     // TODO - this shouldn't have happened; handle error
                 }
@@ -76,7 +70,8 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
 		},
 
         /**
-         * Method sends message to specified ip/port combination.
+         * Method sends message to specified ip/port combination. It's inclusion within the
+         * module allows other modules to send messages - such as from within server.js
          *
          * @param message content sent to receiver
          * @param ip - receiver's ip
@@ -106,7 +101,7 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
          * 1. Do I have the data? If so, I will reply with my own.
          * 2. Have I already sent an interest for this data? If so, I will add this request to PIT entry.
          *
-         * @param packetDataArray incoming packet after having been "split" by space and placed array
+         * @param interestPacket incoming ndn-js Interest packet after having been decoded
          * @param packetIP specifies IP that will receive reply if parse success
          * @param packetPort specifies IP that will receive reply if parse success
          */
@@ -114,7 +109,6 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
 
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = interestPacket.getName().toUri().replace("%7C%7C", "||").split("/");
-
 
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
@@ -124,14 +118,10 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
             var packetTimeString = nameComponent[4];
             var packetProcessID = nameComponent[5];
 
-            // --- debugging output ---
-            console.log("name: " + nameComponent);
-            // --- debugging output ---
-
             // check if packet is an INTEREST for FIB data
             if (packetProcessID === StringConst.INTEREST_FIB) {
 
-                handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, packetIP, packetPort);
+                handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, packetPort);
             }
             // check if packet is an INTEREST for CACHE data
             else if (packetProcessID === StringConst.INTEREST_CACHE_DATA) {
@@ -148,14 +138,12 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
          * Method parses packet then stores in cache if requested,
          * and sends out to satisfy any potential Interests.
          *
-         * @param packetDataArray incoming packet after having been "split" by space and placed array
+         * @param dataPacket incoming ndn-js Data packet after having been decoded
          */
-        handleDataPacket: function (dataPacket)
-        {
+        handleDataPacket: function (dataPacket) {
 
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = dataPacket.getName().toUri().replace("%7C%7C", "||").split("/");
-
             var dataContents = dataPacket.getContent().toString();
 
             // information extracted from our name format:
@@ -204,6 +192,31 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
         }
 	};
 };
+
+/**
+ * Method sends message to specified ip/port combination. It's exclusion from the module ensures
+ * that any function from within this file may call it without worrying about scope issues.
+ *
+ * @param message content sent to receiver
+ * @param ip - receiver's ip
+ * @param port - receiver's port
+ */
+function sendMessage (message, ip, port) {
+
+    var buffer = new Buffer(message, "utf-8");
+
+    if (port == undefined || port === null) {
+        port = NDN_SENSOR_NET_PORT;
+    }
+
+    socket.send(buffer, 0, buffer.length, port, ip,
+        function(err) {
+
+            if (err) {
+                console.log("!!Error sending packet: " + err);
+            }
+    });
+}
 
 /**
  * Method handles incoming FIB data: if user data stored, it updates; otherwise, it inserts.
@@ -299,21 +312,13 @@ function handleCacheData (packetUserID, packetSensorID, packetTimeString,
  * @param packetSensorID sensorID of entity that requested FIB contents
  * @param packetIP specifies IP that will receive reply if parse success
  * @param packetPort specifies IP that will receive reply if parse success
- * @return boolean - true if a packet sent, false otherwise (true indicates valid input; useful during testing)
  */
 function  handleInterestFIBRequest (packetUserID, packetSensorID, packetIP, packetPort) {
-    if (!packetUserID || !packetSensorID || !packetIP || !packetPort) {
-        return false;
-    } else {
+    if (packetUserID && packetSensorID && packetIP && packetPort) {
 
         FIB.getAllFIBData(function(rowsTouched, allFIBData) {
 
-            if (allFIBData === null || allFIBData.length === 0) {
-
-                // shouldn't be empty; client connects to server (i.e., enter server's FIB) before requesting data
-                return false;
-
-            } else {
+            if (allFIBData && allFIBData.length > 0) {
 
                 var fibContent = "";
 
@@ -413,7 +418,7 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
                                     // create and send packet with ndn-js module
                                     var packetName = ndnjs_utils.createName(packetUserID, packetSensorID,
                                         packetTimeString,  packetProcessID);
-                                    var interest = ndnjs_utils.createDataPacket(packetName);
+                                    var interest = ndnjs_utils.createInterestPacket(packetName);
 
                                     var encodedPacket = interest.wireEncode();
 

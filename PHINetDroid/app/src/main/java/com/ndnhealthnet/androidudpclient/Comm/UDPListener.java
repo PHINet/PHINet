@@ -164,7 +164,7 @@ public class UDPListener extends Thread {
 
             ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
-            String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+            String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
             String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
             if (allFIBData == null || allFIBData.size() == 0) {

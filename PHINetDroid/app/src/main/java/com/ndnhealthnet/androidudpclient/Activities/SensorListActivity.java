@@ -83,6 +83,7 @@ public class SensorListActivity extends ListActivity {
                             // through intent, pass sensor information to activity
                             intent.putExtra(SENSOR_NAME, sensorName);
                             startActivity(intent);
+
                         } else {
                             // notify user of bad input
 

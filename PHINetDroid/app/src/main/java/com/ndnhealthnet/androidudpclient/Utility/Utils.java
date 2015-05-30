@@ -14,15 +14,12 @@ import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
 /**
  * Class facilitates user credential storage, which is necessary for NDN communication -
  * as well as numerous other helpful, miscellaneous features.
- *
- * TODO - encrypt
  */
 public class Utils {
 
@@ -36,8 +33,10 @@ public class Utils {
      */
     public static boolean saveToPrefs(Context context, String key, String value) {
 
+        // TODO - hash the password
+
         if (context == null || key == null || value == null
-                || (!key.equals(StringConst.PREFS_LOGIN_SENSOR_ID_KEY) // key must equal either one
+                || (!key.equals(StringConst.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
                 && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
             return false;
         }
@@ -63,7 +62,7 @@ public class Utils {
     public static String getFromPrefs(Context context, String key, String defaultValue) {
 
         if (context == null || key == null || defaultValue == null
-                || (!key.equals(StringConst.PREFS_LOGIN_SENSOR_ID_KEY) // key must equal either one
+                || (!key.equals(StringConst.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
                 && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
             return null;
         }
@@ -78,14 +77,13 @@ public class Utils {
     }
 
     /**
-     * Method takes query results and converts to a format that can be presented via graph
-     *
-     * TODO -
+     * Method takes query results, filters based upon input parameters,
+     * and then converts to a format that can be presented via graph
      *
      * @param myData array list of database data
      * @param sensor the name of selected sensor
-     * @param startDate
-     * @param endDate
+     * @param startDate of requested interval
+     * @param endDate of requested interval
      * @return data from input in graphable format
      */
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData, String sensor,
@@ -199,11 +197,9 @@ public class Utils {
     }
 
     /**
-     * // TODO - test
+     * Attempts to determine whether userID input is valid
      *
-     * attempts to determine whether userID input is valid
-     *
-     * TODO - define correct pw syntax & user regular expressions
+     * TODO - test AND define correct pw syntax & user regular expressions
      *
      * @param userID input to have validity assessed
      * @return boolean regarding validity of input
@@ -215,22 +211,15 @@ public class Utils {
     }
 
     /**
-     * TODO - test
+     * Attempts to determine whether password is valid
      *
-     * attempts to determine whether password is valid
-     *
-     * TODO - define correct pw syntax  & user regular expressions
+     * TODO - test AND define correct pw syntax  & user regular expressions
      *
      * @param sensorID input to have validity assessed
      * @return boolean regarding validity of input
      */
     public static boolean validInputPassword(String sensorID) {
 
-
-  /*      for (int i = 0; i < sensorID.length(); i++) {
-            allDigits &= Character.isDigit(sensorID.charAt(i));
-        }
-*/
         return sensorID.length() >= 3;
     }
 

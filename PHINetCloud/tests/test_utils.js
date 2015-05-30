@@ -5,7 +5,6 @@
 var expect = require("chai").expect;
 var utils = require('../utils').Utils;
 
-
 /**
  * Tests Utils.comparePassword() functionality.
  */
@@ -73,10 +72,10 @@ describe('Utils', function() {
 });
 
 /**
- * Tests UDPComm.isValidForTimeInterval() functionality.
+ * Tests Utils.isValidForTimeInterval() functionality.
  */
-describe('UDPComm', function(){
-    describe('#isValidForTimeInterval', function(){
+describe('Utils', function(){
+    describe('#isValidForTimeInterval()', function(){
         it('returns true if valid time interval, otherwise false', function(done){
             var goodRequestInterval = "2012-05-04T08.08.08.888||2014-05-04T08.08.08.888";
             var badRequestInterval = "2012-ERROR:08.888||2014-ERROR8.08.888";

@@ -73,10 +73,10 @@ public class DBData {
     }
 
     /**
-     * TODO - document
+     * Constructor for object that holds sensor data
      *
-     * @param sensorID
-     * @param collectionInterval
+     * @param sensorID of given sensor
+     * @param collectionInterval of given sensor
      */
     public DBData(String sensorID, int collectionInterval) {
         this.sensorID = sensorID;
@@ -84,10 +84,11 @@ public class DBData {
     }
 
     /**
-     * TODO - document
+     * Constructor for object that holds packet data that
+     * is to be stored/manipulated by the database
      *
-     * @param packetName
-     * @param packetContent
+     * @param packetName of given packet
+     * @param packetContent of given packet
      */
     public DBData(String packetName, String packetContent) {
         this.packetName = packetName;

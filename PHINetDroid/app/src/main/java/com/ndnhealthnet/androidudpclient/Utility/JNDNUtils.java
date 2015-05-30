@@ -87,12 +87,12 @@ public class JNDNUtils {
     }
 
     /**
-     * TODO - document
+     * Creates KeyLocator object as per NDN specification
      *
-     * @param data
-     * @param name
-     * @param locatorType
-     * @return
+     * @param data component of KeyLocator
+     * @param name component of KeyLocator
+     * @param locatorType component of KeyLocator
+     * @return KeyLocator object
      */
     public static KeyLocator createKeyLocator(Blob data, String name, KeyLocatorType locatorType) {
         KeyLocator keyLocator = new KeyLocator();
@@ -105,12 +105,12 @@ public class JNDNUtils {
     }
 
     /**
-     * TODO - document
+     * Creates MetaInfo object as per NDN specification
      *
-     * @param finalBlockID
-     * @param freshnessPeriod
-     * @param cType
-     * @return
+     * @param finalBlockID component of MetaInfo
+     * @param freshnessPeriod component of MetaInfo
+     * @param cType component of MetaInfo
+     * @return MetaInfo object
      */
     public static MetaInfo createMetaInfo(Name.Component finalBlockID, double freshnessPeriod, ContentType cType) {
 
@@ -124,9 +124,9 @@ public class JNDNUtils {
     }
 
     /**
-     * Uses default values
+     * Uses default values to create valid NDN MetaInfo object
      *
-     * @return
+     * @return MetaInfo object
      */
     public static MetaInfo createMetaInfo() {
         MetaInfo metaInfo = new MetaInfo();
@@ -135,22 +135,19 @@ public class JNDNUtils {
                         //   metaInfo.setFinalBlockId(finalBlockID);
         metaInfo.setFreshnessPeriod(DEFAULT_FRESHNESS_PERIOD);
 
-
-
         metaInfo.setType(ContentType.BLOB); // blob is the default type
 
         return metaInfo;
     }
+
     /**
-     * Creates applications-specific name
+     * Creates application-specific name
      *
-     * TODO - doc
-     *
-     * @param userID
-     * @param sensorID
-     * @param timeString
-     * @param processID
-     * @return
+     * @param userID of associated packet
+     * @param sensorID of associated packet
+     * @param timeString of associated packet
+     * @param processID of associated packet
+     * @return jNDN Name object
      */
     public static Name createName(String userID, String sensorID, String timeString, String processID) {
        String name = "/ndn/" + userID + "/" + sensorID + "/" + timeString + "/" + processID;
@@ -159,13 +156,12 @@ public class JNDNUtils {
     }
 
     /**
+     * Creates Data packet as per NDN specification
      *
-     * TODO - doc
-     *
-     * @param content
-     * @param metaInfo
-     * @param name
-     * @return
+     * @param content component of packet
+     * @param name component of packet
+     * @param metaInfo component of packet
+     * @return jNDN Data packet
      */
     public static Data createDataPacket(String content, MetaInfo metaInfo, String name) {
 
@@ -184,13 +180,24 @@ public class JNDNUtils {
     }
 
     /**
-     * uses the default meta info
+     * Creates Data packet as per NDN specification
      *
-     * TODO - doc
+     * @param content component of packet
+     * @param name component of packet
+     * @param metaInfo component of packet
+     * @return jNDN Data packet
+     */
+    public static Data createDataPacket(String content, MetaInfo metaInfo, Name name) {
+
+        return createDataPacket(content, metaInfo, name.toUri());
+    }
+
+    /**
+     * Creates Data packet as per NDN specification using the default MetaInfo configuration
      *
-     * @param content
-     * @param name
-     * @return
+     * @param content component of packet
+     * @param name component of packet
+     * @return jNDN Data Packet
      */
     public static Data createDataPacket(String content, String name) {
 
@@ -209,13 +216,11 @@ public class JNDNUtils {
     }
 
     /**
-     * uses the default meta info
+     * Creates Data packet as per NDN specification using the default MetaInfo configuration
      *
-     * TODO - doc
-     *
-     * @param content
-     * @param name
-     * @return
+     * @param content component of packet
+     * @param name component of packet
+     * @return jNDN Data Packet
      */
     public static Data createDataPacket(String content, Name name) {
 
@@ -223,33 +228,17 @@ public class JNDNUtils {
     }
 
     /**
+     * Creates Interest packet as per NDN specification
      *
-     *  TODO - doc
-     *
-     * @param content
-     * @param metaInfo
-     * @param name
-     * @return
-     */
-    public static Data createDataPacket(String content, MetaInfo metaInfo, Name name) {
-
-
-        return createDataPacket(content, metaInfo, name.toUri());
-    }
-
-    /**
-     *
-     *  TODO - doc
-     *
-     * @param childSelector
-     * @param interestLifetimeMillis
-     * @param keyLocator
-     * @param mustBeFresh
-     * @param maxSuffixComponents
-     * @param minSuffixComponents
-     * @param name
-     * @param scope
-     * @return
+     * @param name name component of packet
+     * @param childSelector name component of packet
+     * @param interestLifetimeMillis name component of packet
+     * @param keyLocator name component of packet
+     * @param mustBeFresh name component of packet
+     * @param maxSuffixComponents name component of packet
+     * @param minSuffixComponents name component of packet
+     * @param scope name component of packet
+     * @return jNDN Interest Packet
      */
     public static Interest createInterestPacket(int childSelector, double interestLifetimeMillis,
                                                 KeyLocator keyLocator, boolean mustBeFresh, int maxSuffixComponents,
@@ -273,12 +262,10 @@ public class JNDNUtils {
     }
 
     /**
-     * the default interest
+     * Creates and returns Interest packet with default configurations
      *
-     * TODO - doc
-     *
-     * @param name
-     * @return
+     * @param name component of packet
+     * @return jNDN Interest Packet
      */
     public static Interest createInterestPacket(String name) {
 
@@ -287,12 +274,10 @@ public class JNDNUtils {
     }
 
     /**
-     * the default interest
+     * Creates and returns Interest packet with default configurations
      *
-     * TODO - doc
-     *
-     * @param name
-     * @return
+     * @param name component of packet
+     * @return jNDN Interest Packet
      */
     public static Interest createInterestPacket(Name name) {
 

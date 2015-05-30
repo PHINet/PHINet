@@ -6,7 +6,7 @@ var gauss = require('gauss'); // node module used for data analytics
  */
 exports.analytics = function() {
 
-    // TODO - perform more complex analytics
+    // TODO - perform/test more complex analytics
 
     return {
 

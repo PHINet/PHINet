@@ -14,7 +14,7 @@ public class DBSingleton {
     private static DatabaseHandler datasource;
 
     protected DBSingleton() {
-        // Exists only to defeat instantiation.
+        // Exists only to prevent multiple instantiations.
     }
 
     public static DBSingleton getInstance(Context context) {

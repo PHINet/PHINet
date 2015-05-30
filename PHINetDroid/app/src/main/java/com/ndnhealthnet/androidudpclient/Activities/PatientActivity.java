@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -221,17 +220,6 @@ public class PatientActivity extends Activity {
                 Toast toast = Toast.makeText(getApplicationContext(),
                         "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
                 toast.show();
-            } else {
-               /*
-               TODO - reload no longer necessary?
-               Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-                        // reload activity after 3 seconds, so to check if client data arrived
-                        finish();
-                        startActivity(getIntent());
-                    }
-                }, 3000);*/
             }
 
         } else if (!isValidIP) {

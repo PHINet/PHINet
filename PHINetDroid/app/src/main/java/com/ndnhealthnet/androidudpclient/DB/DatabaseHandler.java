@@ -131,10 +131,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
         } else if (tableName.equals(StringConst.PACKET_DB)) {
 
-            System.out.println("packet db");
-            System.out.println("packet name: " + data.getPacketName());
-            System.out.println("packet content; " + data.getPacketContent());
-
             values.put(KEY_PACKET_NAME, data.getPacketName());
             values.put(KEY_PACKET_CONTENT, data.getPacketContent());
         } else {
@@ -142,7 +138,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         try {
-            System.out.println("ERROR");
 
             // Inserting Row
             db.insertWithOnConflict(tableName, null, values, SQLiteDatabase.CONFLICT_FAIL);
@@ -156,20 +151,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Performs insertion into Sensor database
      *
-     * @param data
-     * @return
+     * @param data of sensor to be inserted
+     * @return true if insertion was successful, false otherwise
      */
     public boolean addSensorData(DBData data) {
         return addData(data, StringConst.SENSOR_DB);
     }
 
     /**
-     * TODO - document
+     * Performs insertion into Packet database
      *
-     * @param data
-     * @return
+     * @param data of Packet to be inserted
+     * @return true if insertion was successful, false otherwise
      */
     public boolean addPacketData(DBData data) {
         return addData(data, StringConst.PACKET_DB);
@@ -299,9 +294,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Method queries and returns entire Sensor DB
      *
-     * @return
+     * @return an ArrayList of type DBData containing entire Sensor database; null if db empty
      */
     public ArrayList<DBData> getAllSensorData() {
 
@@ -327,9 +322,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Queries and returns a specific Sensor database entry
      *
-     * @return
+     * @return sensor entry if found; otherwise, null
      */
     public DBData getSpecificSensorData(String sensorID) {
 
@@ -355,9 +350,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Method queries and returns entire Packet DB
      *
-     * @return
+     * @return an ArrayList of type DBData containing entire Packet database; null if db empty
      */
     public ArrayList<DBData> getAllPacketData() {
 
@@ -586,10 +581,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Method updates a single Sensor database row
      *
-     * @param data
-     * @return
+     * @param data allows for identification of row and update
+     * @return true of update was successful, false otherwise
      */
     public boolean updateSensorData(DBData data) {
         if (data == null) {
@@ -686,10 +681,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Method deletes a single Sensor database entry
      *
-     * @param sensorID
-     * @return
+     * @param sensorID of entry to be deleted
+     * @return true if deletion successful, false otherwise
      */
     public boolean deleteSensorEntry(String sensorID) {
 
@@ -753,7 +748,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * TODO - document
+     * Method deletes all entires in the Packet DB.
      */
     public void deleteEntirePacketDB() {
         SQLiteDatabase db = this.getWritableDatabase();

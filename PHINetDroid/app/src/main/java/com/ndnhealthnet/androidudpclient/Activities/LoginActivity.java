@@ -54,7 +54,7 @@ public class LoginActivity extends Activity {
                     String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
 
                     // store the hashed password
-                    Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_SENSOR_ID_KEY, hashedPW);
+                    Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
 
                     Toast toast = Toast.makeText(getApplicationContext(), "Save successful.", Toast.LENGTH_LONG);
                     toast.show();
@@ -73,7 +73,7 @@ public class LoginActivity extends Activity {
 
                 // get current user credentials and determine whether valid
                 String currentSensorID = Utils.getFromPrefs(getApplicationContext(),
-                        StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                        StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
                 String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                         StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 

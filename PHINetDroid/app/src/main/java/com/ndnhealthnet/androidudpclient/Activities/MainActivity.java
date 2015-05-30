@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
         }
 
         String mySensorID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
@@ -98,7 +98,7 @@ public class MainActivity extends Activity {
         logoutBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_USER_ID_KEY, "");
-                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "");
+                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
 
                 onCreateHelper();
             }

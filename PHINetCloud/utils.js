@@ -4,7 +4,6 @@
 
 var bcrypt = require('bcrypt');
 
-
 exports.Utils = {
 
     /**
@@ -36,20 +35,20 @@ exports.Utils = {
 	},
 
 	/**
-	 * TODO - document
-	 * TODO - test
+	 * Method hashes a password using bcrypt module.
+     * source: https://github.com/ncb000gt/node.bcrypt.js/
 	 *
-	 * @param password
-	 * @param callback
+	 * @param password to be hashed
+	 * @param callback passes hashed pw back to caller
 	 */
-	encryptPassword : function(password, callback) {
+	hashPassword : function(password, callback) {
 
 		if (!password || !callback) {
-			throw "!!Error: invalid input to utils.encryptPassword()!";
+			throw "!!Error: invalid input to utils.hashPassword()!";
 		} else {
             bcrypt.genSalt(10, function(err, salt) {
                 if (err)
-                    return callback(err);
+                    return callback(err, null);
 
                 bcrypt.hash(password, salt, function(err, hash) {
                     return callback(err, hash);
@@ -60,22 +59,20 @@ exports.Utils = {
  	},
 
 	/**
-	 * TODO - document
+	 * Hashes a password and compares against another hash, returns true if hashes match.
 	 *
-	 * TODO - test
-	 *
-	 * @param password
-	 * @param userPassword
-	 * @param callback
+	 * @param password - non-hashed user input
+	 * @param hashedPassword - a hashed string (likely hashed pw found in db query)
+	 * @param callback passes back true if hashes match, false otherwise
 	 */
-	comparePassword : function(password, userPassword, callback) {
+	comparePassword : function(password, hashedPassword, callback) {
 
 		if (!password || !userPassword || !callback) {
 			throw "!!Error: invalid input to utils.comparePassword()!";
 		} else {
-            bcrypt.compare(password, userPassword, function(err, isPasswordMatch) {
+            bcrypt.compare(password, hashedPassword, function(err, isPasswordMatch) {
                 if (err)
-                    return callback(err);
+                    return callback(err, false);
                 return callback(null, isPasswordMatch);
             });
         }

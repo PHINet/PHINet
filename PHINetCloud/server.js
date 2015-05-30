@@ -3,34 +3,24 @@
  * segment of execution for this web application
  **/
 
-var StringConst = require('./string_const').StringConst; // TODO - document
-var cookieParser = require('cookie-parser'); // TODO - document
-var express = require('express'); // TODO - document
+var StringConst = require('./string_const').StringConst; // important Strings
+var cookieParser = require('cookie-parser'); // allows integration of cookies
+var express = require('express'); // Node.js web framework
 
 var PIT = require('./pit').PIT(StringConst.PIT_DB); // PendingInterestTable database module
 var FIB = require('./fib').FIB(StringConst.FIB_DB); // ForwardingInformationBase database module
 var CS = require('./cs').CS(StringConst.CS_DB); // ContentStore database module
+var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB); // user credential database
+var utils = require('./utils').Utils; // useful utility methods
 
-// --- TEST DATA ---
-var DBData = require('./data'); // used to create objects used by the database
-var newEntry = DBData.DATA();
-
-newEntry.csData("freddie", "sensor1", "p1", "FRIDAY", "99,100,41,98,58,200,111")
-
-CS.insertCSData(newEntry, function(a,b){});
-
-// --- TEST DATA ---
-
-var udp_comm = require('./udp_comm').UDPComm(PIT, FIB, CS); // TODO - document
-var http = require('http'); // TODO - document
-var ejs = require('ejs'); // TODO - document
-var fs = require('fs'); // TODO - document
-var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB);
-var utils = require('./utils').Utils;
+var udp_comm = require('./udp_comm').UDPComm(PIT, FIB, CS); // UDP communication module; requires reference to databases
+var http = require('http'); // used to create the server
+var ejs = require('ejs'); // enables use of embedded javascript
+var fs = require('fs'); // enables easy file reading
 
 var bodyParser = require('body-parser'); // allows easy form submissions
 
-udp_comm.initializeListener();
+udp_comm.initializeListener(); // begin listening for udp packets
 
 var app = express();
 app.use(bodyParser.json());
@@ -43,7 +33,7 @@ app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
 /**
- * handles main web page
+ * Handles main web page
  */
 app.get('/', function (req, res) {
 
@@ -65,7 +55,7 @@ app.get('/', function (req, res) {
 });
 
 /**
- * handles login page
+ * Handles login page
  */
 app.get('/login', function (req, res) {
 
@@ -87,7 +77,7 @@ app.get('/login', function (req, res) {
 });
 
 /**
- * handles signup page
+ * Handles signup page
  */
 app.get('/signup', function (req, res) {
     fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
@@ -108,7 +98,7 @@ app.get('/signup', function (req, res) {
 });
 
 /**
- * handles logout request
+ * Handles logout request by clearing the login cookie.
  */
 app.get('/logout', function(req, res) {
     fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
@@ -116,17 +106,16 @@ app.get('/logout', function(req, res) {
             console.log("Error serving index.html: " + err);
         } else {
 
-            res.clearCookie('user');
-
             var renderedHtml = ejs.render(content, {user: "", error:""});
 
+            res.clearCookie('user'); // user has logged out; clear the login cookie
             res.send(renderedHtml);
         }
     });
 });
 
 /**
- * handles documentation page
+ * Handles documentation page
  */
 app.get('/document', function (req, res) {
     fs.readFile(__dirname + '/public/templates/document.html', 'utf-8', function(err, content) {
@@ -147,7 +136,7 @@ app.get('/document', function (req, res) {
 });
 
 /**
- * handles contact page
+ * Handles contact page
  */
 app.get('/contact', function (req, res) {
     fs.readFile(__dirname + '/public/templates/contact.html', 'utf-8', function(err, content) {
@@ -168,7 +157,7 @@ app.get('/contact', function (req, res) {
 });
 
 /**
- * handles profile page
+ * Handles profile page
  */
 app.get('/profile', function (req, res) {
     fs.readFile(__dirname + '/public/templates/profile.html', 'utf-8', function(err, content) {
@@ -176,20 +165,24 @@ app.get('/profile', function (req, res) {
             console.log("Error serving profile.html: " + err);
         } else {
 
-            // verify that user exists before displaying profile page
+            // verify that user-login cookie exists before displaying profile page
             if (req.cookies && req.cookies.user) {
+
+                // now, query database as second level of validation
                 LoginDB.getUser(req.cookies.user, function(rowsTouched, queryResult) {
+
+                    // TODO - perform more sophisticated validation
 
                     var renderedHtml = ejs.render(content, {user: req.cookies.user, email: queryResult.getEmail(),
                                                                 type: queryResult.getEntityType()});
 
                     res.send(renderedHtml);
-
                 });
 
-            } else {
+            }
+            // user doesn't exist, direct to main page
+            else {
 
-                // user doesn't exist, direct to main page
                 fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
                     if (err) {
                         console.log("Error serving profile.html: " + err);
@@ -204,7 +197,7 @@ app.get('/profile', function (req, res) {
 });
 
 /**
- * handles yourdata page
+ * Handles viewdata page
  */
 app.get('/viewdata', function (req, res) {
     fs.readFile(__dirname + '/public/templates/viewdata.html', 'utf-8', function(err, content) {
@@ -214,6 +207,8 @@ app.get('/viewdata', function (req, res) {
 
             // verify that user exists before displaying page
             if (req.cookies && req.cookies.user) {
+
+                // query the database for the user's data
                 CS.getGeneralCSData(req.cookies.user, function(rowsTouched, queryResults) {
 
                     // TODO - improve upon display (give patients or own data, etc)
@@ -221,12 +216,12 @@ app.get('/viewdata', function (req, res) {
                     var renderedHtml = ejs.render(content, {user: req.cookies.user, data:JSON.stringify(queryResults)});
 
                     res.send(renderedHtml);
-                 //   res.send(renderedHtml, JSON.stringify({data: queryResults}));
                 });
 
-            } else {
+            }
+            // user doesn't exist, direct to main page
+            else {
 
-                // user doesn't exist, direct to main page
                 fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
                     if (err) {
                         console.log("Error serving viewdata.html: " + err);
@@ -241,7 +236,7 @@ app.get('/viewdata', function (req, res) {
 });
 
 /**
- * handles test page
+ * Handles test page
  */
 app.get('/test', function (req, res) {
     fs.readFile(__dirname + '/public/templates/test.html', 'utf-8', function(err, content) {
@@ -262,7 +257,7 @@ app.get('/test', function (req, res) {
 });
 
 /**
- * handles all other queries; responds with 404 page
+ * Handles all other queries; responds with 404 page
  */
 app.get('*', function(req, res){
 
@@ -271,7 +266,7 @@ app.get('*', function(req, res){
             console.log("Error serving 404.html: " + err);
         } else {
 
-            var renderedHtml;
+            var renderedHtml ;
 
             if (req.cookies && req.cookies.user) {
                 renderedHtml = ejs.render(content, {user: req.cookies.user});
@@ -285,10 +280,11 @@ app.get('*', function(req, res){
 });
 
 /**
- * code handles user login-attempt
+ * Handles user login-attempt
  */
 app.post('/loginAction', function(req, res) {
 
+    // check that user entered both required params
     if (!req.body.user_name || !req.body.user_password) {
 
         // notify user of unsuccessful login
@@ -304,6 +300,7 @@ app.post('/loginAction', function(req, res) {
         });
 
     } else {
+        // user entered both required params, now query databse to verify password
         LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
 
             // only attempt to compare passwords if query was successful
@@ -341,7 +338,7 @@ app.post('/loginAction', function(req, res) {
                         }
                 });
             } else {
-                // notify user of unsuccessful login
+                // notify user of unsuccessful login (no user found)
                 fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
                     if (err) {
                         console.log("Error serving login.html: " + err);
@@ -361,10 +358,11 @@ app.post('/loginAction', function(req, res) {
 });
 
 /**
- * code handles user register-attempt
+ * Handles user register-attempt
  */
 app.post('/registerAction', function(req, res) {
 
+    //check that user entered all required params
     if (!req.body.user_password || !req.body.user_name || !req.body.user_type) {
         // notify user of unsuccessful login
         fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
@@ -378,6 +376,9 @@ app.post('/registerAction', function(req, res) {
             }
         });
     } else {
+
+        // TODO - perform more sophisticated password requirements
+
         // check that passwords match and enforce five character PW
         if (req.body.user_password[0] === req.body.user_password[1] && req.body.user_password[0].length > 5) {
 
@@ -385,6 +386,8 @@ app.post('/registerAction', function(req, res) {
 
             var userType = "";
             if (req.body.user_type === 'p') {
+
+                // user type of 'p' denotes patient
                 userType = StringConst.PATIENT_ENTITY;
             } else {
 
@@ -396,13 +399,15 @@ app.post('/registerAction', function(req, res) {
                 req.body.user_email = "null"; // email not provided; list as null
             }
 
-            utils.encryptPassword(req.body.user_password[0], function(err, hashedPW) {
+            // hash user's password then insert user in database
+            utils.hashPassword(req.body.user_password[0], function(err, hashedPW) {
 
                 // store hashed pw into DB
                 LoginDB.insertNewUser(req.body.user_name, hashedPW, req.body.user_email, userType,
 
                     function(rowsTouched) {
 
+                        // one row touched corresponds to successful insertion
                         if (rowsTouched === 1) {
 
                             // notify user of successful register
@@ -418,7 +423,9 @@ app.post('/registerAction', function(req, res) {
                                     res.send(renderedHtml);
                                 }
                             })
-                        } else {
+                        }
+                        // an error occurred while inserting user into the database
+                        else {
 
                             // notify user of bad input
                             fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
@@ -437,33 +444,21 @@ app.post('/registerAction', function(req, res) {
 
             // notify user of password mismatch
             fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                var renderedHtml;
+
                 if (err) {
                     console.log("Error serving signup.html: " + err);
                 } else if (req.body.user_password[0] !== req.body.user_password[1]) {
-                    var renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
+                    renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
                     res.send(renderedHtml);
                 } else {
-                    var renderedHtml = ejs.render(content, {user: "", error: "Minimum password length is 5 characters."});
+                    renderedHtml = ejs.render(content, {user: "", error: "Minimum password length is 5 characters."});
                     res.send(renderedHtml);
                 }
             })
         }
     }
 });
-
-/**
- * code handles user contact-attempt
- */
-app.post('/contactAction', function(req, res) {
-    console.dir(req.body);
-    // TODO - handle contact
-
-    // TODO - at end, redirect user
-
-    // NOTE: temporary redirect to invalid page
-    res.status(404).sendFile('/public/templates/404.html', { root: __dirname });
-});
-
 
 // --- Below Code Handles DB Creation ---
 
@@ -488,10 +483,12 @@ function ifNonexistentCreateDB(dbName, dbCreationQuery) {
 
     if (err) {
 
+        // TODO - perform more sophisticated check
+
       var errWords = toString(err).split(" ");
       var naiveCheckPasses = true;
+
       // create table if naive check passes
-        
       naiveCheckPasses &= errWords.indexOf("does") === -1;
       naiveCheckPasses &= errWords.indexOf("not") === -1;
       naiveCheckPasses &= errWords.indexOf("exist") === -1;

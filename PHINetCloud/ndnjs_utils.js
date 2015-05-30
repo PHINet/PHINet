@@ -10,17 +10,15 @@ var KeyLocator = require('./ndn-js/key-locator.js').KeyLocator;
 var MetaInfo = require('./ndn-js/meta-info.js').MetaInfo;
 var Name = require('./ndn-js/name.js').Name;
 var Sha256WithRsaSignature = require('./ndn-js/sha256-with-rsa-signature.js').Sha256WithRsaSignature;
-//var EncodingException = require('./ndnjs/encoding/encoding-exception.js').EncodingException;
 
 exports.ndn_utils = {
-
 
     DEFAULT_FRESHNESS_PERIOD : 1000 * 60 * 60, // an hour
 
     /**
      * Returns decoded Interest packet
      *
-     * @param byteBuffer - an encoded Interest packet
+     * @param encodedInterest - an encoded Interest packet
      * @return Interest packet if input valid; otherwise, false
      */
     decodeInterest: function decodeInterest(encodedInterest) {
@@ -29,18 +27,17 @@ exports.ndn_utils = {
         try {
             interest.wireDecode(encodedInterest);
         } catch (e) {
-            interest = null; // failed to decode
+            interest = null; // failed to decode; set interest to null
         }
 
         return interest;
     },
 
     /**
+     * Returns decoded Data packet
      *
-     *      * TODO - doc
-     *
-     * @param bb
-     * @return
+     * @param encodedData - an encoded Data packet
+     * @return Data packet if input valid; otherwise, false
      */
     decodeData: function(encodedData) {
         var data = new Data();
@@ -48,20 +45,19 @@ exports.ndn_utils = {
         try {
             data.wireDecode(encodedData);
         } catch (e) {
-            data = null; // failed to decode
+            data = null; // failed to decode; set interest to null
         }
 
         return data;
     },
 
     /**
+     * Creates KeyLocator object as per NDN specification
      *
-     *      * TODO - doc
-     *
-     * @param data
-     * @param name
-     * @param locatorType
-     * @return
+     * @param data component of KeyLocator
+     * @param name component of KeyLocator
+     * @param locatorType component of KeyLocator
+     * @return KeyLocator object
      */
     createKeyLocator : function(data, name, locatorType) {
         var keyLocator = new KeyLocator();
@@ -74,13 +70,12 @@ exports.ndn_utils = {
     },
 
     /**
+     * Creates MetaInfo object as per NDN specification
      *
-     *      * TODO - doc
-     *
-     * @param finalBlockID
-     * @param freshnessPeriod
-     * @param cType
-     * @return
+     * @param finalBlockID component of MetaInfo
+     * @param freshnessPeriod component of MetaInfo
+     * @param cType component of MetaInfo
+     * @return MetaInfo object
      */
     createMetaInfo: function(finalBlockID, freshnessPeriod, cType) {
 
@@ -94,17 +89,18 @@ exports.ndn_utils = {
     },
 
     /**
-     *      * TODO - doc
+     * Uses default values to create valid NDN MetaInfo object
      *
-     * uses default values
+     * @return MetaInfo object
      */
     createMetaInfo: function() {
 
         var metaInfo = new MetaInfo();
 
         // TODO - set final block id
+        //  TODO- metaInfo.setType(ContentType.BLOB) // blob is the default type
+
         metaInfo.setFreshnessPeriod(this.DEFAULT_FRESHNESS_PERIOD);
-      //  TODO- metaInfo.setType(ContentType.BLOB) // blob is the default type
 
         return metaInfo;
     },
@@ -112,32 +108,35 @@ exports.ndn_utils = {
     /**
      * Creates application-specific name
      *
-     *      * TODO - doc
-     *
-     * @param userID
-     * @param sensorID
-     * @param timeString
-     * @param processID
-     * @return
+     * @param userID of associated packet
+     * @param sensorID of associated packet
+     * @param timeString of associated packet
+     * @param processID of associated packet
+     * @return ndn-js Name object
      */
     createName: function(userID, sensorID, timeString, processID) {
 
         var name = "/ndn/" + userID + "/" + sensorID + "/" + timeString + "/" + processID;
 
         return new Name(name);
-
     },
 
     /**
+     * Creates Data packet as per NDN specification
+     * If metaInfo wasn't passed to function, use default settings
      *
-     * @param content
-     * @param metaInfo
-     * @param name
-     * @return
+     * @param content component of packet
+     * @param name component of packet
+     * @param metaInfo component of packet
+     * @return ndn-js Data packet
      */
-    createDataPacket: function(content, metaInfo, name) {
-        // TODO - how to use signature?
+    createDataPacket: function(content, name, metaInfo) {
 
+        if (!metaInfo) {
+            metaInfo = this.createMetaInfo();
+        }
+
+        // TODO - how to use signature?
         var signature = new Sha256WithRsaSignature();
 
         var data = new Data();
@@ -151,73 +150,52 @@ exports.ndn_utils = {
     },
 
     /**
-     * Uses the default values for MetaInfo
+     * Creates Interest packet as per NDN specification
+     * If params weren't passed to function, we don't set them
      *
-     *      * TODO - doc
-     *
-     * @param content
-     * @param metaInfo
-     * @param name
-     * @return
+     * @param name name component of packet
+     * @param childSelector name component of packet
+     * @param interestLifetimeMillis name component of packet
+     * @param keyLocator name component of packet
+     * @param mustBeFresh name component of packet
+     * @param maxSuffixComponents name component of packet
+     * @param minSuffixComponents name component of packet
+     * @param scope name component of packet
+     * @return ndn-js Interest Packet
      */
-    createDataPacket: function(content, name) {
-        // TODO - how to use signature?
+    createInterestPacket: function(name, childSelector, interestLifetimeMillis, keyLocator, mustBeFresh, maxSuffixComponents,
+                minSuffixComponents, scope) {
 
-        var signature = new Sha256WithRsaSignature();
+        var exclude = new Exclude(); // TODO - how to use exclude?
 
-        var data = new Data();
-
-        // TODO - set content data.setContent(new Blob(content));
-        data.setMetaInfo(this.createMetaInfo());
-        data.setName(new Name(name));
-        data.setSignature(signature);
-
-        return data;
-    },
-
-    /**
-     *
-     *  TODO - doc
-     *
-     * @param childSelector
-     * @param interestLifetimeMillis
-     * @param keyLocator
-     * @param mustBeFresh
-     * @param maxSuffixComponents
-     * @param minSuffixComponents
-     * @param name
-     * @param scope
-     * @return
-     */
-    createInterestPacket: function(childSelector, interestLifetimeMillis, keyLocator, mustBeFresh, maxSuffixComponents,
-                minSuffixComponents, name, scope) {
-
-        var exclude = new Exclude(); // TODO - how to use exclude
+        // TODO - can we set interest params to default values?
 
         var interest = new Interest();
 
-        interest.setChildSelector(childSelector);
         interest.setExclude(exclude);
-        interest.setInterestLifetimeMilliseconds(interestLifetimeMillis);
-        interest.setKeyLocator(keyLocator);
-        interest.setMustBeFresh(mustBeFresh);
-        interest.setMaxSuffixComponents(maxSuffixComponents);
-        interest.setMinSuffixComponents(minSuffixComponents);
         interest.setName(new Name(name));
-        interest.setScope(scope);
+
+        if (childSelector)
+            interest.setChildSelector(childSelector);
+
+        if (interestLifetimeMillis)
+            interest.setInterestLifetimeMilliseconds(interestLifetimeMillis);
+
+        if (keyLocator)
+            interest.setKeyLocator(keyLocator);
+
+        if (mustBeFresh)
+            interest.setMustBeFresh(mustBeFresh);
+
+        if (maxSuffixComponents)
+            interest.setMaxSuffixComponents(maxSuffixComponents);
+
+        if (minSuffixComponents)
+            interest.setMinSuffixComponents(minSuffixComponents);
+
+        if (scope)
+            interest.setScope(scope);
 
         return interest;
-    },
-
-    /**
-     * the default interest
-     *
-     * TODO - doc
-     *
-     * @param name
-     * @return
-     */
-    createInterestPacket: function(name) {
-        return new Interest(name);
     }
 };

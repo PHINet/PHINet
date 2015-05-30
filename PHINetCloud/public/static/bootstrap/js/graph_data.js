@@ -6,6 +6,7 @@
 (function generateGraph() {
 
     var biometricData = queryData[0].dataFloat.split(",");
+
     var labels = [];
 
     for (var i = 0; i < biometricData.length; i++) {
@@ -15,7 +16,7 @@
 
     // Get the context of the canvas element we want to select
     var data = {
-        labels: labels, // TODO - generate real labels
+        labels: labels,
         datasets: [
             {
                 label: queryData[0].userID + "'s data",
@@ -38,7 +39,7 @@
 
     var ctx = document.getElementById("myChart").getContext("2d");
 
-    var options = {}; // TODO - fill in
+    var options = {}; // TODO - fill in with valid options
 
     new Chart(ctx).PolarArea(data, options);
 
