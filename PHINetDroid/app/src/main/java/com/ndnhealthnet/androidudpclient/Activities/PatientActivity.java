@@ -209,13 +209,10 @@ public class PatientActivity extends Activity {
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                             .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                   /* // add packet content to database for future review
-                    // TODO - convert packet to string and store in DB
-
-                    // add packet content to database for future review
+                    // store received packet in database for further review
                     DBSingleton.getInstance(getApplicationContext()).getDB()
-                            .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));
-                        */
+                            .addPacketData(new DBData(interest.getName().toUri(), Utils.convertInterestToString(interest)));
+
                     fibRequestsSent++;
                 }
             }
@@ -225,14 +222,16 @@ public class PatientActivity extends Activity {
                         "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
                 toast.show();
             } else {
-                Handler handler = new Handler();
+               /*
+               TODO - reload no longer necessary?
+               Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     public void run() {
                         // reload activity after 3 seconds, so to check if client data arrived
                         finish();
                         startActivity(getIntent());
                     }
-                }, 3000);
+                }, 3000);*/
             }
 
         } else if (!isValidIP) {
@@ -344,13 +343,13 @@ public class PatientActivity extends Activity {
                 endMonthString += "0" + Integer.toString(endMonth);
             }
 
-            // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS";
+            // TIME_STRING FORMAT: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS";
                     // where the former is start, latter is end
 
-            // by default, set HH:mm:ss.SSS from request interval to 00:00:00.00000
+            // by default, set HH.mm.ss.SSS from request interval to 00.00.00.00000
             timeString += Integer.toString(startYear) + "-" + startMonthString + "-";
-            timeString += Integer.toString(startDay) + "T00:00:00.000||" + Integer.toString(endYear) + "-";
-            timeString += endMonthString + "-" + Integer.toString(endDay) + "T00:00:00.000";
+            timeString += Integer.toString(startDay) + "T00.00.00.000||" + Integer.toString(endYear) + "-";
+            timeString += endMonthString + "-" + Integer.toString(endDay) + "T00.00.00.000";
 
             return timeString;
         } else {
@@ -375,4 +374,3 @@ public class PatientActivity extends Activity {
         toast.show();
     }
 }
-

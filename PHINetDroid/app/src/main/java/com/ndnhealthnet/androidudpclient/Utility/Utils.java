@@ -8,11 +8,13 @@ import com.ndnhealthnet.androidudpclient.DB.DBData;
 
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
+import net.named_data.jndn.Name;
 
 import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -92,7 +94,7 @@ public class Utils {
 
         ArrayList<Float> myFloatData = new ArrayList<Float>();
 
-        // syntax for interval: startDate||endDate
+        // syntax for interval: startDate,||endDate
         String requestInterval = startDate + "||" + endDate;
 
         for (int i = 0; i < myData.size(); i++) {
@@ -116,7 +118,7 @@ public class Utils {
      * @return UTC-compliant current time
      */
     public static String getCurrentTime() {
-        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
         formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // replace space with T; change makes parsing easier
@@ -162,7 +164,7 @@ public class Utils {
 
         String [] requestIntervals = requestInterval.split("\\|\\|"); // split interval into start/end
 
-        // TIME_STRING FORMAT: "yyyy-MM-ddTHH:mm:ss.SSS||yyyy-MM-ddTHH:mm:ss.SSS"
+        // TIME_STRING FORMAT: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
         // the former is start interval, latter is end interval
 
         boolean beforeStartDate = false;
@@ -176,7 +178,7 @@ public class Utils {
             requestIntervals[1] = requestIntervals[1].replace("T", " ");
             dataInterval = dataInterval.replace("T", " ");
 
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
 
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);
@@ -187,6 +189,7 @@ public class Utils {
 
         } catch (Exception e) {
             e.printStackTrace();
+
             return false; // some problem occurred, default return is false
         }
 
@@ -232,6 +235,21 @@ public class Utils {
     }
 
     /**
+     * Converts an NDN Name component to a string
+     *
+     * @param name - an NDN name component
+     * @return input param converted to string
+     */
+    public static String convertNameToString(Name name) {
+
+        // TODO - is this the component specified in the NDN documentation?
+        String hashComponent = Integer.toString(name.hashCode());
+
+        return  "NAME-TYPE TLV-LENGTH " + name.toUri().length() + " TLV-LENGTH " + name.toUri()
+                + " " + hashComponent + " TLV-LENGTH " + hashComponent.length();
+    }
+
+    /**
      * Converts an Interest packet to a string
      *
      * @param interest - an Interest packet
@@ -239,9 +257,13 @@ public class Utils {
      */
     public static String convertInterestToString(Interest interest) {
 
-        // TODO - complete this function
+        // TODO - set correct length (using bytes)
 
-        return "TODO - ";
+        // TODO - complete this function (selectors, nonce, scope, interestlifetime)
+
+
+        return "INTEREST-TYPE TLV-LENGTH" + interest.toUri().length() + " "
+                + convertNameToString(interest.getName());
     }
 
     /**
@@ -252,9 +274,10 @@ public class Utils {
      */
     public static String convertDataToString(Data data) {
 
-        // TODO - complete this function
+        // TODO - set correct length (using bytes)
 
-        return "TODO - ";
+        // TODO - complete this function (metainfo, content, signature)
+
+        return "DATA-TLV TLV-LENGTH {TODO-LENGTH} " + convertNameToString(data.getName());
     }
-
 }

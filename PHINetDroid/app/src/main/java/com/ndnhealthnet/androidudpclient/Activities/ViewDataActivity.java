@@ -247,12 +247,12 @@ public class ViewDataActivity extends Activity {
         // db query was successful; populate ArrayList that will be used to generate the graph
         else {
 
-            // date syntax: yyyy-MM-ddTHH:mm:ss.SSS
+            // date syntax: yyyy-MM-ddTHH.mm.ss.SSS
             String startDate = Integer.toString(startYear) + "-" + Integer.toString(startMonth);
-                startDate += "-" + Integer.toString(startDay) + "T00:00:00.000"; // append zeros at end
+                startDate += "-" + Integer.toString(startDay) + "T00.00.00.000"; // append zeros at end
 
             String endDate = Integer.toString(endYear) + "-" + Integer.toString(endMonth);
-              endDate += "-" + Integer.toString(endDay) + "T00:00:00.000"; // append zeros at end
+              endDate += "-" + Integer.toString(endDay) + "T00.00.00.000"; // append zeros at end
 
             // convert valid data to a format that can be displayed
             myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);

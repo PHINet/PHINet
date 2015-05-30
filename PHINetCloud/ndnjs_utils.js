@@ -3,13 +3,13 @@
  * Source: https://github.com/named-data/ndn-js
  */
 
-var Data = require('./ndnjs/data.js').Data;
-var Exclude = require('./ndnjs/exlude.js').Exclude;
-var Interest = require('./ndnjs/interest.js').Interest;
-var KeyLocator = require('./ndnjs/key-locator.js').KeyLocator;
-var MetaInfo = require('./ndnjs/meta-info.js').MetaInfo;
-var Name = require('./ndnjs/name.js').Name;
-var Sha256WithRsaSignature = require('./ndnjs/sha256-with-rsa-signature.js').Sha256WithRsaSignature;
+var Data = require('./ndn-js/data.js').Data;
+var Exclude = require('./ndn-js/exclude.js').Exclude;
+var Interest = require('./ndn-js/interest.js').Interest;
+var KeyLocator = require('./ndn-js/key-locator.js').KeyLocator;
+var MetaInfo = require('./ndn-js/meta-info.js').MetaInfo;
+var Name = require('./ndn-js/name.js').Name;
+var Sha256WithRsaSignature = require('./ndn-js/sha256-with-rsa-signature.js').Sha256WithRsaSignature;
 //var EncodingException = require('./ndnjs/encoding/encoding-exception.js').EncodingException;
 
 exports.ndn_utils = {
@@ -26,7 +26,11 @@ exports.ndn_utils = {
     decodeInterest: function decodeInterest(encodedInterest) {
         var interest = new Interest();
 
-        interest.wireDecode(encodedInterest);
+        try {
+            interest.wireDecode(encodedInterest);
+        } catch (e) {
+            interest = null; // failed to decode
+        }
 
         return interest;
     },
@@ -41,7 +45,11 @@ exports.ndn_utils = {
     decodeData: function(encodedData) {
         var data = new Data();
 
-        data.wireDecode(encodedData);
+        try {
+            data.wireDecode(encodedData);
+        } catch (e) {
+            data = null; // failed to decode
+        }
 
         return data;
     },
@@ -98,6 +106,7 @@ exports.ndn_utils = {
         metaInfo.setFreshnessPeriod(this.DEFAULT_FRESHNESS_PERIOD);
       //  TODO- metaInfo.setType(ContentType.BLOB) // blob is the default type
 
+        return metaInfo;
     },
 
     /**
@@ -210,6 +219,5 @@ exports.ndn_utils = {
      */
     createInterestPacket: function(name) {
         return new Interest(name);
-
     }
 };

@@ -89,8 +89,10 @@ public class UDPListener extends Thread {
 
 
         if (data == null && interest != null) {
+
             handleInterestPacket(interest, hostIP, hostPort);
         } else if (data != null && interest == null) {
+
             handleDataPacket(data);
         } else {
             // TODO - this should not have happened; handle it
@@ -110,7 +112,14 @@ public class UDPListener extends Thread {
      */
     static void handleInterestPacket(Interest interest, String ipAddr, int port) {
 
-        String [] nameComponent = interest.getName().toUri().split("/");
+        System.out.println("handling interest packet");
+
+        // store received packet in database for further review
+        DBSingleton.getInstance(context).getDB()
+                .addPacketData(new DBData(interest.getName().toUri(), Utils.convertInterestToString(interest)));
+
+        //decode the parsing characters "||"
+        String [] nameComponent = interest.getName().toUri().replace("%7C%7C", "||").split("/");
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/ip"
@@ -120,7 +129,7 @@ public class UDPListener extends Thread {
         String packetTimeString = nameComponent[4];
         String packetProcessID = nameComponent[5];
 
-        // TODO - convert interest to appropriate string and store
+        System.out.println("Namecomponent: " + Arrays.toString(nameComponent));
 
         // add packet content to database for future review
         DBData data = new DBData(Arrays.toString(nameComponent), "TODO");
@@ -169,9 +178,9 @@ public class UDPListener extends Thread {
                 new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                // add packet content to database for future review
-                // TODO - convert packet to string and store in DB
-               // DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                // store received packet in database for further review
+                DBSingleton.getInstance(context).getDB()
+                        .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
             } else {
 
                 String fibContent = "";
@@ -193,9 +202,9 @@ public class UDPListener extends Thread {
                     new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
                             .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                    // add packet content to database for future review
-                    // TODO - convert packet to string and store in DB
-                    // DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                    // store received packet in database for further review
+                    DBSingleton.getInstance(context).getDB()
+                            .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
                 }
             }
 
@@ -249,10 +258,12 @@ public class UDPListener extends Thread {
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // add packet content to database for future review
-                // TODO - convert packet to string and store in DB
-         /*       DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));*/
+                // store received packet in database for further review
+                DBSingleton.getInstance(context).getDB()
+                        .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
             }
         } else {
+
             // second, check PIT
 
             if (DBSingleton.getInstance(context).getDB().getGeneralPITData(packetUserID) == null) {
@@ -289,11 +300,9 @@ public class UDPListener extends Thread {
                             new UDPSocket(port, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
                                     .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                           /* // add packet content to database for future review
-                            // TODO - convert packet to string and store in DB
-                            // add packet content to database for future review
+                            // store received packet in database for further review
                             DBSingleton.getInstance(context).getDB()
-                                    .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));*/
+                                    .addPacketData(new DBData(interest.getName().toUri(), Utils.convertInterestToString(interest)));
                         }
                     }
                 }
@@ -321,14 +330,13 @@ public class UDPListener extends Thread {
      */
     static void handleDataPacket(Data data)
     {
-
-        String [] nameComponent = data.getName().toUri().split("/");
-        String dataContents = data.getContent().toString();
-
-        // TODO - convert packet to appropriate string
-        // add packet content to database for future review
+        // store received packet in database for further review
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(Arrays.toString(nameComponent), "TODO"));
+                .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
+
+        //decode the parsing characters "||"
+        String [] nameComponent = data.getName().toUri().replace("%7C%7C", "||").split("/");
+        String dataContents = data.getContent().toString();
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"
@@ -428,12 +436,9 @@ public class UDPListener extends Thread {
                 new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr(), StringConst.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                // add packet content to database for future review
-                // TODO - convert packet to string and store in DB
-
-              /*
-                // add packet content to database for future review
-                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));*/
+                // store received packet in database for further review
+                DBSingleton.getInstance(context).getDB()
+                        .addPacketData(new DBData(dataPacket.getName().toUri(), Utils.convertDataToString(dataPacket)));
             }
         }
     }
