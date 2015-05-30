@@ -6,9 +6,10 @@ import android.preference.PreferenceManager;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 
+import net.named_data.jndn.Data;
+import net.named_data.jndn.Interest;
+
 import java.net.InetAddress;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -229,4 +230,31 @@ public class Utils {
 */
         return sensorID.length() >= 3;
     }
+
+    /**
+     * Converts an Interest packet to a string
+     *
+     * @param interest - an Interest packet
+     * @return input param converted to string
+     */
+    public static String convertInterestToString(Interest interest) {
+
+        // TODO - complete this function
+
+        return "TODO - ";
+    }
+
+    /**
+     * Converts a Data packet to a string
+     *
+     * @param data - a data packet
+     * @return input param converted to string
+     */
+    public static String convertDataToString(Data data) {
+
+        // TODO - complete this function
+
+        return "TODO - ";
+    }
+
 }

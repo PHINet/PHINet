@@ -16,6 +16,11 @@ var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
 var myUserID = "CLOUD-SERVER"; // TODO - rework to find standard ID for server
 
+var ndnjs_utils = require('./ndnjs_utils.js').ndn_utils;
+var Data = require('./ndnjs/data.js').Data;
+var Interest = require('./ndnjs/interest.js').Interest;
+var Name = require('./ndnjs/name.js').Name;
+
 /**
  * Returns object that handles majority of UDP communication.
  *
@@ -48,6 +53,8 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
 			    console.log('Received %d bytes from %s:%d\n', msg.length, rinfo.address, rinfo.port);
 			    console.log("msg", message);
                 // --- debugging output ---
+
+                // TODO - read ndnjs packet style
 
                 if (message[0] === "INTEREST-TYPE") {
 
@@ -184,6 +191,8 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
                             }
                         }
 
+                        // TODO - send ndnjs packet style
+
                         // create DATA packet and send entire FIB as single unit
                         var dataPacket = DataPacket.DataPacket();
                         dataPacket.DataPacket(myUserID, mySensorID,
@@ -229,6 +238,9 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
                         dataPacket.DataPacket(csQueryResults[i].getUserID(), csQueryResults[i].getSensorID(),
                             csQueryResults[i].getTimeString(), csQueryResults[i].getProcessID(), csQueryResults[i].getDataFloat());
 
+                        // TODO - send ndnjs packet style
+
+
                         this.sendMessage(dataPacket.toString(), packetIP, NDN_SENSOR_NET_PORT); // reply to interest with DATA from cache
                     }
 
@@ -265,6 +277,9 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
                                             var interestPacket = InterestPacket.InterestPacket();
                                             interestPacket.InterestPacket(packetUserID, packetSensorID,
                                                 packetTimeString,  packetProcessID);
+
+                                            // TODO - send ndnjs packet style
+
 
                                             // ask for data from nodes in FIB via INTEREST packet
                                             this.sendMessage(interestPacket.toString(), allFIBData[i].ipAddr, NDN_SENSOR_NET_PORT);
@@ -491,6 +506,9 @@ exports.UDPComm = function(PIT_DB, FIB_DB, CS_DB) {
                         var dataPacket = DataPacket.DataPacket();
                         dataPacket.DataPacket(packetUserID,
                             packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
+
+                        // TODO - send ndnjs packet style
+
 
                         // send DATA packet to node that requested it
                         this.sendMessage(dataPacket.toString(), allValidPITEntries[i].ipAddr, NDN_SENSOR_NET_PORT);

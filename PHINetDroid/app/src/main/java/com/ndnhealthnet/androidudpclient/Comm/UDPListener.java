@@ -5,15 +5,20 @@ import android.content.Context;
 import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
-import com.ndnhealthnet.androidudpclient.Packet.DataPacket;
-import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
+import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
+
+import net.named_data.jndn.Data;
+import net.named_data.jndn.Interest;
+import net.named_data.jndn.Name;
+import net.named_data.jndn.util.Blob;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -49,11 +54,10 @@ public class UDPListener extends Thread {
                 try {
                     clientSocket.receive(receivePacket);
 
-                    String packetSourceIP = receivePacket.getAddress().getHostAddress();
-                    int packetSourcePort = receivePacket.getPort();
+                    String hostIP = receivePacket.getAddress().getHostAddress();
+                    int hostPort = receivePacket.getPort();
 
-                    // process incoming packet
-                    handleIncomingNDNPacket(new String(receivePacket.getData()), packetSourceIP, packetSourcePort);
+                    handleNDNPacket(receiveData, hostIP, hostPort);
 
                 } catch (SocketTimeoutException e) {
                     continue;
@@ -72,31 +76,24 @@ public class UDPListener extends Thread {
      * Helper method that handles all incoming packets;
      * may be invoked from elsewhere in code (namely, UDPSocket)
      *
-     * @param packetData entire packet to have its contents assessed
+     * TODO - document
+     *
+     * @param packet
+     * @param hostIP
+     * @param hostPort
      */
-    static void handleIncomingNDNPacket(String packetData, String ipAddr, int port) {
+    static void handleNDNPacket(byte[] packet, String hostIP, int hostPort) {
+        ByteBuffer buf = ByteBuffer.wrap(packet);
+        Interest interest = JNDNUtils.decodeInterest(buf);
+        Data data = JNDNUtils.decodeData(buf);
 
-        // NOTE: temporary debugging print
-        System.out.println("incoming packet: " + packetData);
 
-        String [] packetDataArray;
-
-        // remove "null" unicode characters
-        packetDataArray = packetData.replaceAll("\u0000", "").split(" ");
-
-        // NOTE; temporary debug print
-        for (int i = 0; i < packetDataArray.length; i++) {
-            System.out.println(packetDataArray[i]);
-        }
-
-        if (packetDataArray[0].equals(StringConst.DATA_TYPE)) {
-
-            handleDataPacket(packetDataArray);
-        } else if (packetDataArray[0].equals(StringConst.INTEREST_TYPE)) {
-
-            handleInterestPacket(packetDataArray, ipAddr, port);
+        if (data == null && interest != null) {
+            handleInterestPacket(interest, hostIP, hostPort);
+        } else if (data != null && interest == null) {
+            handleDataPacket(data);
         } else {
-            // throw away, packet is neither INTEREST nor DATA
+            // TODO - this should not have happened; handle it
         }
     }
 
@@ -106,25 +103,14 @@ public class UDPListener extends Thread {
      * 1. Do I have the data?
      * 2. Have I already sent an interest for this data?
      *
-     * @param packetDataArray incoming packet after having been "split" by space and placed array
+     * TODO - document
+     * @param interest
+     * @param ipAddr
+     * @param port
      */
-    static void handleInterestPacket(String[] packetDataArray, String ipAddr, int port) {
-        String [] nameComponent = null;
+    static void handleInterestPacket(Interest interest, String ipAddr, int port) {
 
-        for (int i = 0; i < packetDataArray.length; i++) {
-            if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-
-                // NOTE: temporary debugging print
-                System.out.println("INTEREST NAME: " +  packetDataArray[i+2]);
-
-                // i+2 corresponds name as per NDN standard
-                // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
-                nameComponent = packetDataArray[i+2].split("/"); // split into various components
-
-            } else {
-                // TODO - inspect other packet elements
-            }
-        }
+        String [] nameComponent = interest.getName().toUri().split("/");
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/ip"
@@ -134,8 +120,10 @@ public class UDPListener extends Thread {
         String packetTimeString = nameComponent[4];
         String packetProcessID = nameComponent[5];
 
+        // TODO - convert interest to appropriate string and store
+
         // add packet content to database for future review
-        DBData data = new DBData(Arrays.toString(nameComponent), Arrays.toString(packetDataArray));
+        DBData data = new DBData(Arrays.toString(nameComponent), "TODO");
         DBSingleton.getInstance(context).getDB().addPacketData(data);
                 
         if (packetProcessID.equals(StringConst.INTEREST_FIB)) {
@@ -173,14 +161,17 @@ public class UDPListener extends Thread {
             if (allFIBData == null || allFIBData.size() == 0) {
 
                 // FIB was empty, only send own device's information
-                DataPacket dataPacket = new DataPacket(packetUserID, packetSensorID,
-                        StringConst.CURRENT_TIME, StringConst.DATA_FIB, MainActivity.deviceIP);
-                
+                Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, StringConst.CURRENT_TIME, StringConst.DATA_FIB);
+                Data data = JNDNUtils.createDataPacket(MainActivity.deviceIP, packetName);
+
+                Blob blob = data.wireEncode();
+
                 new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
-                        .execute(dataPacket.toString()); // reply to interest with DATA from cache
+                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // add packet content to database for future review
-                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                // TODO - convert packet to string and store in DB
+               // DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
             } else {
 
                 String fibContent = "";
@@ -195,14 +186,16 @@ public class UDPListener extends Thread {
                         fibContent += allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr() + "++";
                     }
 
-                    DataPacket dataPacket = new DataPacket(myUserID, mySensorID,
-                            StringConst.CURRENT_TIME,  StringConst.DATA_FIB, fibContent);
+                    Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, StringConst.CURRENT_TIME, StringConst.DATA_FIB);
+                    Data data = JNDNUtils.createDataPacket(fibContent, packetName);
 
+                    Blob blob = data.wireEncode();
                     new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
-                            .execute(dataPacket.toString()); // send interest packet
+                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                     // add packet content to database for future review
-                    DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                    // TODO - convert packet to string and store in DB
+                    // DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
                 }
             }
 
@@ -245,16 +238,19 @@ public class UDPListener extends Thread {
             if (dataAppendCount > 0) {
 
                 // TODO - rework 0th assumption
-
                 // 0th should be equivalent to any; all data originated from name source
-                DataPacket dataPacket = new DataPacket(csDATA.get(0).getUserID(), csDATA.get(0).getSensorID(),
-                        csDATA.get(0).getTimeString(), csDATA.get(0).getProcessID(), dataPayload);
 
+                Name packetName = JNDNUtils.createName(csDATA.get(0).getUserID(), csDATA.get(0).getSensorID(),
+                        csDATA.get(0).getTimeString(), csDATA.get(0).getProcessID());
+                Data data = JNDNUtils.createDataPacket(dataPayload, packetName);
+
+                Blob blob = data.wireEncode();
                 new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
-                        .execute(dataPacket.toString()); // reply to interest with DATA from cache
+                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // add packet content to database for future review
-                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                // TODO - convert packet to string and store in DB
+         /*       DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));*/
             }
         } else {
             // second, check PIT
@@ -285,15 +281,19 @@ public class UDPListener extends Thread {
                         if (!allFIBData.get(i).getIpAddr().equals(packetIP)
                                 && !allFIBData.get(i).getIpAddr().equals("null")) {
 
-                            InterestPacket interestPacket = new InterestPacket(packetUserID, packetSensorID,
-                                    packetTimeString,  packetProcessID);
+                            Name packetName = JNDNUtils.createName(packetUserID, packetSensorID,
+                                    packetTimeString, packetProcessID);
+                            Interest interest = JNDNUtils.createInterestPacket(packetName);
 
+                            Blob blob = interest.wireEncode();
                             new UDPSocket(port, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
-                                    .execute(interestPacket.toString()); // send interest packet
+                                    .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
+                           /* // add packet content to database for future review
+                            // TODO - convert packet to string and store in DB
                             // add packet content to database for future review
                             DBSingleton.getInstance(context).getDB()
-                                    .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));
+                                    .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));*/
                         }
                     }
                 }
@@ -317,37 +317,18 @@ public class UDPListener extends Thread {
      * Method parses packet then stores in cache if requested,
      * and sends out to satisfy any potential Interests.
      *
-     * @param packetDataArray incoming packet after having been "split" by space and placed array
+     * @param data - TODO doc
      */
-    static void handleDataPacket(String[] packetDataArray)
+    static void handleDataPacket(Data data)
     {
 
-        String [] nameComponent = null;
-        String dataContents = null;
+        String [] nameComponent = data.getName().toUri().split("/");
+        String dataContents = data.getContent().toString();
 
-        for (int i = 0; i < packetDataArray.length; i++) {
-            if (packetDataArray[i].equals("NAME-COMPONENT-TYPE")) {
-                // i+2 corresponds name as per NDN standard
-                // i = notifier (NAME-COMPONENT-TYPE), i+1 = bytes, i+2 = name
-
-                // NOTE: debugging print only
-                System.out.println("name component: " + packetDataArray[i+2]);
-
-                nameComponent = packetDataArray[i+2].trim().split("/"); // split into various components
-
-            } else if (packetDataArray[i].equals("CONTENT-TYPE")) {
-
-                // i+2 corresponds content as per NDN standard
-                // i = notifier (CONTENT-TYPE), i+1 = bytes, i+2 = content
-                dataContents = packetDataArray[i+2];
-            } else {
-                // TODO - inspect other packet elements
-            }
-        }
-
+        // TODO - convert packet to appropriate string
         // add packet content to database for future review
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(Arrays.toString(nameComponent), Arrays.toString(packetDataArray)));
+                .addPacketData(new DBData(Arrays.toString(nameComponent), "TODO"));
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"
@@ -438,15 +419,21 @@ public class UDPListener extends Thread {
             // another device requested the data, send reply as Datapacket
             if (!allValidPITEntries.get(i).getIpAddr().equals(MainActivity.deviceIP))  {
 
-                // NOTE: params list = Context context, String timestring, String processID, String content
-                DataPacket dataPacket = new DataPacket(packetUserID,
-                        packetSensorID, packetTimeString, packetProcessID, packetFloatContent);
 
+                Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, packetTimeString,
+                        packetProcessID);
+                Data dataPacket = JNDNUtils.createDataPacket(packetFloatContent, packetName);
+
+                Blob blob = dataPacket.wireEncode();
                 new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr(), StringConst.DATA_TYPE)
-                        .execute(dataPacket.toString()); // send DATA packet
+                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // add packet content to database for future review
-                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));
+                // TODO - convert packet to string and store in DB
+
+              /*
+                // add packet content to database for future review
+                DBSingleton.getInstance(context).getDB().addPacketData(new DBData(dataPacket.getName(), dataPacket.toString()));*/
             }
         }
     }

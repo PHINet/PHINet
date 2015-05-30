@@ -1,6 +1,6 @@
 # PHINet
 
-PHINet is a Health-IoT testbed for the future Named Data Networking Internet architecture. 
+PHINet is a Health-IoT testbed framework for the future Named Data Networking Internet architecture. 
 
 This project is described in a paper accepted by the IEEE Mobile Services conference (link will be provided soon).
 
@@ -16,17 +16,18 @@ Our client application will soon be available for download on android devices.
 
 # Contributing
 
-All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas; it contains primary objectives that aren't assigned to our team of developers.
+All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas.
 
 WEB
 - improve website UI 
-- integrate ndn library (https://github.com/named-data/ndn-js)
-- handle client-server synchronization
+- allow doctors to view patient data (if applicable)
+- allow editing of user info. via profile page
+- make mobile friendly
 
 CLIENT
-- integrate ndn library (https://github.com/named-data/jndn)
-- issue client-server synchronization
-- allow sensor-entry and collection interval specifications
+- multi-sensor graph
+- improve graph axes
+- improve UI
 
 # Support 
 

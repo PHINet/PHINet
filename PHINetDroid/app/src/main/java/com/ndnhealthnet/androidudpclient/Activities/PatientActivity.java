@@ -19,10 +19,14 @@ import android.widget.Toast;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
-import com.ndnhealthnet.androidudpclient.Packet.InterestPacket;
 import com.ndnhealthnet.androidudpclient.R;
+import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
+
+import net.named_data.jndn.Interest;
+import net.named_data.jndn.Name;
+import net.named_data.jndn.util.Blob;
 
 import java.util.ArrayList;
 
@@ -197,20 +201,21 @@ public class PatientActivity extends Activity {
                 // send request to everyone in FIB; only send to users with actual ip
                 if (Utils.validIP(allFIBEntries.get(i).getIpAddr())) {
 
-                    System.out.println("sending interest packet");
-                    InterestPacket interestPacket = new InterestPacket(
-                            patientUserID, StringConst.NULL_FIELD, generateTimeString(),
+                    Name packetName = JNDNUtils.createName(patientUserID, StringConst.NULL_FIELD, generateTimeString(),
                             StringConst.INTEREST_CACHE_DATA);
+                    Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                    System.out.println("ip addr: " + allFIBEntries.get(i).getIpAddr());
-
+                    Blob blob = interest.wireEncode();
                     new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
-                            .execute(interestPacket.toString()); // send interest packet
+                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+
+                   /* // add packet content to database for future review
+                    // TODO - convert packet to string and store in DB
 
                     // add packet content to database for future review
                     DBSingleton.getInstance(getApplicationContext()).getDB()
                             .addPacketData(new DBData(interestPacket.getName(), interestPacket.toString()));
-
+                        */
                     fibRequestsSent++;
                 }
             }
