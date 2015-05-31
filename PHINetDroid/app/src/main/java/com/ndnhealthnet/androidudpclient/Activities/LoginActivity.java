@@ -72,16 +72,18 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
 
                 // get current user credentials and determine whether valid
-                String currentSensorID = Utils.getFromPrefs(getApplicationContext(),
+                String currentPassword = Utils.getFromPrefs(getApplicationContext(),
                         StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
                 String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                         StringConst.PREFS_LOGIN_USER_ID_KEY, "");
 
                 Intent returnIntent = new Intent();
 
-                if (Utils.validInputUserName(currentSensorID) && Utils.validInputPassword(currentUserID)) {
+                if (Utils.validInputUserName(currentUserID) && Utils.validInputPassword(currentPassword)) {
+
                     setResult(RESULT_OK,returnIntent);
                 } else {
+
                     setResult(RESULT_CANCELED, returnIntent);
                 }
 

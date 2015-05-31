@@ -86,6 +86,7 @@ public class PatientActivity extends Activity {
         requestBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
+                resetIntervalParams(); // clear so that new/first request may be made
                 AlertDialog.Builder initialInterval = generateIntervalSelector(INTERVAL_TITLE_1);
                 initialInterval.show();
             }
@@ -360,5 +361,17 @@ public class PatientActivity extends Activity {
 
         Toast toast = Toast.makeText(this, "Save successful.", Toast.LENGTH_LONG);
         toast.show();
+    }
+
+    /**
+     * Resets the interval params so that future requests may start fresh.
+     */
+    public void resetIntervalParams() {
+        startDay = 0;
+        endDay = 0;
+        startMonth = 0;
+        endMonth = 0;
+        startYear = 0;
+        endYear = 0;
     }
 }

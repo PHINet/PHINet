@@ -125,7 +125,7 @@ public class RecordHeartbeatActivity extends Activity {
                     DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);
 
                     Toast toast = Toast.makeText(getApplicationContext(),
-                            "Heart beat successfully recorded.", Toast.LENGTH_LONG);
+                            "Heart beat successfully recorded.", Toast.LENGTH_SHORT);
                     toast.show();
                 }
             }

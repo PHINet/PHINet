@@ -18,16 +18,37 @@ Our client application will soon be available for download on android devices.
 
 All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas.
 
-WEB
-- improve website UI 
-- allow doctors to view patient data (if applicable)
-- allow editing of user info. via profile page
-- make mobile friendly
+
+GENERAL
+- REQUIRED: improve docs
+- REQUIRED: improve design / handle all TODOs / more robust testing
 
 CLIENT
-- multi-sensor graph
-- improve graph axes
-- improve UI
+- REQUIRED: request analytics from server
+- REQUIRED: modify/user all NDN packet components
+- REQUIRED: send login/signup requests to server
+- REQUIRED: respond to sync requests
+- DESIRED: multi-sensor graph
+- DESIRED: improve sensor axes
+- DESIRED: improve layout
+
+WEB
+- REQUIRED: view patient data (if applicable)
+- REQUIRED: edit profile data
+- REQUIRED: basic testing page (to test with device)
+- REQUIRED: modify/use all NDN packet components
+- REQUIRED: validate client login/signup requests
+- REQUIRED: perform data analytics and return result
+- REQUIRED: issue sync requests and process result
+- DESIRED: perform more complex analytics
+- DESIRED: improve layout
+- DESIRED: make mobile friendly
+
+# Tests
+
+In order to run the PHINetCloud tests, you must install mocha (preferably globally): "npm install -g mocha". Then, within the tests directory, run "mocha test_x.js" where "x" is the test you'd like to run.
+
+In order to run PHINetDroid tests, right click on the ApplicationTest file and click the android icon (if your configrations are different, you must delete them and then click).
 
 # Support 
 

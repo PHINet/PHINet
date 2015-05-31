@@ -87,7 +87,6 @@ public class UDPListener extends Thread {
         Interest interest = JNDNUtils.decodeInterest(buf);
         Data data = JNDNUtils.decodeData(buf);
 
-
         if (data == null && interest != null) {
 
             handleInterestPacket(interest, hostIP, hostPort);
@@ -330,6 +329,8 @@ public class UDPListener extends Thread {
      */
     static void handleDataPacket(Data data)
     {
+        System.out.println("handling data packet");
+
         // store received packet in database for further review
         DBSingleton.getInstance(context).getDB()
                 .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
@@ -337,6 +338,9 @@ public class UDPListener extends Thread {
         //decode the parsing characters "||"
         String [] nameComponent = data.getName().toUri().replace("%7C%7C", "||").split("/");
         String dataContents = data.getContent().toString();
+
+        System.out.println("content: " + dataContents);
+        System.out.println("handling name component; " + Arrays.toString(nameComponent));
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timestring/processID/floatContent"

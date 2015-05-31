@@ -145,6 +145,7 @@ exports.ndn_utils = {
         data.setMetaInfo(metaInfo);
         data.setName(new Name(name));
         data.setSignature(signature);
+        data.setContent(content);
 
         return data;
     },

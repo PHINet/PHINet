@@ -22,6 +22,7 @@ import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 
 /**
@@ -257,6 +258,9 @@ public class ViewDataActivity extends Activity {
               endDate += "-" + Integer.toString(endDay) + "T00.00.00.000"; // append zeros at end
 
             // convert valid data to a format that can be displayed
+
+            System.out.println("My data: " + Arrays.toString(myData.toArray()));
+
             myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);
         }
 

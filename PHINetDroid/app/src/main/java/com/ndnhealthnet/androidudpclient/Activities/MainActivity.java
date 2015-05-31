@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
@@ -71,7 +72,7 @@ public class MainActivity extends Activity {
             loggedInText.setText(currentUserID);
         }
 
-        String mySensorID = Utils.getFromPrefs(getApplicationContext(),
+        String myPasswordID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 StringConst.PREFS_LOGIN_USER_ID_KEY, "");
@@ -151,8 +152,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        if (mySensorID == null || myUserID == null
-                || mySensorID.equals("") || myUserID.equals("")) {
+        if (myPasswordID == null || myUserID == null
+                || myPasswordID.equals("") || myUserID.equals("")) {
 
             //destroy all buttons until user enters credentials
             cliBeatBtn.setVisibility(View.GONE);

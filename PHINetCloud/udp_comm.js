@@ -54,10 +54,11 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
 
                 if (interest && !data) {
 
+                    console.log("interest packet found");
                     // Interest packet detected
                     handleInterestPacket(interest, rinfo.address, rinfo.port);
                 } else if (!interest && data) {
-
+                    console.log("data packet found");
                     // Data packet detected
                     handleDataPacket(data);
                 } else {
@@ -79,7 +80,7 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
          */
         sendMessage: function (message, ip, port) {
 
-            var buffer = new Buffer(message, "utf-8");
+            var buffer = message.buffer; // message param is either encoded Interest or Data object; get its buffer
 
             if (port == undefined || port === null) {
                 port = NDN_SENSOR_NET_PORT;
@@ -110,6 +111,8 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = interestPacket.getName().toUri().replace("%7C%7C", "||").split("/");
 
+            console.log("interest name: " + nameComponent);
+
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
             // the indexes used are position + 1 (the addition 1 due to empty string in 0-index)
@@ -121,10 +124,14 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
             // check if packet is an INTEREST for FIB data
             if (packetProcessID === StringConst.INTEREST_FIB) {
 
+                console.log("interest fib invoked");
+
                 handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, packetPort);
             }
             // check if packet is an INTEREST for CACHE data
             else if (packetProcessID === StringConst.INTEREST_CACHE_DATA) {
+
+                console.log("interest cache data invoked");
 
                 handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
                     packetIP, packetPort);
@@ -145,6 +152,8 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = dataPacket.getName().toUri().replace("%7C%7C", "||").split("/");
             var dataContents = dataPacket.getContent().toString();
+
+            console.log("data name:" + nameComponent);
 
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
@@ -203,7 +212,7 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
  */
 function sendMessage (message, ip, port) {
 
-    var buffer = new Buffer(message, "utf-8");
+    var buffer = message.buffer; // message param is either encoded Interest or Data object; get its buffer
 
     if (port == undefined || port === null) {
         port = NDN_SENSOR_NET_PORT;
@@ -363,11 +372,14 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
     // TODO - should packetPort be used?
     // TODO - rework with specific data once TIME variable valid!
 
+    console.log("inside interest cache data");
+
     // first, check CONTENT STORE (cache) for requested information
     CS.getGeneralCSData(packetUserID, function(rowsTouched, csQueryResults) {
 
         // data was in cache; send to requester
         if (csQueryResults) {
+            console.log("query results found");
 
             for (var i = 0; i < csQueryResults.length; i++) {
 
@@ -377,18 +389,22 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 
                 // create and send packet with ndn-js module
                 var packetName = ndnjs_utils.createName(csQueryResults[i].getUserID(), csQueryResults[i].getSensorID(),
-                    csQueryResults[i].getTimeString(), csQueryResults[i].getProcessID());
-                var data = ndnjs_utils.createDataPacket(csQueryResults[i].getDataFloat(), packetName);
 
+                    // TODO - fix this
+
+                    csQueryResults[i].getTimeString(), "DATA_CACHE");//csQueryResults[i].getProcessID());
+
+                var data = ndnjs_utils.createDataPacket(csQueryResults[i].getDataFloat(), packetName);
                 var encodedPacket = data.wireEncode();
 
-                sendMessage(encodedPacket, packetIP, NDN_SENSOR_NET_PORT); // reply to interest with DATA from cache
+                sendMessage(encodedPacket, packetIP, packetPort); // reply to interest with DATA from cache
             }
 
         }
         // data wasn't in cache; check PIT to see if an interest has already been sent for data
         else {
 
+            console.log("no data found, adding to pit");
             // TODO - again, rework with specific date once TIME variable valid
 
             PIT.getGeneralPITData(packetUserID, packetIP, function(rowsTouched, queryResults) {

@@ -32,6 +32,15 @@ app.use(bodyParser.urlencoded({
 app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 
+// --- TEST DATA ---
+var DBData = require('./data'); // used to create objects used by the database
+var newEntry = DBData.DATA();
+newEntry.csData("local", "sensor1", "p1", "2015-05-03T18.17.56.985", "99,100,41,98,58,200,111")
+
+CS.insertCSData(newEntry, function(a,b){});
+// --- TEST DATA ---
+
+
 /**
  * Handles main web page
  */
@@ -459,6 +468,60 @@ app.post('/registerAction', function(req, res) {
         }
     }
 });
+
+// ---- Code Tests UDP Functionality ---
+
+// TODO - implement the testing portion of site
+
+//var DataPacketClass = require('./datapacket');
+//var InterestPacketClass = require('./interestpacket');
+
+// method allows user to test networking functionality
+/*app.post('/submitIP', function(req, res) {
+
+ if (req.body.user.ipAddrPing !== undefined) {
+ // user requested ping
+
+ var sys = require('sys')
+ var exec = require('child_process').exec;
+
+ function puts(error, stdout, stderr) {
+ console.log(stdout);
+ }
+
+ exec("ping -c 3 " + req.body.user.ipAddrPing, puts);
+
+ } else if (req.body.user.ipAddrTrace !== undefined) {
+ // user requested traceroute
+
+ var traceroute = require('traceroute');
+
+ traceroute.trace(req.body.user.ipAddrTrace,
+ function (err,hops) {
+ if (!err) {
+ console.log(hops);
+ } else {
+ console.log("error: " + err);
+ }
+ });
+
+ } else {
+ // user requested fake packets sent to them
+
+ var dataPacket = new DataPacketClass.DataPacket();
+ dataPacket.DataPacket("CLOUD-SERVER", StringConst.NULL_FIELD, StringConst.CURRENT_TIME,
+ StringConst.DATA_CACHE, "0,99,100,101,102");
+
+ var interestPacket = new InterestPacketClass.InterestPacket();
+ interestPacket.InterestPacket("CLOUD-SERVER", StringConst.NULL_FIELD,
+ StringConst.CURRENT_TIME, StringConst.INTEREST_CACHE_DATA, "0,99,100,101,102");
+
+ udp_comm.sendMessage(dataPacket.createDATA(), req.body.user.ipAddr);
+ udp_comm.sendMessage(interestPacket.createINTEREST(), req.body.user.ipAddr);
+ }
+
+ });*/
+// ---- Code Tests UDP Functionality ---
 
 // --- Below Code Handles DB Creation ---
 
