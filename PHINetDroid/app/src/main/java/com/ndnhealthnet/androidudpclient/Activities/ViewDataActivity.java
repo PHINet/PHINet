@@ -18,7 +18,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
@@ -54,10 +54,10 @@ public class ViewDataActivity extends Activity {
         setContentView(R.layout.activity_viewdata);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         // get name of entity to determine whose data to display
-        entityName = getIntent().getExtras().getString(StringConst.ENTITY_NAME);
+        entityName = getIntent().getExtras().getString(ConstVar.ENTITY_NAME);
 
         graph = (GraphView) findViewById(R.id.graph); // reset graph when updating
 

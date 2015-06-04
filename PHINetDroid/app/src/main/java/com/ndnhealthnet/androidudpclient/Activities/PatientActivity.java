@@ -19,8 +19,8 @@ import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import net.named_data.jndn.Interest;
@@ -56,7 +56,7 @@ public class PatientActivity extends Activity {
         setContentView(R.layout.activity_patient);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID);
@@ -77,7 +77,7 @@ public class PatientActivity extends Activity {
                 Intent intent = new Intent(PatientActivity.this, ViewDataActivity.class);
 
                 // to view client's data, pass their user id
-                intent.putExtra(StringConst.ENTITY_NAME, patientUserID);
+                intent.putExtra(ConstVar.ENTITY_NAME, patientUserID);
                 startActivity(intent);
             }
         });
@@ -169,10 +169,10 @@ public class PatientActivity extends Activity {
 
                 // sensor id is currently irrelevant
                 // TODO - rework sensorID with server
-                selfPITEntry.setSensorID(StringConst.NULL_FIELD);
+                selfPITEntry.setSensorID(ConstVar.NULL_FIELD);
 
                 selfPITEntry.setTimeString(generateTimeString());
-                selfPITEntry.setProcessID(StringConst.INTEREST_CACHE_DATA);
+                selfPITEntry.setProcessID(ConstVar.INTEREST_CACHE_DATA);
 
                 // deviceIP, because this device is the requester
                 selfPITEntry.setIpAddr(MainActivity.deviceIP);
@@ -187,7 +187,7 @@ public class PatientActivity extends Activity {
 
                 /*for (int i = 0; i < pitEntries.size(); i++) {
 
-                    pitEntries.get(i).setTimeString(StringConst.CURRENT_TIME);
+                    pitEntries.get(i).setTimeString(ConstVar.CURRENT_TIME);
                     DBSingleton.getInstance(getApplicationContext()).getDB().updatePITData(pitEntries.get(i));
                 }*/
             }
@@ -201,12 +201,12 @@ public class PatientActivity extends Activity {
                 // send request to everyone in FIB; only send to users with actual ip
                 if (Utils.validIP(allFIBEntries.get(i).getIpAddr())) {
 
-                    Name packetName = JNDNUtils.createName(patientUserID, StringConst.NULL_FIELD, generateTimeString(),
-                            StringConst.INTEREST_CACHE_DATA);
+                    Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, generateTimeString(),
+                            ConstVar.INTEREST_CACHE_DATA);
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                     Blob blob = interest.wireEncode();
-                    new UDPSocket(MainActivity.devicePort, allFIBEntries.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
+                    new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
                             .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                     // store received packet in database for further review
@@ -353,7 +353,7 @@ public class PatientActivity extends Activity {
 
         // updates patient data
         DBData updatedFIBEntry = new DBData();
-        updatedFIBEntry.setTimeString(StringConst.CURRENT_TIME);
+        updatedFIBEntry.setTimeString(ConstVar.CURRENT_TIME);
         updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
         updatedFIBEntry.setUserID(patientUserID);
 

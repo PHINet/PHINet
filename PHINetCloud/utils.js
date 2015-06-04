@@ -67,7 +67,7 @@ exports.Utils = {
 	 */
 	comparePassword : function(password, hashedPassword, callback) {
 
-		if (!password || !userPassword || !callback) {
+		if (!password || !hashedPassword || !callback) {
 			throw "!!Error: invalid input to utils.comparePassword()!";
 		} else {
             bcrypt.compare(password, hashedPassword, function(err, isPasswordMatch) {

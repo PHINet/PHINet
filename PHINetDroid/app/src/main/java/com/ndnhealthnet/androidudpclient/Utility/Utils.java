@@ -36,8 +36,8 @@ public class Utils {
         // TODO - hash the password
 
         if (context == null || key == null || value == null
-                || (!key.equals(StringConst.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
-                && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
+                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
+                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
             return false;
         }
 
@@ -62,8 +62,8 @@ public class Utils {
     public static String getFromPrefs(Context context, String key, String defaultValue) {
 
         if (context == null || key == null || defaultValue == null
-                || (!key.equals(StringConst.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
-                && !key.equals(StringConst.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
+                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
+                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
             return null;
         }
 

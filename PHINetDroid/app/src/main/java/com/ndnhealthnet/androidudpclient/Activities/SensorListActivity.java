@@ -17,7 +17,7 @@ import android.widget.Toast;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class SensorListActivity extends ListActivity {
         setListAdapter(adapter);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place username on screen
@@ -153,7 +153,7 @@ public class SensorListActivity extends ListActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            if (sensorName.equals(StringConst.HEARTBEAT_SENSOR)) {
+                            if (sensorName.equals(ConstVar.HEARTBEAT_SENSOR)) {
 
                                 startActivity(new Intent(SensorListActivity.this, RecordHeartbeatActivity.class));
                             } else {

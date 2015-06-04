@@ -12,9 +12,8 @@ import android.widget.TextView;
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
-import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
@@ -32,7 +31,6 @@ public class MainActivity extends Activity {
     // used to specify when listener "receiverThread" should actively listen for packets
     public static boolean continueReceiverExecution = true;
 
-    public static final int devicePort = 50056; // port used by all NDN-HealthNet applications
     public static String deviceIP;
 
     @Override
@@ -46,8 +44,8 @@ public class MainActivity extends Activity {
         DBData dbData = new DBData();
 
         // TODO - update with correct ipAddr & userID
-        dbData.setIpAddr("52.149.194.227"); // public server IP
-        dbData.setUserID("CLOUD-SERVER");
+        dbData.setIpAddr(ConstVar.SERVER_IP);
+        dbData.setUserID(ConstVar.SERVER_ID);
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(dbData); // add cloud-server to FIB
 
@@ -65,7 +63,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         if (currentUserID != "" || currentUserID != null) {
             loggedInText = (TextView) findViewById(R.id.loggedInTextView);
@@ -73,9 +71,9 @@ public class MainActivity extends Activity {
         }
 
         String myPasswordID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
         String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
         doctorText = (TextView) findViewById(R.id.doctorTextView);
@@ -98,8 +96,8 @@ public class MainActivity extends Activity {
         logoutBtn = (Button) findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_USER_ID_KEY, "");
-                Utils.saveToPrefs(getApplicationContext(), StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
+                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
 
                 onCreateHelper();
             }
@@ -127,10 +125,10 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
 
                 String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                        StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                        ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
                 // to view client's data, pass their user id
-                intent.putExtra(StringConst.ENTITY_NAME, myUserID);
+                intent.putExtra(ConstVar.ENTITY_NAME, myUserID);
                 startActivity(intent);
             }
         });

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
 import java.util.ArrayList;
 
@@ -42,7 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         // keys are USER_ID and TIME_STRING - only one piece of data per user per time instant
-        String CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.CS_DB + "("
+        String CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.CS_DB + "("
                 + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
                 " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + "))";
@@ -51,7 +51,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // keys are USER_ID, TIME_STRING, and IP_ADDRESS
                     // - only one piece of requested data per user per time instant
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.PIT_DB + "("
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.PIT_DB + "("
                 +KEY_USER_ID + " TEXT ," + KEY_SENSOR_ID + " TEXT," +
                KEY_TIME_STRING + " TEXT," +KEY_PROCESS_ID + " TEXT," +KEY_IP_ADDRESS + " TEXT,"
                 + "PRIMARY KEY(" + KEY_USER_ID + "," + KEY_TIME_STRING + ", "
@@ -60,20 +60,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_DATABASE_TABLE); // create PIT
 
         // keys are USER_ID - only location per user
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.FIB_DB + "("
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.FIB_DB + "("
                 +KEY_USER_ID + " TEXT PRIMARY KEY," + KEY_TIME_STRING +
                 " TEXT, " +KEY_IP_ADDRESS + " TEXT)";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create FIB
 
         // key is sensor_name
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.SENSOR_DB + "(" +
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.SENSOR_DB + "(" +
                 KEY_SENSOR_ID + " TEXT PRIMARY KEY," + KEY_COLLECTION_INTERVAL + " BIGINT)";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create sensor table
 
         // key is packet name
-        CREATE_DATABASE_TABLE = "CREATE TABLE " + StringConst.PACKET_DB + "(" +
+        CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.PACKET_DB + "(" +
                 KEY_PACKET_NAME + " TEXT PRIMARY KEY, " + KEY_PACKET_CONTENT + " TEXT)";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create db to hold packets (only for viewing)
@@ -82,11 +82,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Upgrading database
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + StringConst.PIT_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + StringConst.FIB_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + StringConst.CS_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + StringConst.SENSOR_DB);
-        db.execSQL("DROP TABLE IF EXISTS " + StringConst.PACKET_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + ConstVar.PIT_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + ConstVar.FIB_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + ConstVar.CS_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + ConstVar.SENSOR_DB);
+        db.execSQL("DROP TABLE IF EXISTS " + ConstVar.PACKET_DB);
 
         // Create tables again
         onCreate(db);
@@ -106,30 +106,30 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (tableName.equals(StringConst.PIT_DB)) {
+        if (tableName.equals(ConstVar.PIT_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
-        } else if (tableName.equals(StringConst.CS_DB)) {
+        } else if (tableName.equals(ConstVar.CS_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
             values.put(KEY_PROCESS_ID, data.getProcessID());
             values.put(KEY_DATA_CONTENTS, data.getDataFloat());
-        } else if (tableName.equals(StringConst.FIB_DB)) {
+        } else if (tableName.equals(ConstVar.FIB_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
-        } else if (tableName.equals(StringConst.SENSOR_DB)) {
+        } else if (tableName.equals(ConstVar.SENSOR_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
-        } else if (tableName.equals(StringConst.PACKET_DB)) {
+        } else if (tableName.equals(ConstVar.PACKET_DB)) {
 
             values.put(KEY_PACKET_NAME, data.getPacketName());
             values.put(KEY_PACKET_CONTENT, data.getPacketContent());
@@ -157,7 +157,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if insertion was successful, false otherwise
      */
     public boolean addSensorData(DBData data) {
-        return addData(data, StringConst.SENSOR_DB);
+        return addData(data, ConstVar.SENSOR_DB);
     }
 
     /**
@@ -167,7 +167,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if insertion was successful, false otherwise
      */
     public boolean addPacketData(DBData data) {
-        return addData(data, StringConst.PACKET_DB);
+        return addData(data, ConstVar.PACKET_DB);
     }
 
     /**
@@ -175,7 +175,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addPITData(DBData data) {
-        return addData(data, StringConst.PIT_DB);
+        return addData(data, ConstVar.PIT_DB);
     }
 
     /**
@@ -183,7 +183,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addCSData(DBData data) {
-        return addData(data, StringConst.CS_DB);
+        return addData(data, ConstVar.CS_DB);
     }
 
     /**
@@ -191,7 +191,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addFIBData(DBData data) {
-        return addData(data, StringConst.FIB_DB);
+        return addData(data, ConstVar.FIB_DB);
     }
 
     /**
@@ -210,7 +210,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String whereSelection = "_userID=\"" + userID + "\"";
 
-        Cursor cursor = db.query(StringConst.PIT_DB, new String[] {KEY_USER_ID,
+        Cursor cursor = db.query(ConstVar.PIT_DB, new String[] {KEY_USER_ID,
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
                 whereSelection, null, null, null, null);
 
@@ -260,7 +260,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         Cursor cursor;
         try {
-            cursor = db.query(StringConst.PIT_DB, new String[] {KEY_USER_ID,
+            cursor = db.query(ConstVar.PIT_DB, new String[] {KEY_USER_ID,
                             KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
                     whereSelection, null, null, null, null);
         } catch (SQLiteException e) {
@@ -302,7 +302,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         ArrayList<DBData> allSensorData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * from " + StringConst.SENSOR_DB, null);
+        Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.SENSOR_DB, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             return null;
@@ -332,7 +332,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String whereSelection = KEY_SENSOR_ID + " = \"" + sensorID + "\"";
-        Cursor cursor = db.query(StringConst.SENSOR_DB, new String[]{KEY_SENSOR_ID,
+        Cursor cursor = db.query(ConstVar.SENSOR_DB, new String[]{KEY_SENSOR_ID,
                         KEY_COLLECTION_INTERVAL}, whereSelection, null, null, null, null);
 
         if (cursor == null || cursor.getCount() == 0) {
@@ -358,7 +358,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         ArrayList<DBData> allPacketData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * from " + StringConst.PACKET_DB, null);
+        Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.PACKET_DB, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             return null;
@@ -391,7 +391,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getReadableDatabase();
         String whereSelection = "_userID=\"" + userID + "\"";
-        Cursor cursor = db.query(StringConst.FIB_DB, new String[]{KEY_USER_ID,
+        Cursor cursor = db.query(ConstVar.FIB_DB, new String[]{KEY_USER_ID,
                         KEY_TIME_STRING, KEY_IP_ADDRESS},
                 whereSelection, null, null, null, null);
 
@@ -427,7 +427,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor;
 
         try {
-            cursor = db.query(StringConst.CS_DB, new String[] {KEY_USER_ID,
+            cursor = db.query(ConstVar.CS_DB, new String[] {KEY_USER_ID,
                             KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_DATA_CONTENTS},
                     whereSelection, null, null, null, null);
         } catch (SQLiteException e) {
@@ -466,7 +466,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<DBData> getAllFIBData() {
         ArrayList<DBData> allFIBData = new ArrayList<DBData>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * from " + StringConst.FIB_DB, null);
+        Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.FIB_DB, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             return null;
@@ -498,7 +498,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String whereSelection = "_userID=\"" + userID + "\" AND timeString=\"" + timeString + "\"";
 
-        Cursor cursor = db.query(StringConst.CS_DB, new String[]{KEY_USER_ID,
+        Cursor cursor = db.query(ConstVar.CS_DB, new String[]{KEY_USER_ID,
                         KEY_SENSOR_ID, KEY_TIME_STRING, KEY_PROCESS_ID, KEY_DATA_CONTENTS},
                 whereSelection, null, null, null, null);
 
@@ -534,7 +534,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (tableName.equals(StringConst.PIT_DB)) {
+        if (tableName.equals(ConstVar.PIT_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
@@ -544,7 +544,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             // updating row
             db.update(tableName, values, KEY_USER_ID + " = ?",
                     new String[]{data.getUserID()});
-        } else if (tableName.equals(StringConst.CS_DB)) {
+        } else if (tableName.equals(ConstVar.CS_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_TIME_STRING, data.getTimeString());
@@ -554,7 +554,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             // updating row
             db.update(tableName, values, KEY_USER_ID + " = ?",
                     new String[]{data.getUserID()});
-        } else if (tableName.equals(StringConst.FIB_DB)) {
+        } else if (tableName.equals(ConstVar.FIB_DB)) {
 
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
@@ -564,7 +564,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             db.update(tableName, values, KEY_USER_ID + " = ?",
                     new String[]{data.getUserID()});
 
-        } else if (tableName.equals(StringConst.SENSOR_DB)) {
+        } else if (tableName.equals(ConstVar.SENSOR_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
             values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
@@ -591,7 +591,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return false;
         }
 
-        return updateData(data, StringConst.SENSOR_DB);
+        return updateData(data, ConstVar.SENSOR_DB);
     }
 
     /**
@@ -606,7 +606,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return false;
         }
 
-        return updateData(data, StringConst.FIB_DB);
+        return updateData(data, ConstVar.FIB_DB);
     }
 
     /**
@@ -621,7 +621,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return false;
         }
 
-        return updateData(data, StringConst.PIT_DB);
+        return updateData(data, ConstVar.PIT_DB);
     }
 
     /**
@@ -636,7 +636,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return false;
         }
 
-        return updateData(data, StringConst.CS_DB);
+        return updateData(data, ConstVar.CS_DB);
     }
 
     /**
@@ -658,7 +658,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String whereSelection = "_userID= \"" + userID + "\"" + "AND timestring=\"" + timeString
                 + "\" AND ipAddress= \"" + ipAddr + "\"";
 
-        return db.delete(StringConst.PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(ConstVar.PIT_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     /**
@@ -677,7 +677,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String whereSelection = "_userID= \"" + userID + "\"";
 
-        return db.delete(StringConst.FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(ConstVar.FIB_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     /**
@@ -696,7 +696,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String whereSelection = KEY_SENSOR_ID + "= \"" + sensorID + "\"";
 
-        return db.delete(StringConst.SENSOR_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(ConstVar.SENSOR_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     /**
@@ -717,7 +717,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String whereSelection = "_userID= \"" + userID + "\" AND timestring=\"" + timeString
                 + "\"";
 
-        return db.delete(StringConst.CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
+        return db.delete(ConstVar.CS_DB, whereSelection, null) > 0; // returns true if entry was deleted
     }
 
     /**
@@ -726,7 +726,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void deleteEntirePIT() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(StringConst.PIT_DB, null, null);
+        db.delete(ConstVar.PIT_DB, null, null);
     }
 
     /**
@@ -735,7 +735,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void deleteEntireCS() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(StringConst.CS_DB, null, null);
+        db.delete(ConstVar.CS_DB, null, null);
     }
 
     /**
@@ -744,7 +744,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void deleteEntireFIB() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(StringConst.FIB_DB, null, null);
+        db.delete(ConstVar.FIB_DB, null, null);
     }
 
     /**
@@ -753,6 +753,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void deleteEntirePacketDB() {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(StringConst.PACKET_DB, null, null);
+        db.delete(ConstVar.PACKET_DB, null, null);
     }
 }

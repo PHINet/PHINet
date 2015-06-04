@@ -11,7 +11,7 @@ import android.widget.Toast;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
@@ -30,7 +30,7 @@ public class SensorSettingsActivity extends Activity {
         setContentView(R.layout.activity_sensorsettings);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         // use IP and ID from intent to find patient among all patients
         sensorName = getIntent().getExtras().getString(SensorListActivity.SENSOR_NAME);

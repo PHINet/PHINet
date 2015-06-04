@@ -5,8 +5,38 @@
 
 exports.StringConst = {
 
-	// notify neighbor that fib is desired (sent in interest packet)
+    // the id used by the server
+    SERVER_ID : "CLOUD-SERVER",
+
+    // notify the recipient (in this case server) of client login request
+    LOGIN_REQUEST : "LOGIN_REQUEST",
+
+    // notify the recipient (in this case server) of client register request
+    REGISTER_REQUEST : "REGISTER_REQUEST",
+
+    // notify the recipient (in this case a client) of the sender requesting credentials
+    CREDENTIAL_REQUEST : "CREDENTIAL_REQUEST",
+
+    // notify neighbor that fib is desired (sent in interest packet)
     INTEREST_FIB : "INTEREST_FIB",
+
+    // notify recipient (in this case the server) that content in data packet is user login credentials
+    LOGIN_CREDENTIAL_DATA : "LOGIN_CREDENTIAL_DATA",
+
+    // notify recipient (in this case the server) that content in data packet is user signup credentials
+    SIGNUP_CREDENTIAL_DATA : "SIGNUP_CREDENTIAL_DATA",
+
+    // request the result of login from  (in this case the server)
+    INTEREST_LOGIN_RESULT : "INTEREST_LOGIN_RESULT",
+
+    // request the result of login from  (in this case the server)
+    INTEREST_REGISTER_RESULT : "INTEREST_REGISTER_RESULT",
+
+    // used by server to respond to login result request
+    DATA_LOGIN_RESULT : "DATA_LOGIN_RESULT",
+
+    // used by server to respond to register result request
+    DATA_REGISTER_RESULT : "DATA_REGISTER_RESULT",
 
     // notify recipient that content in data packet is FIBData
     DATA_FIB : "DATA_FIB",
@@ -19,6 +49,10 @@ exports.StringConst = {
 
     // denotes a user who has no associated IP
     NULL_IP : "NULL_IP",
+
+    // used as Data packet content when login/register have failed respective
+    LOGIN_FAILED: "LOGIN_FAILED",
+    REGISTER_FAILED: "REGISTER_FAILED",
 
     // denotes that data from cache is desired
     INTEREST_CACHE_DATA : "INTEREST_CACHE_DATA",

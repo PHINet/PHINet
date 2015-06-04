@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
 import junit.framework.TestCase;
 
@@ -20,29 +20,29 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test PIT data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData pitData1 = new DBData(StringConst.PIT_DB, "SENSOR1", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER1", "11.11.11.11");
+    DBData pitData1 = new DBData(ConstVar.PIT_DB, "SENSOR1", ConstVar.DATA_CACHE,
+            ConstVar.CURRENT_TIME, "USER1", "11.11.11.11");
 
-    DBData pitData2 = new DBData(StringConst.PIT_DB, "SENSOR2", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER2", "12.12.12.12");
+    DBData pitData2 = new DBData(ConstVar.PIT_DB, "SENSOR2", ConstVar.DATA_CACHE,
+            ConstVar.CURRENT_TIME, "USER2", "12.12.12.12");
 
     DBData emptyPIT = new DBData();
 
-    DBData pitData3 = new DBData(StringConst.PIT_DB, "SENSOR3", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER1", "13.13.13.13");
+    DBData pitData3 = new DBData(ConstVar.PIT_DB, "SENSOR3", ConstVar.DATA_CACHE,
+            ConstVar.CURRENT_TIME, "USER1", "13.13.13.13");
 
     // --- test PIT data ---
 
     // --- test CS data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData csData1 = new DBData(StringConst.CS_DB, "SENSOR1", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER1", "11,11,11,11");
+    DBData csData1 = new DBData(ConstVar.CS_DB, "SENSOR1", ConstVar.DATA_CACHE,
+            ConstVar.CURRENT_TIME, "USER1", "11,11,11,11");
 
-    DBData csData2 = new DBData(StringConst.CS_DB, "SENSOR2", StringConst.DATA_CACHE,
-            StringConst.CURRENT_TIME, "USER2", "12,12,12,12");
+    DBData csData2 = new DBData(ConstVar.CS_DB, "SENSOR2", ConstVar.DATA_CACHE,
+            ConstVar.CURRENT_TIME, "USER2", "12,12,12,12");
 
-    DBData csData3 = new DBData(StringConst.CS_DB, "SENSOR1", StringConst.DATA_CACHE,
+    DBData csData3 = new DBData(ConstVar.CS_DB, "SENSOR1", ConstVar.DATA_CACHE,
             "2015-04-27T00:00:00.000", "USER1", "12");
 
     // --- test CS data ---
@@ -50,9 +50,9 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test FIB data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData fibData1 = new DBData("USER1", StringConst.CURRENT_TIME, "11.11.11.11");
+    DBData fibData1 = new DBData("USER1", ConstVar.CURRENT_TIME, "11.11.11.11");
 
-    DBData fibData2 = new DBData("USER2", StringConst.CURRENT_TIME, "11.11.11.11");
+    DBData fibData2 = new DBData("USER2", ConstVar.CURRENT_TIME, "11.11.11.11");
 
     // --- test FIB data ---
 

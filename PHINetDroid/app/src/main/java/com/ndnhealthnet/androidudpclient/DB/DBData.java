@@ -1,6 +1,6 @@
 package com.ndnhealthnet.androidudpclient.DB;
 
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 /**
@@ -35,7 +35,7 @@ public class DBData {
     public DBData(String type, String sensorID, String processID, String timeString,
                   String userID, String fifthField) {
 
-        if (timeString.equals(StringConst.CURRENT_TIME)) {
+        if (timeString.equals(ConstVar.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
         }
 
@@ -45,9 +45,9 @@ public class DBData {
         this.userID = userID;
 
         // assigns fifth field based upon type of db data
-        if (type.equals(StringConst.PIT_DB)) {
+        if (type.equals(ConstVar.PIT_DB)) {
             this.ipAddr = fifthField; // PIT, by nature, gets IP
-        } else if (type.equals(StringConst.CS_DB)) {
+        } else if (type.equals(ConstVar.CS_DB)) {
             this.dataFloat = fifthField; // ContentStore, by nature, gets data float
         } else {
             throw new NullPointerException("Error creating DBData object: unknown type.");
@@ -63,7 +63,7 @@ public class DBData {
      */
     public DBData(String userID, String timeString, String ipAddr) {
 
-        if (timeString.equals(StringConst.CURRENT_TIME)) {
+        if (timeString.equals(ConstVar.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
         }
 
@@ -120,7 +120,7 @@ public class DBData {
      */
     public void setTimeString(String timeString) {
 
-        if (timeString.equals(StringConst.CURRENT_TIME)) {
+        if (timeString.equals(ConstVar.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
         }
 

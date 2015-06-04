@@ -17,7 +17,7 @@ import android.widget.Toast;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class PatientListActivity extends ListActivity {
         setContentView(R.layout.activity_patientlist);
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place username on screen
@@ -130,14 +130,14 @@ public class PatientListActivity extends ListActivity {
                             if (!ipEntered) {
 
                                 data.setUserID(patientInput.getText().toString());
-                                data.setTimeString(StringConst.CURRENT_TIME);
-                                data.setIpAddr(StringConst.NULL_IP);
+                                data.setTimeString(ConstVar.CURRENT_TIME);
+                                data.setIpAddr(ConstVar.NULL_IP);
 
                                 DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
                             } else {
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);
-                                data.setTimeString(StringConst.CURRENT_TIME);
+                                data.setTimeString(ConstVar.CURRENT_TIME);
 
                                 if (DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(patientInputString[0]) == null) {
                                     // user entered valid patient, now add to fib

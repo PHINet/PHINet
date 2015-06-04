@@ -2,7 +2,7 @@ package com.ndnhealthnet.androidudpclient.DB;
 
 import android.content.Context;
 
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
 /**
  * Singleton that contains DatabaseHandler object; all manipulations
@@ -23,7 +23,10 @@ public class DBSingleton {
             datasource = new DatabaseHandler(context);
 
             // the heartbeat sensor should always be in the DB; any device will possess it
-            datasource.addSensorData(new DBData(StringConst.HEARTBEAT_SENSOR, 1));
+            datasource.addSensorData(new DBData(ConstVar.HEARTBEAT_SENSOR, 1));
+
+            // TODO - add server here too
+
         }
         return instance;
     }

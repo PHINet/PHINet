@@ -2,7 +2,7 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import junit.framework.TestCase;
@@ -34,8 +34,8 @@ public class UtilsTest extends TestCase {
         testValidIP();
 
         // reset user credentials after test
-        assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, ""));
-        assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, ""));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_SENSOR_ID_KEY, ""));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, ""));
     }
 
     /**
@@ -49,7 +49,7 @@ public class UtilsTest extends TestCase {
         assertFalse(Utils.saveToPrefs(context, "bad key", "sensorid_test"));
 
         // test good input
-        assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_SENSOR_ID_KEY, "sensorid_test"));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_SENSOR_ID_KEY, "sensorid_test"));
     }
 
     /**
@@ -62,7 +62,7 @@ public class UtilsTest extends TestCase {
         String userID = "USER_TEST_ID";
 
         // store input and later test retrieval
-        assertTrue(Utils.saveToPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, userID));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, userID));
 
         // test bad input
         assertEquals(Utils.getFromPrefs(null, null, null), null);
@@ -71,7 +71,7 @@ public class UtilsTest extends TestCase {
         assertEquals(Utils.getFromPrefs(context, "bad key", ""), null);
 
         // test real params
-        assertEquals(Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, ""), userID);
+        assertEquals(Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, ""), userID);
     }
 
     /**

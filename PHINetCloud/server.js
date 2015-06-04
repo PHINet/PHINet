@@ -13,7 +13,7 @@ var CS = require('./cs').CS(StringConst.CS_DB); // ContentStore database module
 var LoginDB = require('./usercredentials.js').LoginCredentials(StringConst.LOGIN_DB); // user credential database
 var utils = require('./utils').Utils; // useful utility methods
 
-var udp_comm = require('./udp_comm').UDPComm(PIT, FIB, CS); // UDP communication module; requires reference to databases
+var udp_comm = require('./udp_comm').UDPComm(PIT, FIB, CS, LoginDB); // UDP communication module; requires reference to databases
 var http = require('http'); // used to create the server
 var ejs = require('ejs'); // enables use of embedded javascript
 var fs = require('fs'); // enables easy file reading
@@ -39,7 +39,6 @@ newEntry.csData("local", "sensor1", "p1", "2015-05-03T18.17.56.985", "99,100,41,
 
 CS.insertCSData(newEntry, function(a,b){});
 // --- TEST DATA ---
-
 
 /**
  * Handles main web page

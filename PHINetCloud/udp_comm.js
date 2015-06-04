@@ -5,11 +5,11 @@
 var DBData = require('./data'); // used to create objects used by the database
 var StringConst = require('./string_const').StringConst;
 
-var PIT, FIB, CS;
+var PIT, FIB, CS, USER_CREDENTIALS;
 
 var dgram = require("dgram"); // Node.js udp socket module
 var socket = dgram.createSocket('udp4');
-var utils = require('./utils.js');
+var utils = require('./utils.js').Utils;
 
 var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
@@ -20,6 +20,9 @@ var Data = require('./ndn-js/data.js').Data;
 var Interest = require('./ndn-js/interest.js').Interest;
 var Name = require('./ndn-js/name.js').Name;
 
+var recentLoginValidations = []; // TODO - replace this temporary data structure
+var recentRegisterValidations = []; // TODO - replace this temporary data structure
+
 /**
  * Returns object that handles majority of UDP communication. References to the core
  * NDN databases are passed to the module so that relevant queries can be performed.
@@ -27,12 +30,14 @@ var Name = require('./ndn-js/name.js').Name;
  * @param pitReference - reference to the PIT database
  * @param fibReference - reference to the FIB database
  * @param csReference - reference to the CS database
+ * @param ucReference - reference to the USER_CREDENTIAL database
  */
-exports.UDPComm = function(pitReference, fibReference, csReference) {
+exports.UDPComm = function(pitReference, fibReference, csReference, ucReference) {
 
     PIT = pitReference;
     FIB = fibReference;
     CS = csReference;
+    USER_CREDENTIALS = ucReference;
 
 	return {
 
@@ -48,25 +53,32 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
             socket.bind(NDN_SENSOR_NET_PORT);
 			socket.on('message', function(msg, rinfo) {
 
-                // attempt to create both Interest and Data packet; only one should be valid
-                var interest = ndnjs_utils.decodeInterest(msg);
-                var data = ndnjs_utils.decodeData(msg);
+                console.log("message found: " + msg);
 
-                if (interest && !data) {
+                try {
+                    // attempt to create both Interest and Data packet; only one should be valid
+                    var interest = ndnjs_utils.decodeInterest(msg);
+                    var data = ndnjs_utils.decodeData(msg);
 
-                    console.log("interest packet found");
-                    // Interest packet detected
-                    handleInterestPacket(interest, rinfo.address, rinfo.port);
-                } else if (!interest && data) {
-                    console.log("data packet found");
-                    // Data packet detected
-                    handleDataPacket(data);
-                } else {
+                    if (interest && !data) {
 
-                    // this shouldn't have happened; ignore for now
+                        console.log("interest packet found");
+                        // Interest packet detected
+                        handleInterestPacket(interest, rinfo.address, rinfo.port);
+                    } else if (!interest && data) {
+                        console.log("data packet found");
+                        // Data packet detected
+                        handleDataPacket(data, rinfo.address);
+                    } else {
 
-                    // TODO - this shouldn't have happened; handle error
+                        // this shouldn't have happened; ignore for now
+
+                        // TODO - this shouldn't have happened; handle error
+                    }
+                } catch (e) {
+                    console.log("Something went wrong. Unable to parse packet. Error: " + e);
                 }
+
 			});
 		},
 
@@ -135,7 +147,32 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
 
                 handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
                     packetIP, packetPort);
-            } else {
+            }
+            // a client application requests login; initiate process now
+            else if (packetProcessID === StringConst.LOGIN_REQUEST) {
+
+                console.log("handle login requests");
+                handleInterestLoginRequest(packetUserID, packetIP, packetPort);
+
+            }
+            // a client application requests register; initiate process now
+            else if (packetProcessID === StringConst.REGISTER_REQUEST) {
+
+                console.log("handle register requests");
+                handleInterestRegisterRequest(packetUserID, packetIP, packetPort);
+            }
+            // a client requests result of login
+            else if (packetProcessID === StringConst.INTEREST_LOGIN_RESULT) {
+
+                console.log("handle login result request");
+                handleLoginResultRequest(packetUserID, packetIP, packetPort);
+            }
+            // a client requests the result of registration
+            else if (packetProcessID === StringConst.INTEREST_REGISTER_RESULT) {
+
+                console.log("handle register result request");
+                handleRegisterResultRequest(packetUserID, packetIP, packetPort);
+            } else  {
                 // unknown process id; drop packet
             }
         },
@@ -146,41 +183,71 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
          * and sends out to satisfy any potential Interests.
          *
          * @param dataPacket incoming ndn-js Data packet after having been decoded
+         * @param hostIP - TODO doc
          */
-        handleDataPacket: function (dataPacket) {
+        handleDataPacket: function (dataPacket, hostIP) {
 
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = dataPacket.getName().toUri().replace("%7C%7C", "||").split("/");
             var dataContents = dataPacket.getContent().toString();
 
             console.log("data name:" + nameComponent);
+            console.log("data contents1: " + dataContents);
 
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
             // the indexes used are position + 1 (the addition 1 due to empty string in 0-index)
             var packetUserID = nameComponent[2];
             var packetSensorID = nameComponent[3];
-            var packetTimeString= nameComponent[4];
+            var packetTimeString = nameComponent[4];
             var packetProcessID = nameComponent[5];
 
+            console.log("just before general pit data");
+            console.log("packet user id: " + packetUserID);
+            console.log("packet host ip: " + hostIP);
+
             // first, determine who wants the data
-            PIT.getGeneralPITData(packetUserID, packetTimeString, function(rowsTouched, allValidPITEntries) {
+            PIT.getGeneralPITData(packetUserID, hostIP, function(rowsTouched, allValidPITEntries) {
+
+
+                console.log("data contents2: " + dataContents);
+
 
                 if (allValidPITEntries === null) {
 
+                    console.log("no one requested the data; drop it");
                     // no one requested the data, merely drop it
                 } else {
 
                     // determine if data packet's time interval matches any requests
-                    var requestCount = 0;
+                    var requestFoundWithinInterval = false;
                     for (var i = 0; i < allValidPITEntries.length; i++) {
 
                         if (utils.isValidForTimeInterval(allValidPITEntries[i].getTimeString(), packetTimeString)) {
-                            requestCount++;
+                            requestFoundWithinInterval = true;
+                            break;
+                        }
+
+                        if (packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA
+                            && allValidPITEntries[i].getProcessID() === StringConst.CREDENTIAL_REQUEST) {
+
+                            /**
+                             * login packets (currently) are valid irrespective of time, break if match found
+                             * server sends an Interest with processID CREDENTIAL_REQUEST and client responds with
+                             * Data with processID LOGIN_CREDENTIAL_DATA
+                             */
+
+                            requestFoundWithinInterval = true;
+                            break;
                         }
                     }
 
-                    if (requestCount > 0) { // positive request count, process packet now
+                    console.log("data contents3: " + dataContents);
+
+
+                    console.log("it was requested, perhaps, request count: " + requestFoundWithinInterval);
+
+                    if (requestFoundWithinInterval) { // positive request count, process packet now
 
                         // check if DATA packet contains FIB data
                         if (packetProcessID === StringConst.DATA_FIB) {
@@ -192,7 +259,22 @@ exports.UDPComm = function(pitReference, fibReference, csReference) {
 
                             handleCacheData(packetUserID, packetSensorID, packetTimeString,
                                 packetProcessID, dataContents, allValidPITEntries);
-                        } else {
+                        }
+                        // client has sent login credentials to server for validation
+                        else if (packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA) {
+                            console.log("data contents4: " + dataContents);
+
+
+                            console.log("handling login data");
+                            handleLoginData(dataContents);
+                        }
+                        // client has sent register credentials to server for validation
+                        else if (packetProcessID === StringConst.SIGNUP_CREDENTIAL_DATA) {
+
+                            console.log("handling signup data");
+                            handleSignupData(dataContents);
+                        }
+                        else {
                             // unknown process id; drop packet
                         }
                     }
@@ -217,6 +299,8 @@ function sendMessage (message, ip, port) {
     if (port == undefined || port === null) {
         port = NDN_SENSOR_NET_PORT;
     }
+
+    console.log("sending: " + message);
 
     socket.send(buffer, 0, buffer.length, port, ip,
         function(err) {
@@ -315,6 +399,91 @@ function handleCacheData (packetUserID, packetSensorID, packetTimeString,
 }
 
 /**
+ *
+ * TODO - doc
+ *
+ * @param dataContents
+ */
+function handleLoginData(dataContents) {
+
+    if (dataContents) {
+
+        console.log("data contents, within method: " + dataContents);
+
+        // syntax is "userid,password"
+
+        var loginCredentials = dataContents.split(",");
+
+        var userID = loginCredentials[0];
+        var password = loginCredentials[1];
+
+        console.log("handle login data: " + loginCredentials);
+
+        USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
+
+            // only one row (user) should have been found and returned
+            if (rowCount == 1 && queryResult) {
+
+                console.log("query was good");
+                console.log("passowrd: " + password);
+                console.log("query result password: " + queryResult.getPassword());
+
+                utils.comparePassword(password, queryResult.getPassword(),
+                    function(err, isPasswordMatch) {
+
+
+                        console.log("passwords match: " + isPasswordMatch);
+
+                        // login successful
+                        if (isPasswordMatch) {
+
+                            console.log("adding to recent login validations");
+                            // store result now so that user can query it
+                            recentLoginValidations.push({"userID": userID, "password": password});
+                        }
+                        // login unsuccessful
+                        else {
+                            // store nothing; when user queries, they will get a null reply
+                        }
+                    });
+
+            } else {
+
+                // TODO - handle this error
+
+                console.log("udpcomm.handlelogindata() error");
+            }
+
+        });
+    } else {
+
+        console.log("HANDLE LOGIN DATA FAILED AT START");
+        // TODO - handle this error
+    }
+}
+
+/**
+ *
+ * TODO - doc
+ *
+ * @param dataContents
+ */
+function handleSignupData(dataContents) {
+
+    if (dataContents) {
+        // syntax is "userid,password,email"
+        var registerCredentials = dataContents.split(",");
+
+        var userID = registerCredentials[0];
+        var password = registerCredentials[1];
+        var email = registerCredentials[2];
+
+    } else {
+        // TODO - handle this error
+    }
+}
+
+/**
  * returns entire FIB to user who requested it
  *
  * @param packetUserID userID of entity that requested FIB contents
@@ -407,13 +576,15 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
             console.log("no data found, adding to pit");
             // TODO - again, rework with specific date once TIME variable valid
 
+            var newPITEntry;
+
             PIT.getGeneralPITData(packetUserID, packetIP, function(rowsTouched, queryResults) {
 
                 // query returned NULL: no INTEREST sent yet; do so now
                 if (!rowsTouched || !queryResults) {
 
                     // add new request to PIT, then look into FIB before sending request
-                    var newPITEntry = DBData.DATA();
+                    newPITEntry = DBData.DATA();
                     newPITEntry.pitData(packetUserID, packetSensorID, packetProcessID, packetTimeString, packetIP);
                     PIT.insertPITData(newPITEntry, function(){});
 
@@ -448,7 +619,7 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
                 } else {
 
                     // add new request to PIT and wait, request has already been sent
-                    var newPITEntry = DBData.DATA();
+                    newPITEntry = DBData.DATA();
                     newPITEntry.pitData(packetUserID, packetSensorID, packetProcessID, packetTimeString, packetIP);
 
                     PIT.insertPITData(newPITEntry, function(){});
@@ -456,4 +627,182 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
             });
         }
     });
+}
+
+/**
+ * Begins client-login procedure.
+ *
+ * @param clientID of client who requested login
+ * @param hostIP of client who requested login
+ * @param hostPort of client who requested login
+ */
+function handleInterestLoginRequest(clientID, hostIP, hostPort) {
+
+    /**
+     * Due to the nature of NDN, the client must first send login Interest to
+     * server (because the server is the only one who can validate such requests). The
+     * server will then reply with a blank Data and, shortly, an Interest requesting
+     * login credentials, and the client will then reply with a Data packet containing
+     * them. The client then sends an Interest to the server querying for the result,
+     * to which the server replies with a Data packet. If the results are positive,
+     * the client has logged in; otherwise, login failed.
+     */
+
+    var time = utils.getCurrentTime();
+
+    var packetName = ndnjs_utils.createName(clientID, StringConst.NULL_FIELD,
+        time, StringConst.CREDENTIAL_REQUEST);
+    var interest = ndnjs_utils.createInterestPacket(packetName);
+
+    var encodedPacket = interest.wireEncode();
+
+    console.log("sending interest to request credentials");
+    sendMessage(encodedPacket, hostIP, hostPort);
+
+    // TODO - improve the way this entry is created
+
+    // add request to PIT
+    var newPITEntry = DBData.DATA();
+
+    newPITEntry.pitData(clientID, StringConst.NULL_FIELD, StringConst.CREDENTIAL_REQUEST, time, hostIP);
+    PIT.insertPITData(newPITEntry, function(){});
+
+
+    console.log("host port: " + hostPort);
+
+    console.log("sending data to satisfy login interest");
+    sendMessage(encodedPacket, hostIP, hostPort);
+
+}
+
+/**
+ * Begins client-register procedure.
+ *
+ * @param clientID of client who requested register
+ * @param hostIP of client who requested register
+ * @param hostPort of client who requested register
+ */
+function handleInterestRegisterRequest(clientID, hostIP, hostPort) {
+
+    /**
+     * Due to the nature of NDN, the client must first send signup Interest to
+     * server (because the server is the only one who can process such requests). The
+     * server will then reply with a blank Data and, shortly, an Interest requesting
+     * user credentials, and the client will then reply with a Data packet containing
+     * them. The client then sends an Interest to the server querying for the result,
+     * to which the server replies with a Data packet. If the results are positive,
+     * the client has registered; otherwise, register failed.
+     */
+
+    // reply with a blank Data to satisfy the login request Interest
+    var packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+        utils.getCurrentTime(), StringConst.LOGIN_REQUEST);
+
+    var data = ndnjs_utils.createDataPacket("", packetName);
+    var encodedPacket = data.wireEncode();
+
+    // TODO - add request to pit
+
+    // TODO - improve the way this entry is created
+
+    var newPITEntry = DBData.DATA();
+    newPITEntry.pitData(StringConst.SERVER_ID, StringConst.NULL_FIELD, StringConst.LOGIN_REQUEST, packetTimeString, packetIP);
+    PIT.insertPITData(newPITEntry, function(){});
+
+    console.log("host port: " + hostPort);
+
+    console.log("sending data to satisfy login interest");
+    sendMessage(encodedPacket, hostIP, hostPort);
+
+}
+
+/**
+ *
+ * TODO - doc
+ *
+ * @param packetUserID
+ * @param packetIP
+ * @param packetPort
+ */
+function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
+
+    var userValidationFound = false;
+
+    console.log("packet user id: " + packetUserID);
+
+    for (var i = 0; i < recentLoginValidations.length; i++) {
+        if (recentLoginValidations[i].userID === packetUserID) {
+            recentLoginValidations.splice(i, 1); // remove element
+            userValidationFound = true;
+
+            break;
+        }
+    }
+
+    console.log("user validation foudn: " + userValidationFound);
+
+    var packetName;
+
+    // client's login has been validated; reply with portion if FIB (refer to paper for more information)
+    if (userValidationFound) {
+        packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+            utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+        FIB.getAllFIBData(function(rowsTouched, queryResult) {
+
+            // TODO - perform appropriate processing here (choose only certain results)
+
+            var fibCAP = 10; // TODO - set to appropriate cap
+
+            // TODO - add this user (themselves) to the FIB
+
+            var packetContent = "first; empty"; // TODO - revise
+
+            if (rowsTouched > 0 && queryResult) {
+                for (var i = 0; i < queryResult.length; i++) {
+
+                    if (i > fibCAP) {
+                        break;
+                    }
+
+                    console.log("3");
+                    // syntax is "userid,ipaddr" and "||" separates each entry
+                    packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
+                }
+            } else {
+                // TODO - handle this case
+            }
+
+           var data = ndnjs_utils.createDataPacket(packetContent, packetName);
+            var encodedPacket = data.wireEncode();
+
+            console.log("sending login result data, success");
+            sendMessage(encodedPacket, hostIP, hostPort);
+
+        });
+    }
+    // client's login has not been validated; reply with an empty data packet
+    else {
+
+        packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+            utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+        var data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
+        var encodedPacket = data.wireEncode();
+
+        console.log("sending login result data, failed");
+        sendMessage(encodedPacket, hostIP, hostPort);
+    }
+}
+
+/**
+ *
+ * TODO - doc
+ *
+ * @param packetUserID
+ * @param packetIP
+ * @param packetPort
+ */
+function handleRegisterResultRequest(packetUserID, packetIP, packetPort) {
+    // TODO
 }

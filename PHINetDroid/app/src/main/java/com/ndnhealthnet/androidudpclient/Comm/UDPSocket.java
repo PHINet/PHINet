@@ -2,7 +2,8 @@ package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.os.AsyncTask;
 
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -41,7 +42,7 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
              * method must listen for incoming packet if INTEREST_TYPE, otherwise
              * we cannot detect incoming, requested packets from the server
              */
-            if (messageType.equals(StringConst.INTEREST_TYPE)) {
+          //  if (messageType.equals(ConstVar.INTEREST_TYPE)) {
 
                 // create listener in new thread, listen for 2 seconds
                 Timer t = new Timer();
@@ -50,28 +51,34 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                     @Override
                     public void run() {
 
-                        byte[] receiveData = new byte[1024];
-                        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                        // TODO - remove this loop
+                        while (true) { // loop for packets
 
-                        try {
-                            clientSocket.receive(receivePacket);
-                            String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
-                            int packetPort = receivePacket.getPort();
+                            byte[] receiveData = new byte[1024];
 
-                            UDPListener.handleNDNPacket(receiveData, packetSourceIP, packetPort);
 
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+                            try {
+                                clientSocket.receive(receivePacket);
+                                String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+                                int packetPort = receivePacket.getPort();
+
+                                UDPListener.handleNDNPacket(receiveData, packetSourceIP, packetPort);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            clientSocket.close();
+                            this.cancel();
+
                         }
-
-                        clientSocket.close();
-                        this.cancel();
-
                     }
-                }, 2000L); // keep listener open for 2 seconds
-            } else {
+                }, 500L); // TODO - update doc; keep listener open for 2 seconds
+         /*   } else {
                 clientSocket.close(); // DATA_TYPE sent, no return expected; close socket
-            }
+            }*/
 
         } catch (Exception e) {
             System.out.println(e.toString());

@@ -124,10 +124,12 @@ exports.PIT = function (tableName) {
 
             try {
                 if (!userID || !ipAddr || !getGenCallback) {
+
                     return false;
                 } else {
+
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID +
-                        " =\'" + userID + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'" + ipAddr + "\'"
+                        " = \'" + userID + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'" + ipAddr + "\'"
                         , function(err, result) {
 
                             if (err) {
@@ -186,7 +188,7 @@ exports.PIT = function (tableName) {
 
                     client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'" +
                     userID + "\' AND " + StringConst.KEY_TIME_STRING + " = \'" + timeString + "\' AND "
-                    + StringConst.KEY_IP_ADDRESS + "= \'" + ipAddr + "\'",
+                    + StringConst.KEY_IP_ADDRESS + " = \'" + ipAddr + "\'",
 
                         function(err, result) {
 

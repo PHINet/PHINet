@@ -20,7 +20,7 @@ import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Sensor.ImageProcessing;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,7 +74,7 @@ public class RecordHeartbeatActivity extends Activity {
         // --- place username on screen ---
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
-                StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedinText = (TextView) findViewById(R.id.loggedInTextView);
         loggedinText.setText(currentUserID);
@@ -112,14 +112,14 @@ public class RecordHeartbeatActivity extends Activity {
                 } else {
 
                     String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                            StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+                            ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
                     // store data in cache
                     DBData data = new DBData();
                     data.setUserID(myUserID);
-                    data.setSensorID(StringConst.HEARTBEAT_SENSOR);
-                    data.setTimeString(StringConst.CURRENT_TIME);
-                    data.setProcessID(StringConst.DATA_CACHE); // no valid process id, set to null
+                    data.setSensorID(ConstVar.HEARTBEAT_SENSOR);
+                    data.setTimeString(ConstVar.CURRENT_TIME);
+                    data.setProcessID(ConstVar.DATA_CACHE); // no valid process id, set to null
                     data.setDataFloat(Integer.toString(currentBeatInt));
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);

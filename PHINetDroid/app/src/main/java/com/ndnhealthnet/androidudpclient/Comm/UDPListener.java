@@ -5,8 +5,8 @@ import android.content.Context;
 import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
-import com.ndnhealthnet.androidudpclient.Utility.StringConst;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import net.named_data.jndn.Data;
@@ -30,6 +30,11 @@ public class UDPListener extends Thread {
     static  DatagramSocket clientSocket = null;
     static Context context;
 
+    static public boolean loginResultsInvoked = false; // TODO - remove this temp var
+    static public boolean loginResultDataPIDFound = false; // TODO - remove this temp var
+    static public String whenFoundName = ""; // TODO - remove this temp var
+    static public String whenFoundCOntent = "";  // TODO - remove this temp var
+
     public UDPListener(Context context) {
         this.context = context;
     }
@@ -37,13 +42,13 @@ public class UDPListener extends Thread {
     @Override
     public void run() {
         try {
-            InetSocketAddress address = new InetSocketAddress(MainActivity.deviceIP, MainActivity.devicePort);
+            InetSocketAddress address = new InetSocketAddress(MainActivity.deviceIP, ConstVar.PHINET_PORT);
 
             clientSocket = new DatagramSocket(null);
             clientSocket.bind(address); // give receiver static address
 
             // set timeout so to force thread to check whether its execution is valid
-            clientSocket.setSoTimeout(1000);
+          //  clientSocket.setSoTimeout(1000);
 
             byte[] receiveData = new byte[1024];
 
@@ -86,6 +91,8 @@ public class UDPListener extends Thread {
         ByteBuffer buf = ByteBuffer.wrap(packet);
         Interest interest = JNDNUtils.decodeInterest(buf);
         Data data = JNDNUtils.decodeData(buf);
+
+        System.out.println("PACKET incoming");
 
         if (data == null && interest != null) {
 
@@ -134,12 +141,16 @@ public class UDPListener extends Thread {
         DBData data = new DBData(Arrays.toString(nameComponent), "TODO");
         DBSingleton.getInstance(context).getDB().addPacketData(data);
                 
-        if (packetProcessID.equals(StringConst.INTEREST_FIB)) {
+        if (packetProcessID.equals(ConstVar.INTEREST_FIB)) {
 
             handleInterestFIBRequest(packetUserID, packetSensorID, ipAddr, port);
-        } else if (packetProcessID.equals(StringConst.INTEREST_CACHE_DATA)) {
+        } else if (packetProcessID.equals(ConstVar.INTEREST_CACHE_DATA)) {
             System.out.println("interest for cache");
             handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString,
+                    packetProcessID, ipAddr, port);
+        } else if (packetProcessID.equals(ConstVar.CREDENTIAL_REQUEST)) {
+
+            handleInterestCredentialRequest(packetUserID, packetSensorID, packetTimeString,
                     packetProcessID, ipAddr, port);
         } else {
             System.out.println("dropped interest");
@@ -163,18 +174,18 @@ public class UDPListener extends Thread {
 
             ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
-            String mySensorID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_PASSWORD_ID_KEY, "");
-            String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+            String myPassword = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
+            String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
             if (allFIBData == null || allFIBData.size() == 0) {
 
                 // FIB was empty, only send own device's information
-                Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, StringConst.CURRENT_TIME, StringConst.DATA_FIB);
+                Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, ConstVar.CURRENT_TIME, ConstVar.DATA_FIB);
                 Data data = JNDNUtils.createDataPacket(MainActivity.deviceIP, packetName);
 
                 Blob blob = data.wireEncode();
 
-                new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
+                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // store received packet in database for further review
@@ -194,11 +205,11 @@ public class UDPListener extends Thread {
                         fibContent += allFIBData.get(i).getUserID() + "," + allFIBData.get(i).getIpAddr() + "++";
                     }
 
-                    Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, StringConst.CURRENT_TIME, StringConst.DATA_FIB);
+                    Name packetName = JNDNUtils.createName(packetUserID, packetSensorID, ConstVar.CURRENT_TIME, ConstVar.DATA_FIB);
                     Data data = JNDNUtils.createDataPacket(fibContent, packetName);
 
                     Blob blob = data.wireEncode();
-                    new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
+                    new UDPSocket(port, packetIP, ConstVar.DATA_TYPE)
                             .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                     // store received packet in database for further review
@@ -253,7 +264,7 @@ public class UDPListener extends Thread {
                 Data data = JNDNUtils.createDataPacket(dataPayload, packetName);
 
                 Blob blob = data.wireEncode();
-                new UDPSocket(port, packetIP, StringConst.DATA_TYPE)
+                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // add packet content to database for future review
@@ -296,7 +307,7 @@ public class UDPListener extends Thread {
                             Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                             Blob blob = interest.wireEncode();
-                            new UDPSocket(port, allFIBData.get(i).getIpAddr(), StringConst.INTEREST_TYPE)
+                            new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
                                     .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                             // store received packet in database for further review
@@ -318,6 +329,38 @@ public class UDPListener extends Thread {
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
             }
         }
+    }
+
+    /**
+     * Invoked when server requests login credentials. Store interest in PIT, a timer within
+     * LoginActivity (where this request originated) will satisfy this Interest.
+     *
+     * TODO - doc
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetTimeString
+     * @param packetProcessID
+     * @param ipAddr
+     * @param port
+     */
+    static void handleInterestCredentialRequest(String packetUserID, String packetSensorID,
+                             String packetTimeString, String packetProcessID, String ipAddr, int port) {
+
+
+        System.out.println("server requests login credentials");
+
+        // TODO - improve
+
+        // add new request to PIT and wait, request has already been sent
+        DBData newPITEntry = new DBData();
+        newPITEntry.setUserID(packetUserID);
+        newPITEntry.setSensorID(packetSensorID);
+        newPITEntry.setTimeString(packetTimeString);
+        newPITEntry.setProcessID(packetProcessID);
+        newPITEntry.setIpAddr(ipAddr);
+
+        System.out.println("pit data added: " + DBSingleton.getInstance(context).getDB().addPITData(newPITEntry));
     }
 
     /**
@@ -350,36 +393,80 @@ public class UDPListener extends Thread {
         String packetTimeString = nameComponent[4].trim();
         String packetProcessID = nameComponent[5].trim();
 
+        System.out.println("name component: " + Arrays.toString(nameComponent));
+        System.out.println("content: " + dataContents);
+
+        if (packetProcessID.equals(ConstVar.DATA_LOGIN_RESULT)) {
+            loginResultDataPIDFound = true;
+            whenFoundName = Arrays.toString(nameComponent);
+            whenFoundCOntent = packetUserID;
+        }
+
         // first, determine who wants the data
         ArrayList<DBData> allValidPITEntries = DBSingleton.getInstance(context).getDB()
                 .getGeneralPITData(packetUserID);
 
+
         if (allValidPITEntries == null || allValidPITEntries.size() == 0) {
 
+            System.out.println("HERE: returned pit entries are null");
             // no one requested the data, merely drop it
         } else {
 
+            System.out.println("HERE: before loop");
             // determine if data packet's time interval matches any requests
-            int requestCount = 0;
+            boolean requestFoundWithinInterval = false;
             for (int i = 0; i < allValidPITEntries.size(); i++) {
 
                 if (Utils.isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
-                    requestCount++;
+                    requestFoundWithinInterval = true;
+                    break;
+                }
+
+                if (packetProcessID.equals(ConstVar.LOGIN_CREDENTIAL_DATA)
+                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)) {
+
+                    /**
+                     * login packets (currently) are valid irrespective of time, break if match found
+                     * server sends an Interest with processID CREDENTIAL_REQUEST and client responds with
+                     * Data with processID LOGIN_CREDENTIAL_DATA
+                     */
+
+                    requestFoundWithinInterval = true;
+                    break;
                 }
             }
 
-            if (requestCount > 0) { // positive request count, process packet now
-                if (packetProcessID.equals(StringConst.DATA_FIB)) {
+            System.out.println("HERE: request found with interval: " + requestFoundWithinInterval);
+
+            if (requestFoundWithinInterval) { // positive request count, process packet now
+                if (packetProcessID.equals(ConstVar.DATA_FIB)) {
 
                     handleFIBData(dataContents);
 
-                } else if (packetProcessID.equals(StringConst.DATA_CACHE)) {
+                } else if (packetProcessID.equals(ConstVar.DATA_CACHE)) {
 
                     handleCacheData(packetUserID, packetSensorID, packetTimeString, packetProcessID,
                             dataContents, allValidPITEntries);
+                } else if (packetProcessID.equals(ConstVar.DATA_LOGIN_RESULT)) {
+
+                    System.out.println("handling data login result");
+
+                    handleDataLoginResult(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                            dataContents);
+
+                } else if (packetProcessID.equals(ConstVar.DATA_REGISTER_RESULT)) {
+
+                    System.out.println("handling data register result");
+
+                    handleDataRegisterResult(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                            dataContents);
+
                 } else {
                     // unknown process id; drop packet
                 }
+            } else {
+                System.out.println("request count is 0");
             }
         }
     }
@@ -437,7 +524,7 @@ public class UDPListener extends Thread {
                 Data dataPacket = JNDNUtils.createDataPacket(packetFloatContent, packetName);
 
                 Blob blob = dataPacket.wireEncode();
-                new UDPSocket(MainActivity.devicePort, allValidPITEntries.get(i).getIpAddr(), StringConst.DATA_TYPE)
+                new UDPSocket(ConstVar.PHINET_PORT, allValidPITEntries.get(i).getIpAddr(), ConstVar.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // store received packet in database for further review
@@ -459,14 +546,14 @@ public class UDPListener extends Thread {
             DBData data = new DBData();
 
             // data packet contains requested fib data, store in fib now
-            String myUserID = Utils.getFromPrefs(context, StringConst.PREFS_LOGIN_USER_ID_KEY, "");
+            String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
             // expected format: "userID,userIP"
             String [] packetFIBContent = packetFloatContent.split(",");
 
             data.setUserID(packetFIBContent[0].trim());
             data.setIpAddr(packetFIBContent[1].trim());
-            data.setTimeString(StringConst.CURRENT_TIME);
+            data.setTimeString(ConstVar.CURRENT_TIME);
 
             // perform minimal input validation, and don't add data for self here
             if (data.getUserID() != "" && Utils.validIP(data.getIpAddr()) && !data.getUserID().equals(myUserID)) {
@@ -486,5 +573,53 @@ public class UDPListener extends Thread {
             e.printStackTrace();
             return false; // FIB wasn't touched; return false
         }
+    }
+
+    /**
+     *
+     * TODO - doc
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetTimeString
+     * @param packetProcessID
+     * @param dataContents
+     */
+    public static void handleDataLoginResult(String packetUserID, String packetSensorID,
+                                             String packetTimeString, String packetProcessID,
+                                             String dataContents) {
+
+        loginResultsInvoked = true;
+        System.out.println("data login result content: " + dataContents);
+
+        DBData data = new DBData();
+
+        data.setUserID(packetUserID);
+        data.setSensorID(packetSensorID);
+        data.setTimeString(packetTimeString);
+        data.setProcessID(packetProcessID);
+        data.setDataFloat(dataContents);
+
+        System.out.println("adding to CS, login result from: " + packetUserID);
+
+        DBSingleton.getInstance(context).getDB().addCSData(data);
+    }
+
+    /**
+     *
+     * TODO - doc
+     *
+     * @param packetUserID
+     * @param packetSensorID
+     * @param packetTimeString
+     * @param packetProcessID
+     * @param dataContents
+     */
+    public static void handleDataRegisterResult(String packetUserID, String packetSensorID,
+                                             String packetTimeString, String packetProcessID,
+                                             String dataContents) {
+
+        System.out.println("data register result content: " + dataContents);
+
     }
 }
