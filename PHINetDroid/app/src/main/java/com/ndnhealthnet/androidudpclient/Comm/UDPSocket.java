@@ -2,9 +2,6 @@ package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.os.AsyncTask;
 
-import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
-import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -52,7 +49,6 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                     public void run() {
 
                         // TODO - remove this loop
-                        while (true) { // loop for packets
 
                             byte[] receiveData = new byte[1024];
 
@@ -73,7 +69,6 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                             clientSocket.close();
                             this.cancel();
 
-                        }
                     }
                 }, 500L); // TODO - update doc; keep listener open for 2 seconds
          /*   } else {

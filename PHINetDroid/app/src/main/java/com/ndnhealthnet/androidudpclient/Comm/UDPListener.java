@@ -1,6 +1,7 @@
 package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
@@ -414,17 +415,22 @@ public class UDPListener extends Thread {
         } else {
 
             System.out.println("HERE: before loop");
+            System.out.println("valid pit entries size: " + allValidPITEntries.size());
+            Log.d("TAGG", "valid pit size: " + allValidPITEntries.size());
+
             // determine if data packet's time interval matches any requests
             boolean requestFoundWithinInterval = false;
             for (int i = 0; i < allValidPITEntries.size(); i++) {
 
+
+                Log.d("TAGG", "valid pit pID" + allValidPITEntries.get(i).getProcessID());
                 if (Utils.isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), packetTimeString)) {
                     requestFoundWithinInterval = true;
                     break;
                 }
 
-                if (packetProcessID.equals(ConstVar.LOGIN_CREDENTIAL_DATA)
-                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)) {
+                if (packetProcessID.equals(ConstVar.DATA_LOGIN_RESULT)
+                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.DATA_LOGIN_RESULT)) {
 
                     /**
                      * login packets (currently) are valid irrespective of time, break if match found
@@ -436,6 +442,8 @@ public class UDPListener extends Thread {
                     break;
                 }
             }
+
+            Log.d("TAGG", "processid: " + packetProcessID);
 
             System.out.println("HERE: request found with interval: " + requestFoundWithinInterval);
 

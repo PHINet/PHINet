@@ -10,10 +10,10 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
@@ -38,6 +38,7 @@ public class LoginActivity extends Activity {
     Button backBtn, loginBtn;
     EditText userNameEdit, pwEdit;
     TextView errorText;
+    ProgressBar progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,9 @@ public class LoginActivity extends Activity {
         userNameEdit = (EditText) findViewById(R.id.usernameEditText);
         pwEdit = (EditText) findViewById(R.id.passwordEditText);
         errorText = (TextView) findViewById(R.id.inputErrorTextView);
+        progressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
+
+        progressBar.setVisibility(View.GONE); // hide progress bar until login pressed
 
         loginBtn = (Button) findViewById(R.id.loginSubmitBtn);
         loginBtn.setOnClickListener(new View.OnClickListener(){
@@ -76,6 +80,11 @@ public class LoginActivity extends Activity {
                     // both inputs are valid, now query server for login
                     if (Utils.validInputUserName(userID) && Utils.validInputPassword(password)) {
 
+                        progressBar.setVisibility(View.VISIBLE); // show progress bar now
+
+                        Toast toast = Toast.makeText(getApplicationContext(), "This takes about 10 seconds", Toast.LENGTH_LONG);
+                        toast.show();
+
                         Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                                 Utils.getCurrentTime(), ConstVar.LOGIN_REQUEST);
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
@@ -100,25 +109,12 @@ public class LoginActivity extends Activity {
                         hOuter.postDelayed(new Runnable() {
                             public void run() {
 
-
                                 // TODO- rename
                                 handleOuterLoginHandler(userID, password);
 
                             }
                         }, delay);
 
-
-                   /*   final String userID = userNameEdit.getText().toString();
-                         String password = pwEdit.getText().toString();
-                        Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
-
-                        String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
-
-                        // store the hashed password
-                        Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
-
-                        Toast toast = Toast.makeText(getApplicationContext(), "Save successful.", Toast.LENGTH_LONG);
-                        toast.show();*/
                     }
                     // one input (or both) were invalid, notify user
                     else {
@@ -169,14 +165,11 @@ public class LoginActivity extends Activity {
      * @param password
      */
     private void handleOuterLoginHandler(final String userID, final String password) {
-        System.out.println("executing inner code now");
         ArrayList<DBData> pitRows = DBSingleton.getInstance(getApplicationContext())
                 // TODO - doc "userID" choice here
                 .getDB().getGeneralPITData(userID);
 
         if (pitRows != null) {
-
-            System.out.println("PIT QUERY GOOD");
 
             DBData interestFound = null;
             for (int i = 0; i < pitRows.size(); i++) {
@@ -188,23 +181,14 @@ public class LoginActivity extends Activity {
 
             // server has replied with Interest requesting credentials
             if (interestFound != null) {
-                System.out.println("the server has replied with an interest");
-
-
                 Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                         Utils.getCurrentTime(), ConstVar.LOGIN_CREDENTIAL_DATA);
 
                 // reply with credentials to satisfy the interest
                 String credentialContent = userID + "," + password;
 
-
-                System.out.println("sending credentials: " + credentialContent);
-
                 Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
-
                 Blob blob = data.wireEncode();
-
-                System.out.println("sending the credential data");
 
                 // TODO - update with server's real IP
                 new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.DATA_TYPE)
@@ -225,8 +209,6 @@ public class LoginActivity extends Activity {
 
                     }
                 }, delay);
-
-
             }
             // the server has not replied with an Interest; error
             else {
@@ -249,10 +231,6 @@ public class LoginActivity extends Activity {
      * @param password
      */
     private void handleInnerLoginHandler(final String userID, final String password) {
-        System.out.println("sending inner now");
-        // TODO - 1. reply with credentials; 2. send interest to server
-        // TODO - 3. wait for server correspondence and react accordingly
-
         String currentTime = Utils.getCurrentTime();
 
         // send interest requesting result of login
@@ -266,14 +244,9 @@ public class LoginActivity extends Activity {
 
         // TODO - note DATA_LOGIN_RESULT (we should not send an INTEREST PID and expect a DATA PID); fix
 
-        boolean pitAddition = DBSingleton.getInstance(getApplicationContext()).getDB()
-                .addPITData(data);
-
-        System.out.println("NAME OF PIT ADDITION: " + data.getUserID());
+        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
         Blob blobInner = interestInner.wireEncode();
-
-        System.out.println("sending the initial login interest");
 
         // TODO - update with server's real IP
         new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
@@ -306,11 +279,13 @@ public class LoginActivity extends Activity {
     private void handleInnerInnerLoginHandler(String userID, String password) {
         // query the ContentStore for the login result
 
+        progressBar.setVisibility(View.GONE); // results have come back; remove progress bar
+
         ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
                 .getGeneralCSData(ConstVar.SERVER_ID);
 
         if (potentiallyValidRows == null) {
-            Toast toast = Toast.makeText(getApplicationContext(), "THE LOGIN ACTUALLY FAILED; initial query returned nothing", Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(getApplicationContext(), "The login failed.\nCould not reach server.", Toast.LENGTH_LONG);
             toast.show();
 
         } else {
@@ -322,27 +297,23 @@ public class LoginActivity extends Activity {
                     loginResult = potentiallyValidRows.get(i);
 
                     // TODO - provide more validation (this may not be the login result for THIS client)
-
                 }
             }
 
             if (loginResult == null || loginResult.getProcessID().equals(ConstVar.LOGIN_FAILED)) {
                 // failure
-                Toast toast = Toast.makeText(getApplicationContext(), "THE LOGIN ACTUALLY FAILED", Toast.LENGTH_LONG);
-                toast.show();
+                errorText.setText("Login failed.\nAccount does not seem to exist.");
 
             } else {
-                Toast toast = Toast.makeText(getApplicationContext(), "THE LOGIN ACTUALLY SUCCEEDED", Toast.LENGTH_LONG);
-                toast.show();
-
-               /*
-               Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
-
+                // login was successful; store values now
                 String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
+                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
+                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
 
-                // store the hashed password
-                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);*/
-
+                // go to main page; login was successful
+                Intent returnIntent = new Intent();
+                setResult(RESULT_OK,returnIntent);
+                finish();
             }
 
             // TODO - after reading entry, delete it so that others can't get it

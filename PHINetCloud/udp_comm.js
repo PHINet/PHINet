@@ -470,17 +470,62 @@ function handleLoginData(dataContents) {
  */
 function handleSignupData(dataContents) {
 
-    if (dataContents) {
-        // syntax is "userid,password,email"
-        var registerCredentials = dataContents.split(",");
+    /*
+     if (dataContents) {
 
-        var userID = registerCredentials[0];
-        var password = registerCredentials[1];
-        var email = registerCredentials[2];
+     console.log("data contents, within method: " + dataContents);
 
-    } else {
-        // TODO - handle this error
-    }
+     // syntax is "userid,password"
+
+     var loginCredentials = dataContents.split(",");
+
+     var userID = loginCredentials[0];
+     var password = loginCredentials[1];
+
+     console.log("handle login data: " + loginCredentials);
+
+     USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
+
+     // only one row (user) should have been found and returned
+     if (rowCount == 1 && queryResult) {
+
+     console.log("query was good");
+     console.log("passowrd: " + password);
+     console.log("query result password: " + queryResult.getPassword());
+
+     utils.comparePassword(password, queryResult.getPassword(),
+     function(err, isPasswordMatch) {
+
+
+     console.log("passwords match: " + isPasswordMatch);
+
+     // login successful
+     if (isPasswordMatch) {
+
+     console.log("adding to recent login validations");
+     // store result now so that user can query it
+     recentLoginValidations.push({"userID": userID, "password": password});
+     }
+     // login unsuccessful
+     else {
+     // store nothing; when user queries, they will get a null reply
+     }
+     });
+
+     } else {
+
+     // TODO - handle this error
+
+     console.log("udpcomm.handlelogindata() error");
+     }
+
+     });
+     } else {
+
+     console.log("HANDLE LOGIN DATA FAILED AT START");
+     // TODO - handle this error
+     }
+     */
 }
 
 /**
@@ -672,7 +717,6 @@ function handleInterestLoginRequest(clientID, hostIP, hostPort) {
 
     console.log("sending data to satisfy login interest");
     sendMessage(encodedPacket, hostIP, hostPort);
-
 }
 
 /**
@@ -694,26 +738,32 @@ function handleInterestRegisterRequest(clientID, hostIP, hostPort) {
      * the client has registered; otherwise, register failed.
      */
 
-    // reply with a blank Data to satisfy the login request Interest
-    var packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-        utils.getCurrentTime(), StringConst.LOGIN_REQUEST);
+    /*
+     var time = utils.getCurrentTime();
 
-    var data = ndnjs_utils.createDataPacket("", packetName);
-    var encodedPacket = data.wireEncode();
+     var packetName = ndnjs_utils.createName(clientID, StringConst.NULL_FIELD,
+     time, StringConst.CREDENTIAL_REQUEST);
+     var interest = ndnjs_utils.createInterestPacket(packetName);
 
-    // TODO - add request to pit
+     var encodedPacket = interest.wireEncode();
 
-    // TODO - improve the way this entry is created
+     console.log("sending interest to request credentials");
+     sendMessage(encodedPacket, hostIP, hostPort);
 
-    var newPITEntry = DBData.DATA();
-    newPITEntry.pitData(StringConst.SERVER_ID, StringConst.NULL_FIELD, StringConst.LOGIN_REQUEST, packetTimeString, packetIP);
-    PIT.insertPITData(newPITEntry, function(){});
+     // TODO - improve the way this entry is created
 
-    console.log("host port: " + hostPort);
+     // add request to PIT
+     var newPITEntry = DBData.DATA();
 
-    console.log("sending data to satisfy login interest");
-    sendMessage(encodedPacket, hostIP, hostPort);
+     newPITEntry.pitData(clientID, StringConst.NULL_FIELD, StringConst.CREDENTIAL_REQUEST, time, hostIP);
+     PIT.insertPITData(newPITEntry, function(){});
 
+
+     console.log("host port: " + hostPort);
+
+     console.log("sending data to satisfy login interest");
+     sendMessage(encodedPacket, hostIP, hostPort);
+     */
 }
 
 /**
@@ -805,4 +855,73 @@ function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
  */
 function handleRegisterResultRequest(packetUserID, packetIP, packetPort) {
     // TODO
+    /*
+     var userValidationFound = false;
+
+     console.log("packet user id: " + packetUserID);
+
+     for (var i = 0; i < recentLoginValidations.length; i++) {
+     if (recentLoginValidations[i].userID === packetUserID) {
+     recentLoginValidations.splice(i, 1); // remove element
+     userValidationFound = true;
+
+     break;
+     }
+     }
+
+     console.log("user validation foudn: " + userValidationFound);
+
+     var packetName;
+
+     // client's login has been validated; reply with portion if FIB (refer to paper for more information)
+     if (userValidationFound) {
+     packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+     utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+     FIB.getAllFIBData(function(rowsTouched, queryResult) {
+
+     // TODO - perform appropriate processing here (choose only certain results)
+
+     var fibCAP = 10; // TODO - set to appropriate cap
+
+     // TODO - add this user (themselves) to the FIB
+
+     var packetContent = "first; empty"; // TODO - revise
+
+     if (rowsTouched > 0 && queryResult) {
+     for (var i = 0; i < queryResult.length; i++) {
+
+     if (i > fibCAP) {
+     break;
+     }
+
+     console.log("3");
+     // syntax is "userid,ipaddr" and "||" separates each entry
+     packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
+     }
+     } else {
+     // TODO - handle this case
+     }
+
+     var data = ndnjs_utils.createDataPacket(packetContent, packetName);
+     var encodedPacket = data.wireEncode();
+
+     console.log("sending login result data, success");
+     sendMessage(encodedPacket, hostIP, hostPort);
+
+     });
+     }
+     // client's login has not been validated; reply with an empty data packet
+     else {
+
+     packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+     utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+     var data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
+     var encodedPacket = data.wireEncode();
+
+     console.log("sending login result data, failed");
+     sendMessage(encodedPacket, hostIP, hostPort);
+     }
+     */
 }
