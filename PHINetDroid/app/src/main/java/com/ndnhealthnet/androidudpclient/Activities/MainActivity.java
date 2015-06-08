@@ -41,14 +41,6 @@ public class MainActivity extends Activity {
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
-        DBData dbData = new DBData();
-
-        // TODO - update with correct ipAddr & userID
-        dbData.setIpAddr(ConstVar.SERVER_IP);
-        dbData.setUserID(ConstVar.SERVER_ID);
-
-        DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(dbData); // add cloud-server to FIB
-
         receiverThread = new UDPListener(getApplicationContext());
         receiverThread.start(); // begin listening for interest packets
 

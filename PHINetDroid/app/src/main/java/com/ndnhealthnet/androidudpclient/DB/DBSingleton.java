@@ -25,8 +25,11 @@ public class DBSingleton {
             // the heartbeat sensor should always be in the DB; any device will possess it
             datasource.addSensorData(new DBData(ConstVar.HEARTBEAT_SENSOR, 1));
 
-            // TODO - add server here too
-
+            // add cloud-server to FIB
+            DBData dbData = new DBData();
+            dbData.setIpAddr(ConstVar.SERVER_IP);
+            dbData.setUserID(ConstVar.SERVER_ID);
+            datasource.addFIBData(dbData);
         }
         return instance;
     }

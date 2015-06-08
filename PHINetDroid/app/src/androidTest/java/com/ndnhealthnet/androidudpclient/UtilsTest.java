@@ -34,7 +34,7 @@ public class UtilsTest extends TestCase {
         testValidIP();
 
         // reset user credentials after test
-        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_SENSOR_ID_KEY, ""));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, ""));
         assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, ""));
     }
 
@@ -46,10 +46,10 @@ public class UtilsTest extends TestCase {
         assertFalse(Utils.saveToPrefs(null, null, null));
 
         // test bad key input
-        assertFalse(Utils.saveToPrefs(context, "bad key", "sensorid_test"));
+        assertFalse(Utils.saveToPrefs(context, "bad key", "password_test"));
 
         // test good input
-        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_SENSOR_ID_KEY, "sensorid_test"));
+        assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "password_test"));
     }
 
     /**

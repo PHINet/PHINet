@@ -30,7 +30,7 @@ public class ConstVar {
     static public final String LOGIN_CREDENTIAL_DATA = "LOGIN_CREDENTIAL_DATA";
 
     // notify recipient (in this case the server) that content in data packet is user signup credentials
-    static public final String SIGNUP_CREDENTIAL_DATA = "SIGNUP_CREDENTIAL_DATA";
+    static public final String REGISTER_CREDENTIAL_DATA = "REGISTER_CREDENTIAL_DATA";
 
     // request the result of login from  (in this case the server)
     static public final String INTEREST_LOGIN_RESULT = "INTEREST_LOGIN_RESULT";

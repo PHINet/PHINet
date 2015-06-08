@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
@@ -224,6 +225,16 @@ public class Utils {
     }
 
     /**
+     * TODO - doc and test
+     *
+     * @param email
+     * @return
+     */
+    public static boolean validEmail(String email) {
+        return true;
+    }
+
+    /**
      * Converts an NDN Name component to a string
      *
      * @param name - an NDN name component
@@ -268,5 +279,27 @@ public class Utils {
         // TODO - complete this function (metainfo, content, signature)
 
         return "DATA-TLV TLV-LENGTH {TODO-LENGTH} " + convertNameToString(data.getName());
+    }
+
+    /**
+     * Simplifies the insertion of Interest packet into the database.
+     *
+     * @param context used to access DBSingleton
+     * @param interest packet to store in DB
+     */
+    public static void storeInterestPacket(Context context, Interest interest) {
+        DBSingleton.getInstance(context).getDB()
+                .addPacketData(new DBData(interest.getName().toUri(), convertInterestToString(interest)));
+    }
+
+    /**
+     * Simplifies the insertion of a Data packet into the database.
+     *
+     * @param context used to access DBSingleton
+     * @param data packet to store in DB
+     */
+    public static void storeDataPacket(Context context, Data data) {
+        DBSingleton.getInstance(context).getDB()
+                .addPacketData(new DBData(data.getName().toUri(), convertDataToString(data)));
     }
 }

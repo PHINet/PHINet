@@ -61,24 +61,21 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                     var data = ndnjs_utils.decodeData(msg);
 
                     if (interest && !data) {
+                         console.log("interest packet found");
 
-                        console.log("interest packet found");
                         // Interest packet detected
                         handleInterestPacket(interest, rinfo.address, rinfo.port);
                     } else if (!interest && data) {
                         console.log("data packet found");
+
                         // Data packet detected
                         handleDataPacket(data, rinfo.address);
                     } else {
-
-                        // this shouldn't have happened; ignore for now
-
-                        // TODO - this shouldn't have happened; handle error
+                        // unknown packet type; drop it
                     }
                 } catch (e) {
                     console.log("Something went wrong. Unable to parse packet. Error: " + e);
                 }
-
 			});
 		},
 
@@ -136,14 +133,10 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // check if packet is an INTEREST for FIB data
             if (packetProcessID === StringConst.INTEREST_FIB) {
 
-                console.log("interest fib invoked");
-
                 handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, packetPort);
             }
             // check if packet is an INTEREST for CACHE data
             else if (packetProcessID === StringConst.INTEREST_CACHE_DATA) {
-
-                console.log("interest cache data invoked");
 
                 handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
                     packetIP, packetPort);
@@ -151,26 +144,21 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // a client application requests login; initiate process now
             else if (packetProcessID === StringConst.LOGIN_REQUEST) {
 
-                console.log("handle login requests");
                 handleInterestLoginRequest(packetUserID, packetIP, packetPort);
-
             }
             // a client application requests register; initiate process now
             else if (packetProcessID === StringConst.REGISTER_REQUEST) {
 
-                console.log("handle register requests");
                 handleInterestRegisterRequest(packetUserID, packetIP, packetPort);
             }
             // a client requests result of login
             else if (packetProcessID === StringConst.INTEREST_LOGIN_RESULT) {
 
-                console.log("handle login result request");
                 handleLoginResultRequest(packetUserID, packetIP, packetPort);
             }
             // a client requests the result of registration
             else if (packetProcessID === StringConst.INTEREST_REGISTER_RESULT) {
 
-                console.log("handle register result request");
                 handleRegisterResultRequest(packetUserID, packetIP, packetPort);
             } else  {
                 // unknown process id; drop packet
@@ -183,16 +171,13 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
          * and sends out to satisfy any potential Interests.
          *
          * @param dataPacket incoming ndn-js Data packet after having been decoded
-         * @param hostIP - TODO doc
+         * @param hostIP used to query PIT for previous entries
          */
         handleDataPacket: function (dataPacket, hostIP) {
 
             // decode paring characters "||" and then split into array for further parsing
             var nameComponent = dataPacket.getName().toUri().replace("%7C%7C", "||").split("/");
             var dataContents = dataPacket.getContent().toString();
-
-            console.log("data name:" + nameComponent);
-            console.log("data contents1: " + dataContents);
 
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
@@ -202,20 +187,11 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             var packetTimeString = nameComponent[4];
             var packetProcessID = nameComponent[5];
 
-            console.log("just before general pit data");
-            console.log("packet user id: " + packetUserID);
-            console.log("packet host ip: " + hostIP);
-
             // first, determine who wants the data
             PIT.getGeneralPITData(packetUserID, hostIP, function(rowsTouched, allValidPITEntries) {
 
-
-                console.log("data contents2: " + dataContents);
-
-
                 if (allValidPITEntries === null) {
 
-                    console.log("no one requested the data; drop it");
                     // no one requested the data, merely drop it
                 } else {
 
@@ -228,24 +204,19 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                             break;
                         }
 
-                        if (packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA
+                        if ((packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA || packetProcessID === StringConst.REGISTER_CREDENTIAL_DATA)
                             && allValidPITEntries[i].getProcessID() === StringConst.CREDENTIAL_REQUEST) {
 
                             /**
-                             * login packets (currently) are valid irrespective of time, break if match found
+                             * login/register packets (currently) are valid irrespective of time, break if match found
                              * server sends an Interest with processID CREDENTIAL_REQUEST and client responds with
-                             * Data with processID LOGIN_CREDENTIAL_DATA
+                             * Data with processID LOGIN_CREDENTIAL_DATA/REGINSTER_CREDENTIAL_DATA
                              */
 
                             requestFoundWithinInterval = true;
                             break;
                         }
                     }
-
-                    console.log("data contents3: " + dataContents);
-
-
-                    console.log("it was requested, perhaps, request count: " + requestFoundWithinInterval);
 
                     if (requestFoundWithinInterval) { // positive request count, process packet now
 
@@ -262,17 +233,13 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                         }
                         // client has sent login credentials to server for validation
                         else if (packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA) {
-                            console.log("data contents4: " + dataContents);
 
-
-                            console.log("handling login data");
                             handleLoginData(dataContents);
                         }
                         // client has sent register credentials to server for validation
-                        else if (packetProcessID === StringConst.SIGNUP_CREDENTIAL_DATA) {
+                        else if (packetProcessID === StringConst.REGISTER_CREDENTIAL_DATA) {
 
-                            console.log("handling signup data");
-                            handleSignupData(dataContents);
+                             handleRegisterData(dataContents);
                         }
                         else {
                             // unknown process id; drop packet
@@ -399,45 +366,32 @@ function handleCacheData (packetUserID, packetSensorID, packetTimeString,
 }
 
 /**
+ * Method handles login user-credential Data packet sent by client. If credentials
+ * match user in database, then store success so that it can be queried.
  *
- * TODO - doc
- *
- * @param dataContents
+ * @param dataContents of user-credential Data packet
  */
 function handleLoginData(dataContents) {
 
     if (dataContents) {
 
-        console.log("data contents, within method: " + dataContents);
-
         // syntax is "userid,password"
-
         var loginCredentials = dataContents.split(",");
 
-        var userID = loginCredentials[0];
-        var password = loginCredentials[1];
-
-        console.log("handle login data: " + loginCredentials);
+        var userID = loginCredentials[0].trim();
+        var password = loginCredentials[1].trim();
 
         USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
 
             // only one row (user) should have been found and returned
-            if (rowCount == 1 && queryResult) {
-
-                console.log("query was good");
-                console.log("passowrd: " + password);
-                console.log("query result password: " + queryResult.getPassword());
+            if (rowCount === 1 && queryResult) {
 
                 utils.comparePassword(password, queryResult.getPassword(),
-                    function(err, isPasswordMatch) {
-
-
-                        console.log("passwords match: " + isPasswordMatch);
+                    function (err, isPasswordMatch) {
 
                         // login successful
                         if (isPasswordMatch) {
 
-                            console.log("adding to recent login validations");
                             // store result now so that user can query it
                             recentLoginValidations.push({"userID": userID, "password": password});
                         }
@@ -448,88 +402,68 @@ function handleLoginData(dataContents) {
                     });
 
             } else {
-
-                // TODO - handle this error
-
-                console.log("udpcomm.handlelogindata() error");
+                // user was not found in database; login unsuccessful
             }
-
         });
     } else {
-
-        console.log("HANDLE LOGIN DATA FAILED AT START");
-        // TODO - handle this error
+        // user-credential packet contained no content; do nothing
     }
 }
 
 /**
+ * Method handles register user-credential Data packet sent by client. If
+ * credentials match user in database, then store success so that it can be queried.
  *
- * TODO - doc
+ * If no user exists in database (a successful register), create entry for new user.
  *
  * @param dataContents
  */
-function handleSignupData(dataContents) {
+function handleRegisterData(dataContents) {
 
-    /*
-     if (dataContents) {
+    if (dataContents) {
 
-     console.log("data contents, within method: " + dataContents);
+        // syntax is "userid,password,email"
+        var registerCredentials = dataContents.split(",");
 
-     // syntax is "userid,password"
+        var userID = registerCredentials[0].trim();
+        var password = registerCredentials[1].trim();
+        var email = registerCredentials[2].trim();
 
-     var loginCredentials = dataContents.split(",");
+        // TODO - handle email
 
-     var userID = loginCredentials[0];
-     var password = loginCredentials[1];
+        USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
 
-     console.log("handle login data: " + loginCredentials);
+            // register unsuccessful
+            if (rowCount === 1 && queryResult) {
+                // this username already exists
+            }
+            // register successful
+            else {
 
-     USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
+                var entityType = StringConst.PATIENT_ENTITY; // TODO - fix this default value
 
-     // only one row (user) should have been found and returned
-     if (rowCount == 1 && queryResult) {
+                // place user in database
+                USER_CREDENTIALS.insertNewUser(userID, password, email, entityType,
+                    function(rowsTouched) {
 
-     console.log("query was good");
-     console.log("passowrd: " + password);
-     console.log("query result password: " + queryResult.getPassword());
+                        if (rowsTouched === 1) {
+                            // insertion successful; store result now so that user can query it
+                            recentRegisterValidations.push({"userID": userID, "password": password, "email": email});
+                        } else {
+                            // insert unsuccessful
 
-     utils.comparePassword(password, queryResult.getPassword(),
-     function(err, isPasswordMatch) {
-
-
-     console.log("passwords match: " + isPasswordMatch);
-
-     // login successful
-     if (isPasswordMatch) {
-
-     console.log("adding to recent login validations");
-     // store result now so that user can query it
-     recentLoginValidations.push({"userID": userID, "password": password});
-     }
-     // login unsuccessful
-     else {
-     // store nothing; when user queries, they will get a null reply
-     }
-     });
-
-     } else {
-
-     // TODO - handle this error
-
-     console.log("udpcomm.handlelogindata() error");
-     }
-
-     });
-     } else {
-
-     console.log("HANDLE LOGIN DATA FAILED AT START");
-     // TODO - handle this error
-     }
-     */
+                            // TODO - notify user; handle this error
+                        }
+                });
+            }
+        });
+    } else {
+        // user-credential packet contained no content; do nothing
+    }
 }
 
 /**
- * returns entire FIB to user who requested it
+ * Returns entire FIB to user who requested it
  *
  * @param packetUserID userID of entity that requested FIB contents
  * @param packetSensorID sensorID of entity that requested FIB contents
@@ -599,7 +533,6 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 
                 // TODO - again, rework with specific date once TIME_STRING valid;
                 // TODO - remove loop and send as single unit
-
 
                 // create and send packet with ndn-js module
                 var packetName = ndnjs_utils.createName(csQueryResults[i].getUserID(), csQueryResults[i].getSensorID(),
@@ -701,7 +634,6 @@ function handleInterestLoginRequest(clientID, hostIP, hostPort) {
 
     var encodedPacket = interest.wireEncode();
 
-    console.log("sending interest to request credentials");
     sendMessage(encodedPacket, hostIP, hostPort);
 
     // TODO - improve the way this entry is created
@@ -711,12 +643,6 @@ function handleInterestLoginRequest(clientID, hostIP, hostPort) {
 
     newPITEntry.pitData(clientID, StringConst.NULL_FIELD, StringConst.CREDENTIAL_REQUEST, time, hostIP);
     PIT.insertPITData(newPITEntry, function(){});
-
-
-    console.log("host port: " + hostPort);
-
-    console.log("sending data to satisfy login interest");
-    sendMessage(encodedPacket, hostIP, hostPort);
 }
 
 /**
@@ -738,75 +664,84 @@ function handleInterestRegisterRequest(clientID, hostIP, hostPort) {
      * the client has registered; otherwise, register failed.
      */
 
-    /*
-     var time = utils.getCurrentTime();
-
-     var packetName = ndnjs_utils.createName(clientID, StringConst.NULL_FIELD,
-     time, StringConst.CREDENTIAL_REQUEST);
-     var interest = ndnjs_utils.createInterestPacket(packetName);
-
-     var encodedPacket = interest.wireEncode();
-
-     console.log("sending interest to request credentials");
-     sendMessage(encodedPacket, hostIP, hostPort);
-
-     // TODO - improve the way this entry is created
-
-     // add request to PIT
-     var newPITEntry = DBData.DATA();
-
-     newPITEntry.pitData(clientID, StringConst.NULL_FIELD, StringConst.CREDENTIAL_REQUEST, time, hostIP);
-     PIT.insertPITData(newPITEntry, function(){});
-
-
-     console.log("host port: " + hostPort);
-
-     console.log("sending data to satisfy login interest");
-     sendMessage(encodedPacket, hostIP, hostPort);
-     */
+    handleInterestLoginRequest(clientID, hostIP, hostPort); // reuse function
 }
 
 /**
+ * Handles user's query as to whether login was success; if found,
+ * replies with previously-stored login result then deletes it from array.
  *
- * TODO - doc
- *
- * @param packetUserID
- * @param packetIP
- * @param packetPort
+ * @param packetUserID of querying user
+ * @param hostIP of querying user
+ * @param hostPort of querying user
  */
 function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
+    handleResultRequest(packetUserID, hostIP, hostPort, StringConst.LOGIN_REQUEST);
+}
 
+/**
+ * Handles user's query as to whether register was success; if found,
+ * replies with previously-stored register result then deletes it from array.
+ *
+ * @param packetUserID of querying user
+ * @param hostIP of querying user
+ * @param hostPort of querying user
+ */
+function handleRegisterResultRequest(packetUserID, hostIP, hostPort) {
+    handleResultRequest(packetUserID, hostIP, hostPort, StringConst.REGISTER_REQUEST);
+}
+
+/**
+ * Handles user's query as to whether register/login was success; if found,
+ * replies with previously-stored register result then deletes it from array.
+ *
+ * @param packetUserID of querying user
+ * @param hostIP of querying user
+ * @param hostPort of querying user
+ * @param requestType (i.e., either LOGIN_REQUEST or REGISTER_REQUEST)
+ */
+function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
     var userValidationFound = false;
+    var recentValidations;
 
-    console.log("packet user id: " + packetUserID);
+    if (requestType === StringConst.REGISTER_REQUEST) {
+        recentValidations = recentRegisterValidations;
+    } else {
+        // only requestType left is login
+        recentValidations = recentLoginValidations;
+    }
 
-    for (var i = 0; i < recentLoginValidations.length; i++) {
-        if (recentLoginValidations[i].userID === packetUserID) {
-            recentLoginValidations.splice(i, 1); // remove element
+
+    for (var i = 0; i < recentValidations.length; i++) {
+        if (recentValidations[i].userID === packetUserID) {
+            recentValidations.splice(i, 1); // remove element
             userValidationFound = true;
 
             break;
         }
     }
 
-    console.log("user validation foudn: " + userValidationFound);
-
     var packetName;
 
-    // client's login has been validated; reply with portion if FIB (refer to paper for more information)
+    // client's login/register has been validated; reply with portion if FIB (refer to paper for more information)
     if (userValidationFound) {
-        packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-            utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+        if (requestType === StringConst.REGISTER_REQUEST) {
+            // set process id to DATA_REGISTER_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+                utils.getCurrentTime(), StringConst.DATA_REGISTER_RESULT);
+        } else {
+            // only requestType left is login; set process id to DATA_LOGIN_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+                utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+        }
 
         FIB.getAllFIBData(function(rowsTouched, queryResult) {
 
             // TODO - perform appropriate processing here (choose only certain results)
-
-            var fibCAP = 10; // TODO - set to appropriate cap
-
             // TODO - add this user (themselves) to the FIB
-
-            var packetContent = "first; empty"; // TODO - revise
+            var fibCAP = 10; // TODO - set to appropriate cap
+            var packetContent = "  "; // TODO - revise
 
             if (rowsTouched > 0 && queryResult) {
                 for (var i = 0; i < queryResult.length; i++) {
@@ -815,7 +750,6 @@ function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
                         break;
                     }
 
-                    console.log("3");
                     // syntax is "userid,ipaddr" and "||" separates each entry
                     packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
                 }
@@ -823,105 +757,31 @@ function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
                 // TODO - handle this case
             }
 
-           var data = ndnjs_utils.createDataPacket(packetContent, packetName);
+            var data = ndnjs_utils.createDataPacket(packetContent, packetName);
             var encodedPacket = data.wireEncode();
 
-            console.log("sending login result data, success");
             sendMessage(encodedPacket, hostIP, hostPort);
-
         });
     }
-    // client's login has not been validated; reply with an empty data packet
+    // client's login/register has not been validated; reply with an empty data packet
     else {
 
-        packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-            utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+        var data;
+        if (requestType === StringConst.REGISTER_REQUEST) {
+            // set process id to DATA_REGISTER_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+                utils.getCurrentTime(), StringConst.DATA_REGISTER_RESULT);
 
-        var data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
+            data = ndnjs_utils.createDataPacket(StringConst.REGISTER_FAILED, packetName);
+        } else {
+            // only requestType left is login; set process id to DATA_LOGIN_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+                utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+
+            data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
+        }
+
         var encodedPacket = data.wireEncode();
-
-        console.log("sending login result data, failed");
         sendMessage(encodedPacket, hostIP, hostPort);
     }
-}
-
-/**
- *
- * TODO - doc
- *
- * @param packetUserID
- * @param packetIP
- * @param packetPort
- */
-function handleRegisterResultRequest(packetUserID, packetIP, packetPort) {
-    // TODO
-    /*
-     var userValidationFound = false;
-
-     console.log("packet user id: " + packetUserID);
-
-     for (var i = 0; i < recentLoginValidations.length; i++) {
-     if (recentLoginValidations[i].userID === packetUserID) {
-     recentLoginValidations.splice(i, 1); // remove element
-     userValidationFound = true;
-
-     break;
-     }
-     }
-
-     console.log("user validation foudn: " + userValidationFound);
-
-     var packetName;
-
-     // client's login has been validated; reply with portion if FIB (refer to paper for more information)
-     if (userValidationFound) {
-     packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-     utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
-
-     FIB.getAllFIBData(function(rowsTouched, queryResult) {
-
-     // TODO - perform appropriate processing here (choose only certain results)
-
-     var fibCAP = 10; // TODO - set to appropriate cap
-
-     // TODO - add this user (themselves) to the FIB
-
-     var packetContent = "first; empty"; // TODO - revise
-
-     if (rowsTouched > 0 && queryResult) {
-     for (var i = 0; i < queryResult.length; i++) {
-
-     if (i > fibCAP) {
-     break;
-     }
-
-     console.log("3");
-     // syntax is "userid,ipaddr" and "||" separates each entry
-     packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
-     }
-     } else {
-     // TODO - handle this case
-     }
-
-     var data = ndnjs_utils.createDataPacket(packetContent, packetName);
-     var encodedPacket = data.wireEncode();
-
-     console.log("sending login result data, success");
-     sendMessage(encodedPacket, hostIP, hostPort);
-
-     });
-     }
-     // client's login has not been validated; reply with an empty data packet
-     else {
-
-     packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-     utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
-
-     var data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
-     var encodedPacket = data.wireEncode();
-
-     console.log("sending login result data, failed");
-     sendMessage(encodedPacket, hostIP, hostPort);
-     }
-     */
 }

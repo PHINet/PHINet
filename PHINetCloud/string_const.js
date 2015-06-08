@@ -24,7 +24,7 @@ exports.StringConst = {
     LOGIN_CREDENTIAL_DATA : "LOGIN_CREDENTIAL_DATA",
 
     // notify recipient (in this case the server) that content in data packet is user signup credentials
-    SIGNUP_CREDENTIAL_DATA : "SIGNUP_CREDENTIAL_DATA",
+    REGISTER_CREDENTIAL_DATA : "REGISTER_CREDENTIAL_DATA",
 
     // request the result of login from  (in this case the server)
     INTEREST_LOGIN_RESULT : "INTEREST_LOGIN_RESULT",
