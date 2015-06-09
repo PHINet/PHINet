@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;

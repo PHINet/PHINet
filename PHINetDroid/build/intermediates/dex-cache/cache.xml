@@ -2,6 +2,13 @@
 <items version="2" >
 
     <item
+        jar="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="d84409890828e07d344a3b9b1da545dba9897b51">
+        <dex dex="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/pre-dexed/debug/classes-3a866de3ec25082c7ca12194930169998dbd362a.jar" />
+    </item>
+    <item
         jar="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/libs/internal_impl-22.0.0.jar"
         jumboMode="false"
         revision="21.1.2"
@@ -30,11 +37,11 @@
         <dex dex="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/pre-dexed/debug/classes-9f11e5b63435c48cb27f179d8ff4172f6a81fb34.jar" />
     </item>
     <item
-        jar="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar"
+        jar="/Users/cseales/Desktop/PHINet/PHINetDroid/app/libs/jndn-0.6.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="d84409890828e07d344a3b9b1da545dba9897b51">
-        <dex dex="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/pre-dexed/debug/classes-3a866de3ec25082c7ca12194930169998dbd362a.jar" />
+        sha1="e7e684d8127af92bdc7df966710b4655fb7d1156">
+        <dex dex="/Users/cseales/Desktop/PHINet/PHINetDroid/app/build/intermediates/pre-dexed/debug/jndn-0.6-adee43616356987acdb70fb938dff823883fb866.jar" />
     </item>
 
 </items>

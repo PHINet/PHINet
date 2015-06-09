@@ -41,6 +41,7 @@
     <string name="viewPackets">View Packets</string>
     <string name="selectInterval">Select Interval</string>
     <string name="viewData">View Data</string>
+    <string name="discoverSensors">Discover Sensors</string>
 
     <string name="initialText">You must login/signup before accessing other features.</string>
 

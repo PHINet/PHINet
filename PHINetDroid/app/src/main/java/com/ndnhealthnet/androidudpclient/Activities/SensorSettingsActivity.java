@@ -1,6 +1,8 @@
 package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +25,8 @@ public class SensorSettingsActivity extends Activity {
     TextView loggedInText, sensorNameText, connectStatusText;
     EditText intervalEdit;
     String sensorName;
+
+    final int REQUEST_ENABLE_BT = 1; // used for getActivityResult
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,10 +62,20 @@ public class SensorSettingsActivity extends Activity {
         connectBtn = (Button) findViewById(R.id.sensorConnectBtn);
         connectBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // TODO - connect (test with any bluetooth device you possess)
+                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-                Toast toast = Toast.makeText(getApplicationContext(), "Not yet implemented", Toast.LENGTH_LONG);
-                toast.show();
+                if (mBluetoothAdapter == null) {
+                    // Device does not support Bluetooth
+                    Toast toast = Toast.makeText(getApplicationContext(), "Device does not support bluetooth", Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    if (!mBluetoothAdapter.isEnabled()) {
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                    } else {
+                        connectToSensor();
+                    }
+                }
             }
         });
 
@@ -124,5 +138,32 @@ public class SensorSettingsActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    /**
+     * should be invoked automatically after user enables bluetooth via Connect Dialog
+     *
+     * @param requestCode code of activity that has returned a result
+     * @param resultCode status of activity return
+     * @param data intent associated with returned activity
+     */
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                connectToSensor();
+            } else {
+                // TODO - failure
+            }
+        } else {
+            // TODO -
+        }
+    }
+
+    /**
+     * TODO - doc
+     */
+    private void connectToSensor() {
+        // TODO - begin PairedSensorsListActivity for result
     }
 }

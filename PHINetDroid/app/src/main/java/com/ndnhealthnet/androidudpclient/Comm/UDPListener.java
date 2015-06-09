@@ -1,7 +1,6 @@
 package com.ndnhealthnet.androidudpclient.Comm;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
 import com.ndnhealthnet.androidudpclient.DB.DBData;

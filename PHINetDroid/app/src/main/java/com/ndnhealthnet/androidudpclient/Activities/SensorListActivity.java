@@ -107,7 +107,6 @@ public class SensorListActivity extends ListActivity {
         backBtn = (Button) findViewById(R.id.backBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
                 finish();
             }
         });
