@@ -8,6 +8,12 @@ exports.StringConst = {
     // the id used by the server
     SERVER_ID : "CLOUD-SERVER",
 
+    // sent to server to initiate synchronization request
+    INITIATE_SYNCH_REQUEST :"INITIATE_SYNCH_REQUEST",
+
+    // send from server to request synchronization data
+    SYNCH_DATA_REQUEST : "SYNCH_DATA_REQUEST",
+
     // notify the recipient (in this case server) of client login request
     LOGIN_REQUEST : "LOGIN_REQUEST",
 
@@ -89,6 +95,11 @@ exports.StringConst = {
     KEY_EMAIL: "email",
     KEY_PASSWORD: "password",
     KEY_ENTITY_TYPE: "entityType",  // this key represents doctor or patient status (DOCTOR or PATIENT, respectively)
+
+    // used to specify which analytic task to be completed; TODO - add more later
+    MODE_ANALYTIC : "MODE_ANALYTIC",
+    MEDIAN_ANALYTIC : "MEDIAN_ANALYTIC",
+    MEAN_ANALYTIC : "MEAN_ANALYTIC",
 
     DOCTOR_ENTITY: "DOCTOR", // denotes doctor status in LOGIN_DB
     PATIENT_ENTITY: "PATIENT", // denotes patient status in LOGIN_DB

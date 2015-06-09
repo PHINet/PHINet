@@ -13,6 +13,7 @@
     <string name="patients">Patients</string>
     <string name="patientData">Patient Data</string>
     <string name="packets">Packets</string>
+    <string name="connectSensors">Connect to a Sensor</string>
 
     <string name="userName">User Name: </string>
     <string name="password">Password: </string>
@@ -42,6 +43,7 @@
     <string name="selectInterval">Select Interval</string>
     <string name="viewData">View Data</string>
     <string name="discoverSensors">Discover Sensors</string>
+    <string name="analyticsBtn">Analytics</string>
 
     <string name="initialText">You must login/signup before accessing other features.</string>
 

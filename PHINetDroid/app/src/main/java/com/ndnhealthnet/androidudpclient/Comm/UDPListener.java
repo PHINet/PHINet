@@ -144,6 +144,9 @@ public class UDPListener extends Thread {
 
             handleInterestCredentialRequest(packetUserID, packetSensorID, packetTimeString,
                     packetProcessID, ipAddr, port);
+        } else if (packetProcessID.equals(ConstVar.SYNCH_DATA_REQUEST)) {
+
+            handleInterestSynchRequest(packetUserID, packetTimeString, ipAddr, port);
         } else {
             // unknown process id; drop packet
         }
@@ -347,6 +350,51 @@ public class UDPListener extends Thread {
         newPITEntry.setIpAddr(ipAddr);
 
         DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
+    }
+
+    /**
+     * TODO - doc
+     *
+     * @param packetUserID
+     * @param packetTimeString
+     * @param ipAddr
+     * @param port
+     */
+    static void handleInterestSynchRequest(String packetUserID, String packetTimeString,
+                                           String ipAddr, int port) {
+
+        System.out.println("handle interest synch request invoked");
+
+        ArrayList<DBData> candidateData = DBSingleton.getInstance(context).getDB().getGeneralCSData(packetUserID);
+
+        ArrayList<DBData> validData = new ArrayList<>();
+
+        for (int i = 0; i < candidateData.size(); i++) {
+            if (Utils.isValidForTimeInterval(packetTimeString, candidateData.get(i).getTimeString())) {
+                validData.add(candidateData.get(i));
+            }
+        }
+
+        // Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+        String formattedData = Utils.formatSynchData(validData);
+
+        System.out.println("formatted sensor data: " + formattedData);
+
+        Name packetName = JNDNUtils.createName(packetUserID, ConstVar.NULL_FIELD,
+               packetTimeString, ConstVar.SYNCH_DATA_REQUEST);
+        Data data = JNDNUtils.createDataPacket(formattedData, packetName);
+
+        System.out.println("port: " + port + ", ip: " + ipAddr);
+
+        Blob blob = data.wireEncode();
+
+        // TODO - use server's real IP
+        new UDPSocket(port, "10.0.0.3", ConstVar.DATA_TYPE)
+                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+
+        // add packet content to database for future review
+        DBSingleton.getInstance(context).getDB()
+                .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
     }
 
     /**

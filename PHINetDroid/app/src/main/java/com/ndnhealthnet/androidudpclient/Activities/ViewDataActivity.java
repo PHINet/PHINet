@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,11 +16,17 @@ import android.widget.TextView;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
+import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
+
+import net.named_data.jndn.Interest;
+import net.named_data.jndn.Name;
+import net.named_data.jndn.util.Blob;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,11 +40,12 @@ import java.util.Calendar;
  */
 public class ViewDataActivity extends Activity {
 
-    Button backBtn, intervalSelectionBtn;
+    Button backBtn, intervalSelectionBtn, analyticsBtn;
     TextView dataStatusText, loggedInText, entityNameText;
     Spinner sensorSelectionSpinner;
     GraphView graph;
     String entityName, currentSensorSelected;
+    String mostRecentlySelectedTask = ""; // TODO - doc
 
     // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -119,12 +127,109 @@ public class ViewDataActivity extends Activity {
             }
         });
 
+        analyticsBtn = (Button) findViewById(R.id.analyticsBtn);
+        analyticsBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                AlertDialog.Builder analyticDialog = generateAnalyticsSelector();
+                analyticDialog.show();
+            }
+        });
+
         backBtn = (Button) findViewById(R.id.userDataBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 finish();
             }
         });
+    }
+
+    /**
+     * Allows users to select analytics function to be perform on current data set
+     *
+     * @return returns the dialog so that it can be initiated elsewhere
+     */
+    AlertDialog.Builder generateAnalyticsSelector() {
+        final Spinner analyticSelector = new Spinner(ViewDataActivity.this);
+
+        final ArrayList<String> analyticTasks = new ArrayList<>();
+        analyticTasks.add("Mean");
+        analyticTasks.add("Mode");
+        analyticTasks.add("Median");
+        analyticTasks.add("Graph");
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter(ViewDataActivity.this,
+                android.R.layout.simple_spinner_item, analyticTasks);
+        analyticSelector.setAdapter(adapter);
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(ViewDataActivity.this);
+        builder.setTitle("Choose analytic task");
+        builder.setView(analyticSelector);
+
+        analyticSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                // update chosen task; if "Select" is chosen in dialog, task will be invoked
+                mostRecentlySelectedTask = analyticTasks.get(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // do nothing
+            }
+        });
+
+        builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                // only query server if task is not graph (it doesn't require server computation)
+                if (!mostRecentlySelectedTask.equals("Graph")) {
+
+                    String currentTime = Utils.getCurrentTime();
+                    String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
+
+                    // query server for analytic task
+                    Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, currentSensorSelected,
+                            currentTime, processID);
+                    Interest interest = JNDNUtils.createInterestPacket(packetName);
+
+                    Blob blob = interest.wireEncode();
+
+                    System.out.println("sending analytic interest to server");
+
+                    // add entry into PIT
+                    DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
+                            currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
+
+                    DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
+
+                    // TODO - include real server IP
+                    new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
+                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+
+                    // store received packet in database for further review
+                    Utils.storeInterestPacket(getApplicationContext(), interest);
+
+                    // wait 4 seconds (arbitrary) after sending request before checking for result
+                    new Handler().postDelayed(new Runnable() {
+                        public void run() {
+
+                            // TODO -
+                        }
+                    }, 4000);
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                resetIntervalParams(); // clear so that future updates may occur
+                dialog.cancel();
+            }
+        });
+
+        return builder;
     }
 
     /**
@@ -182,7 +287,8 @@ public class ViewDataActivity extends Activity {
                             updateGraph();
 
                         }
-                    }); secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    });
+                    secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             resetIntervalParams(); // clear so that future updates may occur
@@ -203,6 +309,24 @@ public class ViewDataActivity extends Activity {
         });
 
         return builder;
+    }
+
+    /**
+     * Method takes an analyticTask and maps it to the appropriate process id.
+     *
+     * TODO - expand available analytic tasks
+     *
+     * @param analyticTask used to determine process id
+     * @return process id mapped to analyticTask
+     */
+    public String selectAnalyticProcessID(String analyticTask) {
+        if (analyticTask.equals("Mode")) {
+            return ConstVar.MODE_ANALYTIC;
+        } else if (analyticTask.equals("Median")) {
+            return ConstVar.MEDIAN_ANALYTIC;
+        } else {
+            return ConstVar.MEAN_ANALYTIC; // mean is only task that remains
+        }
     }
 
     /**
@@ -305,5 +429,3 @@ public class ViewDataActivity extends Activity {
         endYear = 0;
     }
 }
-
-

@@ -10,6 +10,7 @@ var PIT, FIB, CS, USER_CREDENTIALS;
 var dgram = require("dgram"); // Node.js udp socket module
 var socket = dgram.createSocket('udp4');
 var utils = require('./utils.js').Utils;
+var analytics = require('./analytics.js').analytics;
 
 var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
@@ -160,6 +161,25 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             else if (packetProcessID === StringConst.INTEREST_REGISTER_RESULT) {
 
                 handleRegisterResultRequest(packetUserID, packetIP, packetPort);
+            }
+            // client requests mode analytic task on data
+            else if (packetProcessID === StringConst.MODE_ANALYTIC) {
+
+                console.log("processing mode analytic task");
+                handleModeAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+            }
+            // client requests median analytic task on data
+            else if (packetProcessID === StringConst.MEDIAN_ANALYTIC) {
+                handleMedianAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+            }
+            // client requests mean analytic task on data
+            else if (packetProcessID === StringConst.MEAN_ANALYTIC) {
+                handleMeanAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+            }
+            // client requests initialization of sync request
+            else if (packetProcessID === StringConst.INITIATE_SYNCH_REQUEST) {
+
+                handleSynchRequest(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
             } else  {
                 // unknown process id; drop packet
             }
@@ -187,8 +207,12 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             var packetTimeString = nameComponent[4];
             var packetProcessID = nameComponent[5];
 
+            console.log("before general pit data, name: " + nameComponent);
+
             // first, determine who wants the data
             PIT.getGeneralPITData(packetUserID, hostIP, function(rowsTouched, allValidPITEntries) {
+
+                console.log("length of returned pit entries: " + allValidPITEntries);
 
                 if (allValidPITEntries === null) {
 
@@ -211,6 +235,21 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                              * login/register packets (currently) are valid irrespective of time, break if match found
                              * server sends an Interest with processID CREDENTIAL_REQUEST and client responds with
                              * Data with processID LOGIN_CREDENTIAL_DATA/REGINSTER_CREDENTIAL_DATA
+                             */
+
+                            requestFoundWithinInterval = true;
+                            break;
+                        }
+
+                        console.log("packet process id: " + packetProcessID);
+                        console.log("pit time string: " + allValidPITEntries[i].getTimeString());
+                        console.log("packet time string: " + packetTimeString);
+
+                        if (packetProcessID === StringConst.SYNCH_DATA_REQUEST
+                            && allValidPITEntries[i].getTimeString() === packetTimeString) {
+
+                            /**
+                             * TODO - doc here (the user ids won't match and both time strings are intervals)
                              */
 
                             requestFoundWithinInterval = true;
@@ -241,7 +280,11 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
 
                              handleRegisterData(dataContents);
                         }
-                        else {
+                        // client has responded to server's synchronization request
+                        else if (packetProcessID === StringConst.SYNCH_DATA_REQUEST) {
+
+                            handleSynchRequestData(packetUserID, packetTimeString, dataContents);
+                        } else {
                             // unknown process id; drop packet
                         }
                     }
@@ -459,6 +502,34 @@ function handleRegisterData(dataContents) {
         });
     } else {
         // user-credential packet contained no content; do nothing
+    }
+}
+
+/**
+ *
+ * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+ *
+ * TODO - doc
+ *
+ * @param userID
+ * @param timeString
+ * @param dataContents
+ */
+function handleSynchRequestData(userID, timeString, dataContents) {
+
+    console.log("handling synch data");
+
+    var parsedSynchData = utils.parseSynchData(userID, dataContents);
+
+    if (parsedSynchData) {
+
+        console.log("storing synch data");
+
+        for (var i = 0; i < parsedSynchData; i++) {
+            CS.insertCSData(parsedSynchData[i], function(){});
+        }
+    } else {
+        console.log("parse synch data returned null: FAILURE")
     }
 }
 
@@ -784,4 +855,158 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
         var encodedPacket = data.wireEncode();
         sendMessage(encodedPacket, hostIP, hostPort);
     }
+}
+
+/**
+ * Performs requested mode analytic task and sends result to requestor.
+ *
+ * @param userID of data set on which to perform mode
+ * @param sensorID of data set on which to perform mode
+ * @param timeString of data set on which to perform mode
+ * @param hostIP of user sending request
+ * @param hostPort of user sending request
+ */
+function handleModeAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) {
+
+    console.log("within mode analytic task");
+
+    getRequestedData(userID, sensorID, timeString, function(requestedData) {
+
+        console.log("within get requested data");
+
+        // data exists, perform mean
+        if (requestedData) {
+
+            var packetName = ndnjs_utils.createName(userID, sensorID,
+            timeString, StringConst.MODE_ANALYTIC);
+
+            var modeValue = analytics.mode(requestedData).toString();
+
+            var data = ndnjs_utils.createDataPacket(modeValue, packetName);
+            var encodedPacket = data.wireEncode();
+
+            sendMessage(encodedPacket, hostIP, hostPort);
+        }
+    });
+}
+
+/**
+ * Performs requested median analytic task and sends result to requestor.
+ *
+ * @param userID of data set on which to perform median
+ * @param sensorID of data set on which to perform median
+ * @param timeString of data set on which to perform media
+ * @param hostIP of user sending request
+ * @param hostPort of user sending request
+ */
+function handleMedianAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) {
+
+    getRequestedData(userID, sensorID, timeString, function(requestedData) {
+
+        // data exists, perform mean
+        if (requestedData) {
+
+            var packetName = ndnjs_utils.createName(userID, sensorID,
+            timeString, StringConst.MEDIAN_ANALYTIC);
+
+            var medianValue = analytics.median(requestedData).toString();
+
+            var data = ndnjs_utils.createDataPacket(medianValue, packetName);
+            var encodedPacket = data.wireEncode();
+
+            sendMessage(encodedPacket, hostIP, hostPort);
+        }
+    });
+}
+
+/**
+ * Performs requested mean analytic task and sends result to requestor.
+ *
+ * @param userID of data set on which to perform mean
+ * @param sensorID of data set on which to perform mean
+ * @param timeString of data set on which to perform mean
+ * @param hostIP of user sending request
+ * @param hostPort of user sending request
+ */
+function handleMeanAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) {
+
+    getRequestedData(userID, sensorID, timeString, function(requestedData) {
+
+        // data exists, perform mean
+        if (requestedData) {
+            var packetName = ndnjs_utils.createName(userID, sensorID,
+                timeString, StringConst.MEAN_ANALYTIC);
+
+            var meanValue = analytics.mean(requestedData).toString();
+
+            var data = ndnjs_utils.createDataPacket(meanValue, packetName);
+            var encodedPacket = data.wireEncode();
+
+            sendMessage(encodedPacket, hostIP, hostPort);
+        }
+    });
+}
+
+/**
+ * Returns any data found given input params.
+ *
+ * @param userID of requested data
+ * @param sensorID of requested data
+ * @param timeString of requested data
+ * @param callback used to pass back requested data
+ */
+function getRequestedData(userID, sensorID, timeString, callback) {
+
+    CS.getGeneralCSData(userID, function(rowsTouched, queryResults) {
+
+        if (rowsTouched > 0 && queryResults) {
+            // TODO - improve upon this naive data-matching
+            var matchingData = [];
+
+            for (var i = 0; i < queryResults.length; i++) {
+                if (queryResults[i].getSensorID() === sensorID
+                    && utils.isValidForTimeInterval(timeString, queryResults[i].getTimeString())) {
+
+                    // match found, place in array to be returned to caller function
+                    matchingData.push(parseInt(queryResults[i].getDataFloat()));
+                }
+            }
+
+            callback(matchingData);
+        } else {
+            callback(null); // no data found; drop
+        }
+    });
+}
+
+/**
+ * Initiates synchronization request by sending Interest
+ * to client requesting data within timeString interval.
+ *
+ * @param userID of client requesting synch request
+ * @param sensorID ; TODO - doc
+ * @param timeString of data that should be synched
+ * @param hostIP of client requesting synch request
+ * @param hostPort of client requesting synch request
+ */
+function handleSynchRequest(userID, sensorID, timeString, hostIP, hostPort) {
+
+    // TODO note client placing userID as sensor ID (no other place to do so; this is a clever "hack"), etc
+
+    console.log("sending interest for synch request, timestring: " + timeString);
+
+    // create and send packet with ndn-js module
+    var packetName = ndnjs_utils.createName(sensorID, StringConst.NULL_FIELD, timeString, StringConst.SYNCH_DATA_REQUEST);
+    var interest = ndnjs_utils.createInterestPacket(packetName);
+
+    var encodedPacket = interest.wireEncode();
+
+    // ask for synch data from requestor via INTEREST packet
+    sendMessage(encodedPacket, hostIP, hostPort);
+
+    // add request to PIT
+    var newPITEntry = DBData.DATA();
+
+    newPITEntry.pitData(sensorID, StringConst.NULL_FIELD, StringConst.SYNCH_DATA_REQUEST, timeString, hostIP);
+    PIT.insertPITData(newPITEntry, function(){});
 }

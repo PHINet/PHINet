@@ -24,9 +24,12 @@ public class SensorSettingsActivity extends Activity {
     Button backBtn, connectBtn, saveBtn, deleteSensorBtn;
     TextView loggedInText, sensorNameText, connectStatusText;
     EditText intervalEdit;
-    String sensorName;
+    String sensorName; // used-defined name
+    String chosenSensorInfo; // info of sensor chosen by user in PairedSensorListActivity
 
     final int REQUEST_ENABLE_BT = 1; // used for getActivityResult
+    final int SENSOR_SELECTION_CODE = 2; // used for getActivityResult
+    static final String CHOSEN_SENSOR_INFO = "CHOSEN_SENSOR_INFO"; // used to pass data in intent
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -141,7 +144,7 @@ public class SensorSettingsActivity extends Activity {
     }
 
     /**
-     * should be invoked automatically after user enables bluetooth via Connect Dialog
+     * Should be invoked automatically after user enables bluetooth via Connect Dialog
      *
      * @param requestCode code of activity that has returned a result
      * @param resultCode status of activity return
@@ -152,18 +155,22 @@ public class SensorSettingsActivity extends Activity {
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == RESULT_OK) {
                 connectToSensor();
-            } else {
-                // TODO - failure
             }
-        } else {
-            // TODO -
+        } else if (requestCode == SENSOR_SELECTION_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                chosenSensorInfo = data.getExtras().getString(CHOSEN_SENSOR_INFO);
+
+                // TODO - handle success (now connect to sensor and collect regularly)
+            }
         }
     }
 
     /**
-     * TODO - doc
+     * Starts Activity that allows sensor selection and discovery.
      */
     private void connectToSensor() {
-        // TODO - begin PairedSensorsListActivity for result
+        Intent intent = new Intent(SensorSettingsActivity.this, PairedSensorsListActivity.class);
+        startActivityForResult(intent, SENSOR_SELECTION_CODE);
     }
 }

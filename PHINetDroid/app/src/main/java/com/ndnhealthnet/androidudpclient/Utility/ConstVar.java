@@ -8,6 +8,12 @@ package com.ndnhealthnet.androidudpclient.Utility;
  */
 public class ConstVar {
 
+    // sent to server to initiate synchronization request
+    static public final String INITIATE_SYNCH_REQUEST = "INITIATE_SYNCH_REQUEST";
+
+    // send from server to request synchronization data
+    static public final String SYNCH_DATA_REQUEST = "SYNCH_DATA_REQUEST";
+
     // notify neighbor that fib is desired (sent in interest packet)
     static public final String INTEREST_FIB = "INTEREST_FIB";
 
@@ -71,6 +77,11 @@ public class ConstVar {
     public static final String SENSOR_DB = "Sensors";
     public static final String PACKET_DB = "Packets";
 
+    // used to specify which analytic task to be completed; TODO - add more later
+    public static final String MODE_ANALYTIC = "MODE_ANALYTIC";
+    public static final String MEDIAN_ANALYTIC = "MEDIAN_ANALYTIC";
+    public static final String MEAN_ANALYTIC = "MEAN_ANALYTIC";
+
     // use to store/retrieve/identify user login credentials
     public static final String PREFS_LOGIN_USER_ID_KEY = "__USER_ID__" ;
     public static final String PREFS_LOGIN_PASSWORD_ID_KEY = "__PASSWORD_ID__" ;
@@ -87,4 +98,7 @@ public class ConstVar {
 
     // port used by all PHINet applications
     public static final int PHINET_PORT = 50056;
+
+    // synchronization requests are initiated every hour (arbitrarily chosen)
+    public static final int SYNCH_INTERVAL_MILLIS = 1000 * 60 * 60;
 }

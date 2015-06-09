@@ -11,11 +11,13 @@ import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.TimeZone;
 
 /**
@@ -125,6 +127,22 @@ public class Utils {
     }
 
     /**
+     * Used to create start for synchronization time interval.
+     *
+     * @return timeString for previous hour
+     */
+    public static String getPreviousHourTime() {
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
+        formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        Date date = new Date();
+        date.setTime(System.currentTimeMillis() - ConstVar.SYNCH_INTERVAL_MILLIS); // previous hour
+
+        // replace space with T; change makes parsing easier
+        return formatUTC.format(date).replace(" ", "T");
+    }
+
+    /**
      * tests validity of IP input
      *
      * @param ip input to be validated
@@ -195,6 +213,62 @@ public class Utils {
         // if dataInterval is not before start and not after end, then its with interval
         return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataInterval)
                 || requestIntervals[1].equals(dataInterval);
+    }
+
+    /**
+     * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+     *
+     * TODO - doc
+     *
+     * TODO - test
+     *
+     * @param data
+     * @return
+     */
+    public static String formatSynchData(ArrayList<DBData> data) {
+
+        Hashtable<String, ArrayList<DBData>> hashedBySensors = new Hashtable<>();
+        String formattedSyncData = "";
+
+        // first separate data based upon sensor
+        for (int i = 0; i < data.size(); i++) {
+            // sensor hasn't been stored yet, create ArrayList for its data and store now
+            if (!hashedBySensors.containsKey(data.get(i).getSensorID())) {
+
+                ArrayList<DBData> dataForSensor = new ArrayList<>();
+                dataForSensor.add(data.get(i));
+
+                hashedBySensors.put(data.get(i).getSensorID(), dataForSensor);
+            }
+            // sensor has been seen, append data to its ArrayList now
+            else {
+
+                hashedBySensors.get(data.get(i).getSensorID()).add(data.get(i));
+            }
+        }
+
+        // now format data for each sensor
+        for (String key : hashedBySensors.keySet()) {
+
+            formattedSyncData += key + "--"; // '--' separates sensor's name from its data
+
+            for (int i = 0; i < hashedBySensors.get(key).size(); i++) {
+                DBData sensorData = hashedBySensors.get(key).get(i);
+
+                formattedSyncData += sensorData.getDataFloat() + "," + sensorData.getTimeString();
+                formattedSyncData += ";;"; // ';;' separates each data piece for sensor
+            }
+
+            // remove last two chars, ';;', because they proceed no data
+            formattedSyncData = formattedSyncData.substring(0, formattedSyncData.length() - 2);
+
+            formattedSyncData += "::"; // '::' separates each sensor
+        }
+
+        // remove last two chars, '::', because they proceed no sensor
+        formattedSyncData = formattedSyncData.substring(0, formattedSyncData.length() - 2);
+
+        return formattedSyncData;
     }
 
     /**

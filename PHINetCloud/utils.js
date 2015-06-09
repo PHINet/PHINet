@@ -3,8 +3,53 @@
  */
 
 var bcrypt = require('bcrypt');
+var DBData = require('./data'); // used to create objects used by the database
+var StringConst = require('./string_const').StringConst;
 
 exports.Utils = {
+
+    /**
+     * TODO - doc
+     * TODO - test
+     *
+     * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+     *
+     * @param userID
+     * @param dataContents
+     * @returns {Array}
+     */
+    parseSynchData: function(userID, dataContents) {
+
+        if (dataContents) {
+            var parsedData = [];
+            var splitBySensor = dataContents.split("::"); // '::' separates by sensor
+
+            for (var i = 0; i < splitBySensor.length; i++) {
+                var sensor = splitBySensor[i].split("--"); // '--' separates sensor's name from its data
+
+                var sensorName = sensor[0];
+                var sensorData = sensor[1].split(";;"); // ';;' separates sensor data pieces
+
+                for (var j = 0; j < sensorData.length; j++) {
+
+                    var dataPiece = sensorData[j].split(","); // ',' separates (data,time) tuple
+
+                    var sensorEntry = DBData.DATA();
+                    sensorEntry.setDataFloat(dataPiece[0]);
+                    sensorEntry.setSensorID(sensorName);
+                    sensorEntry.setTimeString(dataPiece[1]);
+                    sensorEntry.setUserID(userID);
+                    sensorEntry.setProcessID(StringConst.NULL_FIELD);
+
+                    parsedData.push(sensorEntry);
+                }
+            }
+
+            return parsedData;
+        } else {
+            return null;
+        }
+    },
 
     /**
      * Date format is "YYYY-MM-DDTHH.mm.ss.SSS", where 'SSS' is milliseconds and 'T' is a parsing character

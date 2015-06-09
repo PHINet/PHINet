@@ -25,10 +25,7 @@ GENERAL
 - REQUIRED: most robust testing / handle corner cases / handle all TODOs
 
 CLIENT
-- REQUIRED: request analytics from server
 - REQUIRED: modify/user all NDN packet components
-- REQUIRED: respond to sync requests
-- REQUIRED: connect to sensors and collect as specified
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
 - DESIRED: improve layout
@@ -38,8 +35,6 @@ WEB
 - REQUIRED: edit profile data
 - REQUIRED: basic testing page (to test with device)
 - REQUIRED: modify/use all NDN packet components
-- REQUIRED: perform data analytics and return result
-- REQUIRED: issue sync requests and process result
 - DESIRED: perform more complex analytics
 - DESIRED: improve layout
 - DESIRED: make mobile friendly

@@ -31,7 +31,8 @@ import java.util.Set;
 public class PairedSensorsListActivity  extends ListActivity {
 
     Button backBtn, discoverSensorBtn;
-    TextView loggedInText;
+    TextView loggedInText, emptyListText;
+    SensorAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,8 +41,18 @@ public class PairedSensorsListActivity  extends ListActivity {
 
         ArrayList<String> sensorList = getPairedDeviceNames();
 
-        final SensorAdapter adapter = new SensorAdapter(this, sensorList);
-        setListAdapter(adapter);
+        emptyListText = (TextView) findViewById(R.id.emptyListText);
+
+        if (sensorList.size() == 0) {
+            emptyListText.setText("No sensors found.\nTry pressing 'Discover Sensors'\nor manually connecting.");
+        } else {
+
+            emptyListText.setVisibility(View.GONE); // list isn't empty; remove text
+
+            // paired sensors found, display list
+            adapter = new SensorAdapter(this, sensorList);
+            setListAdapter(adapter);
+        }
 
         String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
@@ -53,7 +64,7 @@ public class PairedSensorsListActivity  extends ListActivity {
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                // TODO - pass back results ("onActivityFinish")
+                setResult(RESULT_CANCELED, new Intent()); // notifies parent activity of success
 
                 finish();
             }
@@ -62,9 +73,10 @@ public class PairedSensorsListActivity  extends ListActivity {
         discoverSensorBtn = (Button) findViewById(R.id.discoverSensorBtn);
         discoverSensorBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                ArrayList<String> discoveredSensorNames = discoverSensors();
+                discoverSensors();
 
-                // TODO - append to ListView
+                // TODO - append discovered sensors to ListView
+
             }
         });
     }
@@ -93,12 +105,9 @@ public class PairedSensorsListActivity  extends ListActivity {
     }
 
     /**
-     * Method discovers sensors then returns list of (name, address)
-     *
-     * @return list of discovered bluetooth devices
+     * Method discovers sensors then appends (name, address) of each to ListView adapter
      */
-    private ArrayList<String> discoverSensors() {
-        final ArrayList<String> discoveredSensorNames = new ArrayList<>();
+    private void discoverSensors() {
 
         // Create a BroadcastReceiver for ACTION_FOUND
         final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -109,7 +118,7 @@ public class PairedSensorsListActivity  extends ListActivity {
                     // Get the BluetoothDevice object from the Intent
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     // Add the name and address to an array adapter to show in a ListView
-                    discoveredSensorNames.add(device.getName() + "\n" + device.getAddress());
+                    adapter.add(device.getName() + "\n" + device.getAddress());
                 }
             }
         };
@@ -117,8 +126,6 @@ public class PairedSensorsListActivity  extends ListActivity {
         // Register the BroadcastReceiver
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
-
-        return discoveredSensorNames;
     }
 
     /**
@@ -137,14 +144,14 @@ public class PairedSensorsListActivity  extends ListActivity {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent)
+        public View getView(final int position, View convertView, ViewGroup parent)
         {
             if (convertView == null) {
                 convertView = activity.getLayoutInflater()
                         .inflate(R.layout.list_item_sensor, null);
             }
 
-            final String sensorName = " "; // TODO - set
+            final String sensorName = discoveredSensors.get(position);
 
             // creates individual button in ListView for each patient
             Button sensorButton = (Button)convertView.findViewById(R.id.listSensorButton);
@@ -161,7 +168,13 @@ public class PairedSensorsListActivity  extends ListActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            // TODO - return to previous activity
+                            Intent intent = getIntent();
+                            intent.putExtra(SensorSettingsActivity.CHOSEN_SENSOR_INFO, sensorName);
+
+                            // through intent, pass sensor information to activity
+                            setResult(RESULT_OK, intent);
+
+                            finish();
                         }
                     });
                     builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
