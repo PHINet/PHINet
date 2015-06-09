@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -41,11 +42,12 @@ import java.util.Calendar;
 public class ViewDataActivity extends Activity {
 
     Button backBtn, intervalSelectionBtn, analyticsBtn;
-    TextView dataStatusText, loggedInText, entityNameText;
+    TextView dataStatusText, loggedInText, entityNameText, analyticsResultText;
     Spinner sensorSelectionSpinner;
     GraphView graph;
     String entityName, currentSensorSelected;
     String mostRecentlySelectedTask = ""; // TODO - doc
+    ProgressBar analyticsWait;
 
     // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -68,6 +70,11 @@ public class ViewDataActivity extends Activity {
         entityName = getIntent().getExtras().getString(ConstVar.ENTITY_NAME);
 
         graph = (GraphView) findViewById(R.id.graph); // reset graph when updating
+
+        analyticsResultText = (TextView) findViewById(R.id.analyticsResultTextView);
+
+        analyticsWait = (ProgressBar) findViewById(R.id.analyticsProgressBar);
+        analyticsWait.setVisibility(View.GONE); // node analytics requested yet; hide it
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID);
@@ -155,7 +162,6 @@ public class ViewDataActivity extends Activity {
         analyticTasks.add("Mean");
         analyticTasks.add("Mode");
         analyticTasks.add("Median");
-        analyticTasks.add("Graph");
 
         final ArrayAdapter<String> adapter = new ArrayAdapter(ViewDataActivity.this,
                 android.R.layout.simple_spinner_item, analyticTasks);
@@ -183,42 +189,70 @@ public class ViewDataActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                // only query server if task is not graph (it doesn't require server computation)
-                if (!mostRecentlySelectedTask.equals("Graph")) {
+                final String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
-                    String currentTime = Utils.getCurrentTime();
-                    String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
+                final String currentTime = Utils.createAnalyticTimeInterval(dataStatusText.getText().toString());
 
-                    // query server for analytic task
-                    Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, currentSensorSelected,
-                            currentTime, processID);
-                    Interest interest = JNDNUtils.createInterestPacket(packetName);
+                // TODO - get correct time (make it an itnerval)
 
-                    Blob blob = interest.wireEncode();
+                final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
-                    System.out.println("sending analytic interest to server");
+                // query server for analytic task
+                Name packetName = JNDNUtils.createName(myUserID, currentSensorSelected,
+                        currentTime, processID);
+                Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                    // add entry into PIT
-                    DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
-                            currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
+                Blob blob = interest.wireEncode();
 
-                    DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
+                System.out.println("sending analytic interest to server");
 
-                    // TODO - include real server IP
-                    new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
-                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                // add entry into PIT
+                DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
+                        currentTime, myUserID, ConstVar.SERVER_IP);
 
-                    // store received packet in database for further review
-                    Utils.storeInterestPacket(getApplicationContext(), interest);
+                DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-                    // wait 4 seconds (arbitrary) after sending request before checking for result
-                    new Handler().postDelayed(new Runnable() {
-                        public void run() {
+                // TODO - include real server IP
+                new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
+                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                            // TODO -
+                // store received packet in database for further review
+                Utils.storeInterestPacket(getApplicationContext(), interest);
+
+                analyticsWait.setVisibility(View.VISIBLE); // request sent; display progress bar
+                analyticsBtn.setVisibility(View.GONE); // prevent user from resending request
+
+                // wait 15 seconds (arbitrary) after sending request before checking for result
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+
+                        analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
+                        analyticsWait.setVisibility(View.GONE); // hide; result checked now
+
+                        ArrayList<DBData> candidateData = DBSingleton
+                                .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
+
+                        DBData analyticsResult = null;
+
+                        for (int i = 0; i < candidateData.size(); i++) {
+
+                            if (candidateData.get(i).getProcessID().equals(processID)
+                                    && candidateData.get(i).getTimeString().equals(currentTime)) {
+
+                                analyticsResult = candidateData.get(i);
+                                break; // result found; break from
+                            }
                         }
-                    }, 4000);
-                }
+
+                        if (analyticsResult != null) {
+                            analyticsResultText.setText(mostRecentlySelectedTask + " is " + analyticsResult.getDataFloat());
+                        } else {
+                            // nothing found; display error
+                            analyticsResultText.setText("Error processing request.");
+                        }
+                    }
+                }, 15000);
+
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -382,9 +416,6 @@ public class ViewDataActivity extends Activity {
               endDate += "-" + Integer.toString(endDay) + "T00.00.00.000"; // append zeros at end
 
             // convert valid data to a format that can be displayed
-
-            System.out.println("My data: " + Arrays.toString(myData.toArray()));
-
             myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);
         }
 

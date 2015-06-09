@@ -10,7 +10,7 @@ var PIT, FIB, CS, USER_CREDENTIALS;
 var dgram = require("dgram"); // Node.js udp socket module
 var socket = dgram.createSocket('udp4');
 var utils = require('./utils.js').Utils;
-var analytics = require('./analytics.js').analytics;
+var analytics = require('./analytics.js').analytics();
 
 var NDN_SENSOR_NET_PORT = 50056; // same across all applications
 var mySensorID = "SERVER_SENSOR"; // TODO - rework; this isn't applicable to server
@@ -525,7 +525,7 @@ function handleSynchRequestData(userID, timeString, dataContents) {
 
         console.log("storing synch data");
 
-        for (var i = 0; i < parsedSynchData; i++) {
+        for (var i = 0; i < parsedSynchData.length; i++) {
             CS.insertCSData(parsedSynchData[i], function(){});
         }
     } else {
@@ -872,8 +872,6 @@ function handleModeAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) 
 
     getRequestedData(userID, sensorID, timeString, function(requestedData) {
 
-        console.log("within get requested data");
-
         // data exists, perform mean
         if (requestedData) {
 
@@ -939,6 +937,8 @@ function handleMeanAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) 
 
             var meanValue = analytics.mean(requestedData).toString();
 
+            console.log("mean value: " + meanValue);
+
             var data = ndnjs_utils.createDataPacket(meanValue, packetName);
             var encodedPacket = data.wireEncode();
 
@@ -964,6 +964,7 @@ function getRequestedData(userID, sensorID, timeString, callback) {
             var matchingData = [];
 
             for (var i = 0; i < queryResults.length; i++) {
+
                 if (queryResults[i].getSensorID() === sensorID
                     && utils.isValidForTimeInterval(timeString, queryResults[i].getTimeString())) {
 
@@ -974,6 +975,7 @@ function getRequestedData(userID, sensorID, timeString, callback) {
 
             callback(matchingData);
         } else {
+
             callback(null); // no data found; drop
         }
     });

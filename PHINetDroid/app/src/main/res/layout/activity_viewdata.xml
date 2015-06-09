@@ -62,6 +62,35 @@
         android:baselineAligned="false"
         android:orientation="horizontal"
         android:weightSum="1"
+        android:id="@+id/analyticsLayout">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/analyticsStatus"
+            android:layout_margin="10dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:id="@+id/analyticsStatusTextView" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="none requested"
+            android:layout_margin="10dp"
+            android:textSize="20sp"
+            android:id="@+id/analyticsResultTextView" />
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:weightSum="1"
         android:gravity="center_horizontal">
 
         <Button
@@ -79,6 +108,14 @@
             android:id="@+id/sensorSelectorSpinner" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:id="@+id/analyticsProgressBar"/>
 
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"

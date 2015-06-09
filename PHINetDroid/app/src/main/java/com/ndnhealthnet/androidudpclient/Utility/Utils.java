@@ -11,7 +11,6 @@ import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 
-import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -116,6 +115,34 @@ public class Utils {
     }
 
     /**
+     * TODO - doc
+     * TODO - test
+     *
+     * Input Syntax: "DD/MM/YYYY - DD/MM/YYYY"
+     * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
+     *
+     * @param chosenInterval
+     * @return
+     */
+    public static String createAnalyticTimeInterval(String chosenInterval) {
+        String convertedAnalyticInterval = "";
+
+        chosenInterval = chosenInterval.replace(" ", ""); // remove spaces
+
+        String [] intervals = chosenInterval.split("-");
+
+        String [] startInterval = intervals[0].split("/");
+        String [] endInterval = intervals[1].split("/");
+
+        // set hours,minutes,seconds,millis all to 0 as default
+        convertedAnalyticInterval += startInterval[0] + "-" + startInterval[1] + "-" +
+                startInterval[2] + "T00.00.00.000||" + endInterval[0] + "-" + endInterval[1] +
+                "-" + endInterval[2] + "T00.00.00.000";
+
+        return convertedAnalyticInterval;
+    }
+
+    /**
      * @return UTC-compliant current time
      */
     public static String getCurrentTime() {
@@ -140,6 +167,21 @@ public class Utils {
 
         // replace space with T; change makes parsing easier
         return formatUTC.format(date).replace(" ", "T");
+    }
+
+    /**
+     * TODO - doc
+     * TODO - test
+     *
+     * @param packetProcessID
+     * @return
+     */
+    public static boolean isAnalyticProcessID(String packetProcessID) {
+        return packetProcessID.equals(ConstVar.MODE_ANALYTIC)
+                || packetProcessID.equals(ConstVar.MEAN_ANALYTIC)
+                || packetProcessID.equals(ConstVar.MEDIAN_ANALYTIC);
+
+        // TODO - add more analytic process ids here once they are implemented
     }
 
     /**
@@ -190,6 +232,9 @@ public class Utils {
         Date startDate, endDate, dataDate;
 
         try {
+
+            System.out.println("request interval: " + requestInterval);
+
             // replace "T" with empty char "", so that comparison is easier
             requestIntervals[0] = requestIntervals[0].replace("T", " ");
             requestIntervals[1] = requestIntervals[1].replace("T", " ");

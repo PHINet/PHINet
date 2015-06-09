@@ -20,8 +20,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // TODO - refactor this class into numerous, specific classes
 
-    private static final String DATABASE_NAME = "NDNHealthNet7";
-    private static final int DATABASE_VERSION = 7;
+    private static final String DATABASE_NAME = "NDNHealthNet8";
+    private static final int DATABASE_VERSION = 8;
 
     private static final String KEY_USER_ID = "_userID";
     private static final String KEY_SENSOR_ID = "sensorID";
@@ -45,7 +45,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.CS_DB + "("
                 + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
-                " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + "))";
+                " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + ","
+                + KEY_PROCESS_ID +"))";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create CS
 

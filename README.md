@@ -22,7 +22,7 @@ All documented and tested contributions that further the aim of this project are
 GENERAL
 - REQUIRED: improve docs
 - REQUIRED: improve design / handle all TODOs 
-- REQUIRED: most robust testing / handle corner cases / handle all TODOs
+- REQUIRED: most robust testing / handle corner cases 
 
 CLIENT
 - REQUIRED: modify/user all NDN packet components

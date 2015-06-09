@@ -22,6 +22,7 @@
     <string name="sensorName">Sensor Name: </string>
     <string name="collectionInterval">Collect Interval (hours): </string>
     <string name="connectionStatus">Connection Status: </string>
+    <string name="analyticsStatus">Analytics: </string>
 
     <string name="dataStatus">Data Status: </string>
     <string name="ip">IP: </string>

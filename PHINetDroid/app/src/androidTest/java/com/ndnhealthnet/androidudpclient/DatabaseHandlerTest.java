@@ -382,7 +382,8 @@ public class DatabaseHandlerTest extends TestCase {
 
         ArrayList<DBData> sensorData = DBSingleton.getInstance(context).getDB().getAllSensorData();
 
-        assertTrue(sensorData.size() == 2); // both entries should have been returned
+        // both entries should have been returned (plus the HeartbeatSensor which is always present)
+        assertTrue(sensorData.size() == 2 + 1);
 
         boolean entry1Found = false;
         boolean entry2Found = false;

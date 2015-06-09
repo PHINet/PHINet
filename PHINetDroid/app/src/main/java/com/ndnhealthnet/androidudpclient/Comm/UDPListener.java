@@ -381,7 +381,7 @@ public class UDPListener extends Thread {
         System.out.println("formatted sensor data: " + formattedData);
 
         Name packetName = JNDNUtils.createName(packetUserID, ConstVar.NULL_FIELD,
-               packetTimeString, ConstVar.SYNCH_DATA_REQUEST);
+                packetTimeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
 
         System.out.println("port: " + port + ", ip: " + ipAddr);
@@ -404,8 +404,10 @@ public class UDPListener extends Thread {
      *
      * @param data - TODO doc
      */
-    static void handleDataPacket(Data data)
-    {
+    static void handleDataPacket(Data data) {
+
+        System.out.println("handling data packet");
+
         // store received packet in database for further review
         DBSingleton.getInstance(context).getDB()
                 .addPacketData(new DBData(data.getName().toUri(), Utils.convertDataToString(data)));
@@ -454,6 +456,16 @@ public class UDPListener extends Thread {
                     requestFoundWithinInterval = true;
                     break;
                 }
+
+                if (Utils.isAnalyticProcessID(packetProcessID)
+                        && packetTimeString.equals(allValidPITEntries.get(i).getTimeString())) {
+                    /**
+                     * TODO - doc here ( both time strings are intervals)
+                     */
+
+                    requestFoundWithinInterval = true;
+                    break;
+                }
             }
 
             if (requestFoundWithinInterval) { // positive request count, process packet now
@@ -475,6 +487,9 @@ public class UDPListener extends Thread {
                     handleDataRegisterResult(packetUserID, packetSensorID, packetTimeString, packetProcessID,
                             dataContents);
 
+                } else if (Utils.isAnalyticProcessID(packetProcessID)) {
+                    handleAnalyticData(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                            dataContents);
                 } else {
                     // unknown process id; drop packet
                 }
@@ -640,5 +655,36 @@ public class UDPListener extends Thread {
         System.out.println("adding to CS, login result from: " + packetUserID);
 
         DBSingleton.getInstance(context).getDB().addCSData(data);
+    }
+
+    /**
+     * TODO - doc
+     *
+     * @param userID
+     * @param sensorID
+     * @param timeString
+     * @param processID
+     * @param dataContents
+     */
+    public static void handleAnalyticData(String userID, String sensorID, String timeString,
+                                          String processID, String dataContents) {
+
+        System.out.println("within handle analytic data");
+
+        DBData data = new DBData();
+
+        data.setUserID(userID);
+        data.setSensorID(sensorID);
+        data.setTimeString(timeString);
+        data.setProcessID(processID);
+        data.setDataFloat(dataContents);
+
+        System.out.println("user id: " + userID);
+        System.out.println("timestring: " + timeString);
+        System.out.println("proess id: " + processID);
+        System.out.println("data: " + dataContents);
+        System.out.println("sensor id: " + sensorID);
+
+        System.out.println("successfully added to CS: " + DBSingleton.getInstance(context).getDB().addCSData(data));
     }
 }
