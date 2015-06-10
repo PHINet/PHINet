@@ -27,53 +27,46 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
 
         try {
             final DatagramSocket clientSocket = new DatagramSocket();
-
             InetAddress IPAddress = InetAddress.getByName(destAddr);
-
-            byte[] packetContent = message[0]; // TODO - does this resolve the2d array input issue?
+            byte[] packetContent = message[0];
 
             DatagramPacket sendPacket = new DatagramPacket(packetContent, packetContent.length, IPAddress, destPort);
             clientSocket.send(sendPacket);
 
             /**
-             * method must listen for incoming packet if INTEREST_TYPE, otherwise
-             * we cannot detect incoming, requested packets from the server
+             * method must listen for incoming packet if we've just sent a packet, otherwise
+             * we may not be able to detect incoming, requested packets from the server
+             *
+             * listen in new thread for 1 second
              */
-          //  if (messageType.equals(ConstVar.INTEREST_TYPE)) {
+            Timer t = new Timer();
+            t.schedule(new TimerTask() {
 
-                // create listener in new thread, listen for 2 seconds
-                Timer t = new Timer();
-                t.schedule(new TimerTask() {
+                @Override
+                public void run() {
 
-                    @Override
-                    public void run() {
-
-                        // TODO - remove this loop
-
-                            byte[] receiveData = new byte[1024];
+                    byte[] receiveData = new byte[1024];
 
 
-                            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-                            try {
-                                clientSocket.receive(receivePacket);
-                                String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
-                                int packetPort = receivePacket.getPort();
+                    try {
+                        clientSocket.setSoTimeout(1000); // only listen for 1 second
+                        clientSocket.receive(receivePacket);
+                        String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+                        int packetPort = receivePacket.getPort();
 
-                                UDPListener.handleNDNPacket(receiveData, packetSourceIP, packetPort);
+                        UDPListener.handleNDNPacket(receiveData, packetSourceIP, packetPort);
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            clientSocket.close();
-                            this.cancel();
-
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }, 500L); // TODO - update doc; keep listener open for 2 seconds
-         /*   } else {
-                clientSocket.close(); // DATA_TYPE sent, no return expected; close socket
-            }*/
+
+                    clientSocket.close();
+                    this.cancel();
+
+                }
+            }, 1000L);
 
         } catch (Exception e) {
             System.out.println(e.toString());

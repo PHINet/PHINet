@@ -59,7 +59,7 @@ public class PatientListActivity extends ListActivity {
         ArrayList<DBData> patientList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
         if (patientList == null) {
             // array list is null; pass empty data structure rather than null
-            patientList = new ArrayList<DBData>();
+            patientList = new ArrayList<>();
         }
 
         final PatientAdapter adapter = new PatientAdapter(this, patientList);
@@ -112,7 +112,7 @@ public class PatientListActivity extends ListActivity {
                                 patientInputString[0] = patientInputString[0].trim(); // name input
                                 patientInputString[1] = patientInputString[1].trim(); // ip input
 
-                                isValidInput = Utils.validIP(patientInputString[0]);
+                                isValidInput = Utils.isValidIP(patientInputString[0]);
 
                                 // NOTE: name-length constraints were chosen somewhat arbitrarily
                                 isValidInput &= patientInputString[1].length() >= 3; // min. name requirement

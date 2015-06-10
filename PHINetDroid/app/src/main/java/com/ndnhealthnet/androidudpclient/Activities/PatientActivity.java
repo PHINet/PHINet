@@ -98,7 +98,7 @@ public class PatientActivity extends Activity {
             public void onClick(View v) {
 
                 // check before save AND notify user if invalid ip
-                if (!Utils.validIP(ipEditText.getText().toString())) {
+                if (!Utils.isValidIP(ipEditText.getText().toString())) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
 
                     builder.setTitle("Invalid IP entered. Submit anyways?");
@@ -154,7 +154,7 @@ public class PatientActivity extends Activity {
         // performs a network-capabilities AND IP check before attempting to send
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        boolean isValidIP = Utils.validIP(patientIP);
+        boolean isValidIP = Utils.isValidIP(patientIP);
 
         if (mWifi.isConnected()) {
 
@@ -199,7 +199,7 @@ public class PatientActivity extends Activity {
             System.out.println("prior to interest loop");
             for (int i = 0; i < allFIBEntries.size(); i++) {
                 // send request to everyone in FIB; only send to users with actual ip
-                if (Utils.validIP(allFIBEntries.get(i).getIpAddr())) {
+                if (Utils.isValidIP(allFIBEntries.get(i).getIpAddr())) {
 
                     Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, generateTimeString(),
                             ConstVar.INTEREST_CACHE_DATA);
@@ -239,9 +239,7 @@ public class PatientActivity extends Activity {
     }
 
     /**
-     * TODO - create a class for this dialog
-     *
-     * allows users to select date regarding interval of requested data
+     * Allows users to select date regarding interval of requested data
      *
      * @param title used to set title of dialog
      * @return returns the dialog so that it can be initiated elsewhere
@@ -279,15 +277,10 @@ public class PatientActivity extends Activity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            // get user input
-                            int day = intervalSelector.getDayOfMonth();
-                            int month = intervalSelector.getMonth() + 1; // offset required
-                            int year = intervalSelector.getYear();
-
-                            // start input already set, now store end input
-                            endYear = year;
-                            endMonth = month;
-                            endDay = day;
+                            // store user selection
+                            endYear = intervalSelector.getYear();
+                            endMonth = intervalSelector.getMonth() + 1; // offset required
+                            endDay = intervalSelector.getDayOfMonth();
 
                             // now that interval has been entered, request data from patient via NDN/UDP
                             requestHelper();

@@ -45,8 +45,7 @@ public class ViewDataActivity extends Activity {
     TextView dataStatusText, loggedInText, entityNameText, analyticsResultText;
     Spinner sensorSelectionSpinner;
     GraphView graph;
-    String entityName, currentSensorSelected;
-    String mostRecentlySelectedTask = ""; // TODO - doc
+    String entityName, currentSensorSelected, mostRecentlySelectedTask;
     ProgressBar analyticsWait;
 
     // --- used by the interval selector ---
@@ -103,7 +102,7 @@ public class ViewDataActivity extends Activity {
         final ArrayAdapter<String> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, sensors);
         sensorSelectionSpinner.setAdapter(adapter);
 
-        currentSensorSelected = sensorSelectionSpinner.getSelectedItem().toString(); // TODO - rework in case of no sensors
+        currentSensorSelected = sensorSelectionSpinner.getSelectedItem().toString();
 
         sensorSelectionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -190,11 +189,7 @@ public class ViewDataActivity extends Activity {
             public void onClick(DialogInterface dialog, int which) {
 
                 final String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
-
                 final String currentTime = Utils.createAnalyticTimeInterval(dataStatusText.getText().toString());
-
-                // TODO - get correct time (make it an itnerval)
-
                 final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
                 // query server for analytic task
@@ -203,8 +198,6 @@ public class ViewDataActivity extends Activity {
                 Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                 Blob blob = interest.wireEncode();
-
-                System.out.println("sending analytic interest to server");
 
                 // add entry into PIT
                 DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
@@ -267,8 +260,6 @@ public class ViewDataActivity extends Activity {
     }
 
     /**
-     * TODO - create a class for this dialog
-     *
      * Allows users to select date regarding interval of requested data
      *
      * @param title used to set title of dialog

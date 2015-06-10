@@ -165,7 +165,6 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // client requests mode analytic task on data
             else if (packetProcessID === StringConst.MODE_ANALYTIC) {
 
-                console.log("processing mode analytic task");
                 handleModeAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
             }
             // client requests median analytic task on data
@@ -240,10 +239,6 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                             requestFoundWithinInterval = true;
                             break;
                         }
-
-                        console.log("packet process id: " + packetProcessID);
-                        console.log("pit time string: " + allValidPITEntries[i].getTimeString());
-                        console.log("packet time string: " + packetTimeString);
 
                         if (packetProcessID === StringConst.SYNCH_DATA_REQUEST
                             && allValidPITEntries[i].getTimeString() === packetTimeString) {
@@ -985,15 +980,17 @@ function getRequestedData(userID, sensorID, timeString, callback) {
  * Initiates synchronization request by sending Interest
  * to client requesting data within timeString interval.
  *
+ * Here the userID was placed in sensorID position; the sensorID is null
+ * (because no sensorID is used when we send a synch) and we need to include
+ * the userID - so we place the userID as a sensorID.
+ *
  * @param userID of client requesting synch request
- * @param sensorID ; TODO - doc
+ * @param sensorID here is actually the userID
  * @param timeString of data that should be synched
  * @param hostIP of client requesting synch request
  * @param hostPort of client requesting synch request
  */
 function handleSynchRequest(userID, sensorID, timeString, hostIP, hostPort) {
-
-    // TODO note client placing userID as sensor ID (no other place to do so; this is a clever "hack"), etc
 
     console.log("sending interest for synch request, timestring: " + timeString);
 

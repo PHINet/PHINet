@@ -2,10 +2,13 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
+import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import junit.framework.TestCase;
+
+import java.util.ArrayList;
 
 /**
  * Tests the functionality of Utils.java
@@ -32,6 +35,11 @@ public class UtilsTest extends TestCase {
         testConvertDBRowTFloats();
         testGetCurrentTime();
         testValidIP();
+        testCreateAnalyticTimeInterval();
+        testIsValidEmail();
+        testFormatSynchData();
+        testIsValidUserName();
+        testIsValidPassword();
 
         // reset user credentials after test
         assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, ""));
@@ -94,16 +102,15 @@ public class UtilsTest extends TestCase {
     public void testValidIP() throws Exception {
 
         // test bad IP input
-        assertFalse(Utils.validIP("invalid"));
-        assertFalse(Utils.validIP(null));
-        assertFalse(Utils.validIP("11.11.11.500000"));
+        assertFalse(Utils.isValidIP("invalid"));
+        assertFalse(Utils.isValidIP(null));
+        assertFalse(Utils.isValidIP("11.11.11.500000"));
 
         // test good IP input
-        assertTrue(Utils.validIP("10.10.10.10"));
+        assertTrue(Utils.isValidIP("10.10.10.10"));
     }
 
     /**
-     *
      * @throws Exception for failed tests
      */
     public void testIsValidForTimeInterval() throws Exception {
@@ -138,5 +145,132 @@ public class UtilsTest extends TestCase {
         // test input acceptance if during interval
         assertTrue(Utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval1));
         assertTrue(Utils.isValidForTimeInterval(testInterval1, dataTime1));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testCreateAnalyticTimeInterval() throws Exception {
+
+        String goodInput = "06/11/1990 - 09/10/2000";
+        String goodOutput = "1990-11-06T00.00.00.000||2000-10-09T00.00.00.000";
+
+        String badInput = "2934asdfkj1;23";
+        String badOutput = "fdfjjfjfjjda2332---";
+
+        // test on good input
+        assertTrue(Utils.createAnalyticTimeInterval(goodInput).equals(goodOutput));
+
+        // test on bad input
+        boolean exceptionCaught = false;
+        try {
+            assertFalse(Utils.createAnalyticTimeInterval(badInput).equals(badOutput));
+        } catch (IllegalArgumentException e) {
+            exceptionCaught = true;
+        }
+
+        assertTrue(exceptionCaught); // assert that exception was thrown
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidEmail() throws Exception {
+        String validEmail1 = "me@mail.com";
+        String validEmail2 = "this.person@co.de.edu";
+        String validEmail3 = "another.person.here@cs.edu";
+        String invalidEmail1 = "me@mmail@mail.com";
+        String invalidEmail2 = "me@.mail.com";
+        String invalidEmail3 = "@mail.com";
+
+        // test valid emails
+        assertTrue(Utils.isValidEmail(validEmail1));
+        assertTrue(Utils.isValidEmail(validEmail2));
+        assertTrue(Utils.isValidEmail(validEmail3));
+
+        // test invalid emails
+        assertFalse(Utils.isValidEmail(invalidEmail1));
+        assertFalse(Utils.isValidEmail(invalidEmail2));
+        assertFalse(Utils.isValidEmail(invalidEmail3));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testFormatSynchData() throws Exception {
+        DBData goodData1 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-06T00.00.00.000", "userID", "10");
+        DBData goodData2 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-07T00.00.00.000", "userID", "15");
+        DBData goodData3 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-08T00.00.00.000", "userID", "99");
+        DBData goodData4 = new DBData(ConstVar.CS_DB, "sensorID2", ConstVar.NULL_FIELD,
+                "1990-11-09T00.00.00.000", "userID", "100");
+        DBData badData1 = null;
+
+        ArrayList<DBData> goodDataList = new ArrayList<>();
+        goodDataList.add(goodData1);
+        goodDataList.add(goodData2);
+        goodDataList.add(goodData3);
+        goodDataList.add(goodData4);
+
+        ArrayList<DBData> badDataList = new ArrayList<>();
+        badDataList.add(goodData1);
+        badDataList.add(badData1);
+
+        String formattedData = Utils.formatSynchData(goodDataList);
+        String correctlyFormattedData = "sensorID2--100,1990-11-09T00.00.00.000::sensorID1--10,"
+                + "1990-11-06T00.00.00.000;;15,1990-11-07T00.00.00.000;;99,1990-11-08T00.00.00.000";
+
+        assertTrue(formattedData.equals(correctlyFormattedData));
+
+        boolean exceptionThrown = false;
+        try {
+            Utils.formatSynchData(badDataList);
+        } catch (Exception e) {
+            exceptionThrown = true;
+        }
+
+        assertTrue(exceptionThrown); // assert that exception was thrown
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidUserName() throws Exception {
+        String validUserName1 = "username";
+        String invalidUserName1 = "user,name";
+        String invalidUserName2 = "user;name";
+        String invalidUserName3 = "user-name";
+        String invalidUserName4 = "user:name";
+        String invalidUserName5 = "a";
+        String invalidUserName6 = "aopsidjfapisjfapisdjfaisdjapsidfj";
+
+        // test valid username
+        assertTrue(Utils.isValidUserName(validUserName1));
+
+        // test invalid usernames
+        assertFalse(Utils.isValidUserName(invalidUserName1));
+        assertFalse(Utils.isValidUserName(invalidUserName2));
+        assertFalse(Utils.isValidUserName(invalidUserName3));
+        assertFalse(Utils.isValidUserName(invalidUserName4));
+        assertFalse(Utils.isValidUserName(invalidUserName5));
+        assertFalse(Utils.isValidUserName(invalidUserName6));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidPassword() throws Exception {
+        String validPassword = "hunter2";
+        String invalidPassword1 = "pw";
+        String invalidPassword2 = "asdfjapsidjfapsidjfpaisjdfpaisdjfas";
+
+        // test valid password
+        assertTrue(Utils.isValidPassword(validPassword));
+
+        // test invalid passwords
+        assertFalse(Utils.isValidPassword(invalidPassword1));
+        assertFalse(Utils.isValidPassword(invalidPassword2));
     }
 }

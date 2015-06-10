@@ -78,7 +78,7 @@ public class LoginActivity extends Activity {
                     final String password = pwEdit.getText().toString();
 
                     // both inputs are valid, now query server for login
-                    if (Utils.validInputUserName(userID) && Utils.validInputPassword(password)) {
+                    if (Utils.isValidUserName(userID) && Utils.isValidPassword(password)) {
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
@@ -92,8 +92,7 @@ public class LoginActivity extends Activity {
 
                         Blob blob = interest.wireEncode();
 
-                        // TODO - update with server's real IP
-                        new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
                                 .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                         // store received packet in database for further review
@@ -135,8 +134,8 @@ public class LoginActivity extends Activity {
 
                 Intent returnIntent = new Intent();
 
-                if (Utils.validInputUserName(currentUserID)
-                        && Utils.validInputPassword(currentPassword)) {
+                if (Utils.isValidUserName(currentUserID)
+                        && Utils.isValidPassword(currentPassword)) {
                     setResult(RESULT_OK, returnIntent); // notifies MainActivity of success
                 } else {
                     setResult(RESULT_CANCELED, returnIntent); // notifies MainActivity of failure
@@ -181,8 +180,7 @@ public class LoginActivity extends Activity {
                 Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
                 Blob blob = data.wireEncode();
 
-                // TODO - update with server's real IP
-                new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.DATA_TYPE)
+                new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
                         .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                 // delete Interest requesting login credentials from PIT; it has been satisfied
@@ -239,8 +237,7 @@ public class LoginActivity extends Activity {
 
         Blob blobInner = interest.wireEncode();
 
-        // TODO - update with server's real IP
-        new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
+        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
                 .execute(blobInner.getImmutableArray()); // reply to interest with DATA from cache
 
         // store packet in database for further review

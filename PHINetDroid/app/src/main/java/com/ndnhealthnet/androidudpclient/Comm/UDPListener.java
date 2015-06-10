@@ -584,7 +584,7 @@ public class UDPListener extends Thread {
             data.setTimeString(ConstVar.CURRENT_TIME);
 
             // perform minimal input validation, and don't add data for self here
-            if (data.getUserID() != "" && Utils.validIP(data.getIpAddr()) && !data.getUserID().equals(myUserID)) {
+            if (!data.getUserID().equals("") && Utils.isValidIP(data.getIpAddr()) && !data.getUserID().equals(myUserID)) {
 
                 DBData fibCheckObject = DBSingleton.getInstance(context).getDB().getFIBData(data.getUserID());
 
@@ -678,13 +678,5 @@ public class UDPListener extends Thread {
         data.setTimeString(timeString);
         data.setProcessID(processID);
         data.setDataFloat(dataContents);
-
-        System.out.println("user id: " + userID);
-        System.out.println("timestring: " + timeString);
-        System.out.println("proess id: " + processID);
-        System.out.println("data: " + dataContents);
-        System.out.println("sensor id: " + sensorID);
-
-        System.out.println("successfully added to CS: " + DBSingleton.getInstance(context).getDB().addCSData(data));
     }
 }

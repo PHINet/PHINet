@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
@@ -19,9 +20,13 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.TimeZone;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
+
 /**
- * Class facilitates user credential storage, which is necessary for NDN communication -
- * as well as numerous other helpful, miscellaneous features.
+ * Class facilitates user credential storage, which is necessary for NDN
+ * communication - as well as numerous other helpful, miscellaneous features.
  */
 public class Utils {
 
@@ -35,12 +40,14 @@ public class Utils {
      */
     public static boolean saveToPrefs(Context context, String key, String value) {
 
-        // TODO - hash the password
-
         if (context == null || key == null || value == null
                 || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
                 && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
             return false;
+        }
+
+        if (key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY)) {
+            key = BCrypt.hashpw(key, BCrypt.gensalt()); // hash if password
         }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -90,7 +97,6 @@ public class Utils {
      */
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData, String sensor,
                     String startDate, String endDate) {
-        // TODO - improve display accuracy (order chronologically, etc)
 
         ArrayList<Float> myFloatData = new ArrayList<Float>();
 
@@ -115,31 +121,37 @@ public class Utils {
     }
 
     /**
-     * TODO - doc
-     * TODO - test
+     * Converts the date format displayed to the user to one that better
+     * captures the correct time and is used elsewhere in the program.
      *
      * Input Syntax: "DD/MM/YYYY - DD/MM/YYYY"
      * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
      *
-     * @param chosenInterval
-     * @return
+     * @param chosenInterval to be converted to alternative syntax
+     * @return the syntactically-converted interval
      */
-    public static String createAnalyticTimeInterval(String chosenInterval) {
-        String convertedAnalyticInterval = "";
+    public static String createAnalyticTimeInterval(String chosenInterval)  {
 
-        chosenInterval = chosenInterval.replace(" ", ""); // remove spaces
+        try {
+            String convertedAnalyticInterval = "";
 
-        String [] intervals = chosenInterval.split("-");
+            chosenInterval = chosenInterval.replace(" ", ""); // remove spaces
 
-        String [] startInterval = intervals[0].split("/");
-        String [] endInterval = intervals[1].split("/");
+            String [] intervals = chosenInterval.split("-");
 
-        // set hours,minutes,seconds,millis all to 0 as default
-        convertedAnalyticInterval += startInterval[0] + "-" + startInterval[1] + "-" +
-                startInterval[2] + "T00.00.00.000||" + endInterval[0] + "-" + endInterval[1] +
-                "-" + endInterval[2] + "T00.00.00.000";
+            String [] startInterval = intervals[0].split("/");
+            String [] endInterval = intervals[1].split("/");
 
-        return convertedAnalyticInterval;
+            // set hours,minutes,seconds,millis all to 0 as default
+            convertedAnalyticInterval += startInterval[2] + "-" + startInterval[1] + "-" +
+                    startInterval[0] + "T00.00.00.000||" + endInterval[2] + "-" + endInterval[1] +
+                    "-" + endInterval[0] + "T00.00.00.000";
+
+            return convertedAnalyticInterval;
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("!!Error occurred in Utils.createAnalyticTimeInterval: \" + e");
+        }
     }
 
     /**
@@ -170,16 +182,15 @@ public class Utils {
     }
 
     /**
-     * TODO - doc
-     * TODO - test
+     * Helper method that simplifies the code elsewhere.
      *
-     * @param packetProcessID
-     * @return
+     * @param processID under question
+     * @return true if processID is denotes an analytic task, false otherwise
      */
-    public static boolean isAnalyticProcessID(String packetProcessID) {
-        return packetProcessID.equals(ConstVar.MODE_ANALYTIC)
-                || packetProcessID.equals(ConstVar.MEAN_ANALYTIC)
-                || packetProcessID.equals(ConstVar.MEDIAN_ANALYTIC);
+    public static boolean isAnalyticProcessID(String processID) {
+        return processID.equals(ConstVar.MODE_ANALYTIC)
+                || processID.equals(ConstVar.MEAN_ANALYTIC)
+                || processID.equals(ConstVar.MEDIAN_ANALYTIC);
 
         // TODO - add more analytic process ids here once they are implemented
     }
@@ -190,7 +201,7 @@ public class Utils {
      * @param ip input to be validated
      * @return validity status of input IP
      */
-    public static boolean validIP(String ip) {
+    public static boolean isValidIP(String ip) {
 
         if (ip == null) {
             return false;
@@ -261,143 +272,260 @@ public class Utils {
     }
 
     /**
+     * Each user-defined synch interval, this method is invoked and converts all data collected
+     * during past interval into a string (syntax below) for easy placement in NDN Data packet.
+     *
      * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
      *
-     * TODO - doc
-     *
-     * TODO - test
-     *
-     * @param data
-     * @return
+     * @param data to be converted
+     * @return converted data
      */
     public static String formatSynchData(ArrayList<DBData> data) {
 
-        Hashtable<String, ArrayList<DBData>> hashedBySensors = new Hashtable<>();
-        String formattedSyncData = "";
+        try {
+            Hashtable<String, ArrayList<DBData>> hashedBySensors = new Hashtable<>();
+            String formattedSyncData = "";
 
-        // first separate data based upon sensor
-        for (int i = 0; i < data.size(); i++) {
-            // sensor hasn't been stored yet, create ArrayList for its data and store now
-            if (!hashedBySensors.containsKey(data.get(i).getSensorID())) {
+            // first separate data based upon sensor
+            for (int i = 0; i < data.size(); i++) {
+                // sensor hasn't been stored yet, create ArrayList for its data and store now
+                if (!hashedBySensors.containsKey(data.get(i).getSensorID())) {
 
-                ArrayList<DBData> dataForSensor = new ArrayList<>();
-                dataForSensor.add(data.get(i));
+                    ArrayList<DBData> dataForSensor = new ArrayList<>();
+                    dataForSensor.add(data.get(i));
 
-                hashedBySensors.put(data.get(i).getSensorID(), dataForSensor);
-            }
-            // sensor has been seen, append data to its ArrayList now
-            else {
+                    hashedBySensors.put(data.get(i).getSensorID(), dataForSensor);
+                }
+                // sensor has been seen, append data to its ArrayList now
+                else {
 
-                hashedBySensors.get(data.get(i).getSensorID()).add(data.get(i));
-            }
-        }
-
-        // now format data for each sensor
-        for (String key : hashedBySensors.keySet()) {
-
-            formattedSyncData += key + "--"; // '--' separates sensor's name from its data
-
-            for (int i = 0; i < hashedBySensors.get(key).size(); i++) {
-                DBData sensorData = hashedBySensors.get(key).get(i);
-
-                formattedSyncData += sensorData.getDataFloat() + "," + sensorData.getTimeString();
-                formattedSyncData += ";;"; // ';;' separates each data piece for sensor
+                    hashedBySensors.get(data.get(i).getSensorID()).add(data.get(i));
+                }
             }
 
-            // remove last two chars, ';;', because they proceed no data
+            // now format data for each sensor
+            for (String key : hashedBySensors.keySet()) {
+
+                formattedSyncData += key + "--"; // '--' separates sensor's name from its data
+
+                for (int i = 0; i < hashedBySensors.get(key).size(); i++) {
+                    DBData sensorData = hashedBySensors.get(key).get(i);
+
+                    formattedSyncData += sensorData.getDataFloat() + "," + sensorData.getTimeString();
+                    formattedSyncData += ";;"; // ';;' separates each data piece for sensor
+                }
+
+                // remove last two chars, ';;', because they proceed no data
+                formattedSyncData = formattedSyncData.substring(0, formattedSyncData.length() - 2);
+
+                formattedSyncData += "::"; // '::' separates each sensor
+            }
+
+            // remove last two chars, '::', because they proceed no sensor
             formattedSyncData = formattedSyncData.substring(0, formattedSyncData.length() - 2);
 
-            formattedSyncData += "::"; // '::' separates each sensor
+            return formattedSyncData;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("!!Error in utils.formatSynchData(): " + e);
         }
-
-        // remove last two chars, '::', because they proceed no sensor
-        formattedSyncData = formattedSyncData.substring(0, formattedSyncData.length() - 2);
-
-        return formattedSyncData;
     }
 
     /**
      * Attempts to determine whether userID input is valid
      *
-     * TODO - test AND define correct pw syntax & user regular expressions
+     * TODO - define proper syntax
      *
      * @param userID input to have validity assessed
      * @return boolean regarding validity of input
      */
-    public static boolean validInputUserName(String userID) {
+    public static boolean isValidUserName(String userID) {
+
         // TODO - perform sophisticated input validation
 
-        return userID.length() > 5 && userID.length() < 15;
+        return userID.length() >= 3 && userID.length() <= 15 && !userID.contains(":") &&
+                !userID.contains(";") && !userID.contains("-") && !userID.contains(",");
     }
 
     /**
      * Attempts to determine whether password is valid
      *
-     * TODO - test AND define correct pw syntax  & user regular expressions
+     * TODO - define proper syntax
      *
-     * @param sensorID input to have validity assessed
+     * @param password input to have validity assessed
      * @return boolean regarding validity of input
      */
-    public static boolean validInputPassword(String sensorID) {
+    public static boolean isValidPassword(String password) {
 
-        return sensorID.length() >= 3;
+        // TODO - perform sophisticated input validation
+
+        return password.length() >= 3 && password.length() <= 15;
     }
 
     /**
-     * TODO - doc and test
+     * Uses Java Mail module to determine validity of email address.
      *
-     * @param email
-     * @return
+     * @param email specified by user
+     * @return true if valid; otherwise, false
      */
-    public static boolean validEmail(String email) {
-        return true;
+    public static boolean isValidEmail(String email) {
+        boolean result = true;
+        try {
+            InternetAddress emailAddr = new InternetAddress(email);
+            emailAddr.validate();
+        } catch (AddressException ex) {
+            result = false;
+        }
+        return result;
     }
 
     /**
-     * Converts an NDN Name component to a string
+     * Converts an NDN Name component to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/name.html
      *
      * @param name - an NDN name component
      * @return input param converted to string
      */
     public static String convertNameToString(Name name) {
 
-        // TODO - is this the component specified in the NDN documentation?
-        String hashComponent = Integer.toString(name.hashCode());
+        String hashComponent = "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + name.hashCode()
+                + " TLV-LENGTH " + Integer.toString(name.hashCode()).length();
 
-        return  "NAME-TYPE TLV-LENGTH " + name.toUri().length() + " TLV-LENGTH " + name.toUri()
-                + " " + hashComponent + " TLV-LENGTH " + hashComponent.length();
+        String genericNameComponent = "NAME-COMPONENT-TYPE " + name.toUri() + " TLV-LENGTH "
+                + name.toUri().length();
+
+        return  "NAME-TYPE TLV-LENGTH " + (hashComponent.length() + genericNameComponent.length())
+                + genericNameComponent + " " + hashComponent;
     }
 
     /**
-     * Converts an Interest packet to a string
+     * Converts an Data packet's MetaInfo to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
      *
-     * @param interest - an Interest packet
-     * @return input param converted to string
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/data.html
+     *
+     * @param data used during conversion
+     * @return string containing Data's MetaInfo
      */
-    public static String convertInterestToString(Interest interest) {
+    public static String convertMetaInfoToString(Data data) {
 
-        // TODO - set correct length (using bytes)
+        String contentType = "CONTENT-TYPE-TYPE TLV-LENGTH " + data.getMetaInfo().getType();
+        String freshnessPeriod = "FRESHNESS-PERIOD-TLV TLV-LENGTH " + data.getMetaInfo().getFreshnessPeriod();
+        String finalBlockID = "FINAL-BLOCK-ID-TLV TLV-LENGTH " + data.getMetaInfo().getFinalBlockId().hashCode();
 
-        // TODO - complete this function (selectors, nonce, scope, interestlifetime)
+        int length = contentType.length() + freshnessPeriod.length() + finalBlockID.length();
 
-
-        return "INTEREST-TYPE TLV-LENGTH" + interest.toUri().length() + " "
-                + convertNameToString(interest.getName());
+        return "META-INFO-TYPE TLV-LENGTH " + length + " " + contentType + " " + freshnessPeriod
+                + " " + finalBlockID;
     }
 
     /**
-     * Converts a Data packet to a string
+     * Converts an Data packet's Content to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/data.html
+     *
+     * @param data used during conversion
+     * @return string containing Data's Content
+     */
+    public static String convertContentToString(Data data) {
+
+        String contentType = "CONTENT-TYPE-TYPE TLV-LENGTH "; // TODO - get content type
+        String content = data.getContent().toString();
+
+        int length = contentType.length() + content.length();
+
+        return "CONTENT-TYPE " + content + " TLV-LENGTH " + length + " " + contentType;
+    }
+
+    /**
+     * Converts an Data packet's Signature to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/data.html
+     * @param data used during conversion
+     * @return string containing Data's Signature
+     */
+    public static String convertSignatureToString(Data data) {
+
+        String signatureInfo = "SIGNATURE-INFO-TYPE TLV-LENGTH "; // TODO - get signature info
+        String signatureBits = "SIGNATURE-VALUE-TYPE TLV-LENGTH "; // TODO - get signature value
+
+       return signatureInfo + " " + signatureBits;
+    }
+
+    /**
+     * Converts an Data packet to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/data.html
      *
      * @param data - a data packet
      * @return input param converted to string
      */
     public static String convertDataToString(Data data) {
 
-        // TODO - set correct length (using bytes)
+        String name = convertNameToString(data.getName());
+        String metaInfo = convertMetaInfoToString(data);
+        String content = convertContentToString(data);
+        String signature = convertSignatureToString(data);
 
-        // TODO - complete this function (metainfo, content, signature)
+        int length = name.length() + metaInfo.length() + content.length() + signature.length();
 
-        return "DATA-TLV TLV-LENGTH {TODO-LENGTH} " + convertNameToString(data.getName());
+        return "DATA-TLV TLV-LENGTH " + length + " " + name + " " + metaInfo + " " + content
+                + " " + signature;
+    }
+
+    /**
+     * Converts an Interest packet's selectors to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/interest.html
+     *
+     * @param interest used during conversion
+     * @return string containing Interest's selectors
+     */
+    public static String convertSelectorsToString(Interest interest) {
+
+        String minSuffixComponents = "MIN-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMinSuffixComponents();
+        String maxSuffixComponents = "MAX-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMaxSuffixComponents();
+        String publisherPublicKeyLocator = interest.getKeyLocator().toString();
+        String exclude = "EXCLUDE-TYPE TLV-LENGTH ANY-TYPE TLV-LENGTH(=0)";
+        String childSelector = "CHILD-SELECTOR-TYPE TLV-LENGTH " + interest.getChildSelector();
+        String mustBeFresh = "MUST-BE-FRESH-TYPE TLV-LENGTH(=0)";
+
+        int length = minSuffixComponents.length() + maxSuffixComponents.length()
+                + publisherPublicKeyLocator.length() + exclude.length() + childSelector.length()
+                + mustBeFresh.length();
+
+        return "SELECTORS-TYPE TLV-LENGTH " + length + " " + minSuffixComponents
+                + " " + maxSuffixComponents + " " + publisherPublicKeyLocator + " " + exclude
+                + " " + childSelector + " " + mustBeFresh;
+    }
+
+    /**
+     * Converts an Interest packet to a string for further review.
+     * This conversion attempts to stay close to the NDN documentation.
+     *
+     * See NDN documentation: http://named-data.net/doc/ndn-tlv/interest.html
+     *
+     * @param interest - an Interest packet
+     * @return input param converted to string
+     */
+    public static String convertInterestToString(Interest interest) {
+
+        String name = convertNameToString(interest.getName());
+        String selectors = convertSelectorsToString(interest);
+        String nonce = "NONCE-TYPE " + interest.getNonce().hashCode() + " TLV-LENGTH 4";
+        String scope = "SCOPE-TYPE TLV-LENGTH " + interest.getScope();
+        String interestLifetime = "INTEREST-LIFETIME-TYPE TLV-LENGTH " + interest.getInterestLifetimeMilliseconds();
+
+        int length = name.length() + selectors.length() + nonce.length() + scope.length()
+                + interestLifetime.length();
+
+        return "INTEREST-TYPE TLV-LENGTH " + length + " " + name + " " + selectors + " "
+                + nonce + " " + scope + " " + interestLifetime;
     }
 
     /**

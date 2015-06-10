@@ -9,18 +9,17 @@ var StringConst = require('./string_const').StringConst;
 exports.Utils = {
 
     /**
-     * TODO - doc
-     * TODO - test
+     * Used to parse (syntax below) synchronization data sent by clients into individual objects.
      *
      * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
      *
-     * @param userID
-     * @param dataContents
-     * @returns {Array}
+     * @param userID of sender
+     * @param dataContents for synchronization request
+     * @returns {Array} of objects containing parsed data if input valid; otherwise returns empty array
      */
     parseSynchData: function(userID, dataContents) {
 
-        if (dataContents) {
+        if (dataContents && userID) {
             var parsedData = [];
             var splitBySensor = dataContents.split("::"); // '::' separates by sensor
 
@@ -47,7 +46,7 @@ exports.Utils = {
 
             return parsedData;
         } else {
-            return null;
+            return [];
         }
     },
 

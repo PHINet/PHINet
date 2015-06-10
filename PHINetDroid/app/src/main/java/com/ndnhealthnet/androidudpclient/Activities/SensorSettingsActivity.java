@@ -1,7 +1,9 @@
 package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -86,33 +88,7 @@ public class SensorSettingsActivity extends Activity {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                int chosenInterval = Integer.parseInt(intervalEdit.getText().toString());
-
-                if (chosenInterval <= 0) {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval", Toast.LENGTH_LONG);
-                    toast.show();
-                } else {
-                    DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
-
-                    if (sensorQueryResult == null) {
-                        // result was null; sensor hasn't been added yet - do so now
-
-                        DBData newEntry = new DBData(sensorName, chosenInterval);
-
-                        DBSingleton.getInstance(getApplicationContext()).getDB().addSensorData(newEntry);
-                    } else {
-                        // result wasn't null; sensor has already been added - just update it
-
-                        DBData updatedEntry = new DBData(sensorName, chosenInterval);
-
-                        DBSingleton.getInstance(getApplicationContext()).getDB().updateSensorData(updatedEntry);
-                    }
-
-                    Toast toast = Toast.makeText(getApplicationContext(), "Save successful", Toast.LENGTH_LONG);
-                    toast.show();
-
-                    // TODO - initiate collection interval (create thread to collect, etc)
-                }
+                saveChanges();
             }
         });
 
@@ -138,7 +114,23 @@ public class SensorSettingsActivity extends Activity {
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
 
-                finish();
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                saveChanges();
+                                finish();
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                finish();
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(SensorSettingsActivity.this);
+                builder.setMessage("Save changes?").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
             }
         });
     }
@@ -172,5 +164,38 @@ public class SensorSettingsActivity extends Activity {
     private void connectToSensor() {
         Intent intent = new Intent(SensorSettingsActivity.this, PairedSensorsListActivity.class);
         startActivityForResult(intent, SENSOR_SELECTION_CODE);
+    }
+
+    /**
+     * TODO - doc
+     */
+    private void saveChanges() {
+        int chosenInterval = Integer.parseInt(intervalEdit.getText().toString());
+
+        if (chosenInterval <= 0) {
+            Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval", Toast.LENGTH_LONG);
+            toast.show();
+        } else {
+            DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+
+            if (sensorQueryResult == null) {
+                // result was null; sensor hasn't been added yet - do so now
+
+                DBData newEntry = new DBData(sensorName, chosenInterval);
+
+                DBSingleton.getInstance(getApplicationContext()).getDB().addSensorData(newEntry);
+            } else {
+                // result wasn't null; sensor has already been added - just update it
+
+                DBData updatedEntry = new DBData(sensorName, chosenInterval);
+
+                DBSingleton.getInstance(getApplicationContext()).getDB().updateSensorData(updatedEntry);
+            }
+
+            Toast toast = Toast.makeText(getApplicationContext(), "Save successful", Toast.LENGTH_LONG);
+            toast.show();
+
+            // TODO - initiate collection interval (create thread to collect, etc)
+        }
     }
 }

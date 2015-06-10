@@ -112,3 +112,44 @@ describe('Utils', function(){
         })
     })
 });
+
+/**
+ * Tests Utils.parseSynchData() functionality.
+ */
+describe('Utils', function(){
+    describe('#parseSynchData()', function(){
+        it('after parse, returns list of parsed data', function(done){
+
+            // this input contains two data points from sensorID1 and one data point from sensorID2
+            var goodInput = "sensorID2--100,1990-11-09T00.00.00.000::sensorID1--10,1990-11-06T00.00.00.000;;"
+                                        + "15,1990-11-07T00.00.00.000;;99,1990-11-08T00.00.00.000";
+            var badInput = "i1sdfpijajjsdf";
+
+            var goodParsedInput = utils.parseSynchData("userID", goodInput);
+            var badParsedOutput1 = utils.parseSynchData("userID", badInput);
+            var badParsedOutput2 = utils.parseSynchData("", badInput);
+
+            var foundSensorID1Count = 0;
+            var foundSensorID2Count = 0;
+
+            // check to see that both sensors were found
+            for (var i = 0; i < goodParsedInput.length; i++) {
+                if (goodParsedInput[i].getSensorID() === "sensorID2") {
+                    foundSensorID2Count += 1;
+                } else if (goodParsedInput[i].getSensorID() === "sensorID1") {
+                    foundSensorID1Count += 1;
+                }
+            }
+
+            // test good output found in right proportions
+            expect(foundSensorID1 === 2 && foundSensorID2 === 1).to.equal(true);
+
+            // test bad output
+            expect(badParsedOutput1).to.equal([]);
+            expect(badParsedOutput2).to.equal([]);
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
+        })
+    })
+});
+

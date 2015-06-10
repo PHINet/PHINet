@@ -1,7 +1,10 @@
 package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -208,38 +211,44 @@ public class MainActivity extends Activity {
 
                 while (true) {
 
-                    // TODO - check for wifi connectivity
+                    ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-                    // synch request is each hour, interval syntax: start||end
-                    String currentTime = Utils.getPreviousHourTime() + "||" + Utils.getCurrentTime();
+                    // only attend synch of wifi is connected
+                    if (mWifi.isConnected()) {
 
-                    String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+                        // synch request is each hour, interval syntax: start||end
+                        String currentTime = Utils.getPreviousHourTime() + "||" + Utils.getCurrentTime();
 
-                    // query server for initialization of synch request
-                    Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, myUserID,
-                            currentTime, ConstVar.INITIATE_SYNCH_REQUEST);
-                    Interest interest = JNDNUtils.createInterestPacket(packetName);
+                        String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
-                    Blob blob = interest.wireEncode();
+                        /**
+                         * adding userID as sensorID entry here is a "hack"; the sensorID is null
+                         * (because no sensorID is used when we send a synch) and we need to include
+                         * the userID - so we place the userID as a sensorID
+                         */
 
-                    System.out.println("sending synch request initiation to server");
+                        // query server for initialization of synch request
+                        Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, myUserID,
+                                currentTime, ConstVar.INITIATE_SYNCH_REQUEST);
+                        Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                    // TODO - note adding userID as sensor entry here (it's a clear "hack"), etc
+                        Blob blob = interest.wireEncode();
 
-                    // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
-                    DBData data = new DBData(ConstVar.PIT_DB, myUserID, ConstVar.SYNCH_DATA_REQUEST,
-                            currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
+                        // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
+                        DBData data = new DBData(ConstVar.PIT_DB, myUserID, ConstVar.SYNCH_DATA_REQUEST,
+                                currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
 
-                    DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
+                        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-                    // TODO - include real server IP
-                    new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
-                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
+                                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
-                    // store received packet in database for further review
-                    Utils.storeInterestPacket(getApplicationContext(), interest);
+                        // store received packet in database for further review
+                        Utils.storeInterestPacket(getApplicationContext(), interest);
 
-                    SystemClock.sleep(ConstVar.SYNCH_INTERVAL_MILLIS); // sleep until next synch
+                        SystemClock.sleep(ConstVar.SYNCH_INTERVAL_MILLIS); // sleep until next synch
+                    }
                 }
             }
         });

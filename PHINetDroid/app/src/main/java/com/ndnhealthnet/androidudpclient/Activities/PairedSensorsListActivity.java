@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -75,8 +76,8 @@ public class PairedSensorsListActivity  extends ListActivity {
             public void onClick(View v) {
                 discoverSensors();
 
-                // TODO - append discovered sensors to ListView
-
+                Toast toast = Toast.makeText(getApplicationContext(), "Results (if any) should appear within 15 seconds.", Toast.LENGTH_LONG);
+                toast.show();
             }
         });
     }

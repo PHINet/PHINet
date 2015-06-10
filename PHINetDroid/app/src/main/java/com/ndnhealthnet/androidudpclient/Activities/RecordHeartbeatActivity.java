@@ -61,10 +61,7 @@ public class RecordHeartbeatActivity extends Activity {
     private static long startTime = 0;
 
     Button backBtn, recordBtn;
-    
-    /**
-     * TODO - document
-     */
+
     @SuppressWarnings("deprecation")
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -144,17 +141,11 @@ public class RecordHeartbeatActivity extends Activity {
 	    // TODO Add Component for to Sending data to Server
     }
 
-    /**
-     * TODO - document
-     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 
-    /**
-     * TODO - document
-     */
     @Override
     public void onResume() {
         super.onResume();
@@ -166,9 +157,6 @@ public class RecordHeartbeatActivity extends Activity {
         startTime = System.currentTimeMillis();
     }
 
-    /**
-     * TODO - document
-     */
     @Override
     public void onPause() {
         super.onPause();
@@ -181,9 +169,6 @@ public class RecordHeartbeatActivity extends Activity {
         camera = null;
     }
 
-    /**
-     * TODO - document
-     */
     private static PreviewCallback previewCallback = new PreviewCallback() {
 
         /**
@@ -276,9 +261,6 @@ public class RecordHeartbeatActivity extends Activity {
 
     private static SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
 
-        /**
-         * TODO - document
-         */
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
             try {
@@ -289,9 +271,6 @@ public class RecordHeartbeatActivity extends Activity {
             }
         }
 
-        /**
-         * TODO - document
-         */
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             Camera.Parameters parameters = camera.getParameters();
@@ -305,9 +284,6 @@ public class RecordHeartbeatActivity extends Activity {
             camera.startPreview();
         }
 
-        /**
-         * TODO - document
-         */
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             // Ignore

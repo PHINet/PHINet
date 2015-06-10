@@ -8,8 +8,6 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
  */
 public class DBData {
 
-    // TODO - refactor this class into numerous, more specific classes
-
     private String sensorID;
     private String processID;
     private String timeString;

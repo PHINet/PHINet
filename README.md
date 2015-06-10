@@ -18,23 +18,17 @@ Our client application will soon be available for download on android devices.
 
 All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas.
 
-
-GENERAL
-- REQUIRED: improve docs
-- REQUIRED: improve design / handle all TODOs 
-- REQUIRED: most robust testing / handle corner cases 
-
 CLIENT
-- REQUIRED: modify/user all NDN packet components
+- DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
 - DESIRED: improve layout
 
 WEB
 - REQUIRED: view patient data (if applicable)
-- REQUIRED: edit profile data
-- REQUIRED: basic testing page (to test with device)
-- REQUIRED: modify/use all NDN packet components
+- DESIRED: edit profile data
+- DESIRED: basic testing page (to test with device)
+- DESIRED: modify/use all NDN packet components
 - DESIRED: perform more complex analytics
 - DESIRED: improve layout
 - DESIRED: make mobile friendly
