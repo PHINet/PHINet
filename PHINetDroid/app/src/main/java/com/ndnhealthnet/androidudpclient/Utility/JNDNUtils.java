@@ -20,8 +20,6 @@ import java.nio.ByteBuffer;
  */
 public class JNDNUtils {
 
-    public JNDNUtils() {}
-
     static final double DEFAULT_FRESHNESS_PERIOD = 1000 * 60 * 60; // an hour
 
     /**
@@ -270,7 +268,6 @@ public class JNDNUtils {
     public static Interest createInterestPacket(String name) {
 
         return new Interest(new Name(name));
-
     }
 
     /**
@@ -282,6 +279,5 @@ public class JNDNUtils {
     public static Interest createInterestPacket(Name name) {
 
         return createInterestPacket(name.toUri());
-
     }
 }

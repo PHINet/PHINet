@@ -49,7 +49,7 @@ public class PacketListActivity extends ListActivity {
             emptyListTextView.setVisibility(View.GONE);
         }
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);

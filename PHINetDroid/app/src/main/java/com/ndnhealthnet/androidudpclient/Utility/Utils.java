@@ -42,12 +42,12 @@ public class Utils {
 
         if (context == null || key == null || value == null
                 || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
-                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid) {
+                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
             return false;
         }
 
         if (key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY)) {
-            key = BCrypt.hashpw(key, BCrypt.gensalt()); // hash if password
+            value = BCrypt.hashpw(key, BCrypt.gensalt()); // hash if password
         }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -63,6 +63,7 @@ public class Utils {
      *
      * Called to retrieve required value from shared preferences, identified by given key.
      * Default value will be returned of no value found or error occurred.
+     * 
      * @param context Context of caller activity
      * @param key Key to find value against
      * @param defaultValue Value to return if no data found against given key
@@ -170,7 +171,7 @@ public class Utils {
      *
      * @return timeString for previous hour
      */
-    public static String getPreviousHourTime() {
+    public static String getPreviousSynchTime() {
         SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
         formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -223,12 +224,12 @@ public class Utils {
      * Method returns true if the data interval is within request interval
      *
      * @param requestInterval a request interval; necessarily must contain two times (start and end)
-     * @param dataInterval the time stamp on specific data
-     * @return determination of whether dataInterval is within requestInterval
+     * @param dataTimeString the time stamp on specific data
+     * @return determination of whether dataTimeString is within requestInterval
      */
-    static public boolean isValidForTimeInterval(String requestInterval, String dataInterval) {
+    static public boolean isValidForTimeInterval(String requestInterval, String dataTimeString) {
 
-        if (requestInterval == null || dataInterval == null) {
+        if (requestInterval == null || dataTimeString == null) {
             return false; // reject bad input
         }
 
@@ -244,18 +245,16 @@ public class Utils {
 
         try {
 
-            System.out.println("request interval: " + requestInterval);
-
             // replace "T" with empty char "", so that comparison is easier
             requestIntervals[0] = requestIntervals[0].replace("T", " ");
             requestIntervals[1] = requestIntervals[1].replace("T", " ");
-            dataInterval = dataInterval.replace("T", " ");
+            dataTimeString = dataTimeString.replace("T", " ");
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
 
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);
-            dataDate = df.parse(dataInterval);
+            dataDate = df.parse(dataTimeString);
 
             beforeStartDate = dataDate.before(startDate);
             afterEndDate = dataDate.after(endDate);
@@ -266,9 +265,9 @@ public class Utils {
             return false; // some problem occurred, default return is false
         }
 
-        // if dataInterval is not before start and not after end, then its with interval
-        return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataInterval)
-                || requestIntervals[1].equals(dataInterval);
+        // if dataTimeString is not before start and not after end, then its with interval
+        return (!beforeStartDate && !afterEndDate) || requestIntervals[0].equals(dataTimeString)
+                || requestIntervals[1].equals(dataTimeString);
     }
 
     /**
@@ -392,8 +391,11 @@ public class Utils {
         String hashComponent = "IMPLICIT-SHA256-DIGEST-COMPONENT-TYPE " + name.hashCode()
                 + " TLV-LENGTH " + Integer.toString(name.hashCode()).length();
 
-        String genericNameComponent = "NAME-COMPONENT-TYPE " + name.toUri() + " TLV-LENGTH "
-                + name.toUri().length();
+        //decode the parsing characters "||"
+        String nameContent = name.toUri().replace("%7C%7C", "||");
+
+        String genericNameComponent = "NAME-COMPONENT-TYPE " + nameContent + " TLV-LENGTH "
+                + nameContent.length();
 
         return  "NAME-TYPE TLV-LENGTH " + (hashComponent.length() + genericNameComponent.length())
                 + genericNameComponent + " " + hashComponent;
@@ -490,7 +492,7 @@ public class Utils {
 
         String minSuffixComponents = "MIN-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMinSuffixComponents();
         String maxSuffixComponents = "MAX-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMaxSuffixComponents();
-        String publisherPublicKeyLocator = interest.getKeyLocator().toString();
+        String publisherPublicKeyLocator = ""; // TODO - rework this (it returns object address) interest.getKeyLocator().toString();
         String exclude = "EXCLUDE-TYPE TLV-LENGTH ANY-TYPE TLV-LENGTH(=0)";
         String childSelector = "CHILD-SELECTOR-TYPE TLV-LENGTH " + interest.getChildSelector();
         String mustBeFresh = "MUST-BE-FRESH-TYPE TLV-LENGTH(=0)";

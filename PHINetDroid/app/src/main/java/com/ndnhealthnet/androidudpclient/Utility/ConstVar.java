@@ -101,4 +101,8 @@ public class ConstVar {
 
     // synchronization requests are initiated every hour (arbitrarily chosen)
     public static final int SYNCH_INTERVAL_MILLIS = 1000 * 60 * 60;
+
+    // title of dialog that allows user to select interval
+    public static final String INTERVAL_TITLE_START = "Choose the start interval.";
+    public static final String INTERVAL_TITLE_END = "Choose the end interval.";
 }

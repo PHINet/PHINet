@@ -51,10 +51,6 @@ public class ViewDataActivity extends Activity {
     // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
     private int endYear = 0, endMonth = 0, endDay = 0;
-
-    // title of dialog that allows user to select interval
-    private final String INTERVAL_TITLE_1 = "Choose the start interval.";
-    private final String INTERVAL_TITLE_2 = "Choose the end interval.";
     // --- used by the interval selector ---
 
     @Override
@@ -62,7 +58,7 @@ public class ViewDataActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_viewdata);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         // get name of entity to determine whose data to display
@@ -76,7 +72,7 @@ public class ViewDataActivity extends Activity {
         analyticsWait.setVisibility(View.GONE); // node analytics requested yet; hide it
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
-        loggedInText.setText(currentUserID);
+        loggedInText.setText(currentUserID);  // display username on screen
 
         entityNameText = (TextView) findViewById(R.id.entityNameView);
         entityNameText.setText(entityName + "'s data");
@@ -128,7 +124,7 @@ public class ViewDataActivity extends Activity {
         intervalSelectionBtn = (Button) findViewById(R.id.intervalSelectionBtn);
         intervalSelectionBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                AlertDialog.Builder initialInterval = generateIntervalSelector(INTERVAL_TITLE_1);
+                AlertDialog.Builder initialInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_START);
                 initialInterval.show();
             }
         });
@@ -161,6 +157,7 @@ public class ViewDataActivity extends Activity {
         analyticTasks.add("Mean");
         analyticTasks.add("Mode");
         analyticTasks.add("Median");
+        // TODO - create more analytic tasks
 
         final ArrayAdapter<String> adapter = new ArrayAdapter(ViewDataActivity.this,
                 android.R.layout.simple_spinner_item, analyticTasks);
@@ -281,7 +278,8 @@ public class ViewDataActivity extends Activity {
                 int year = intervalSelector.getYear();
 
                 if (startYear == 0) {
-                    // this is the first input, store now and request again
+                    // startYear == 0 means this is the first input (nothing has been set)
+                            // store now and request again
 
                     startYear = year;
                     startMonth = month;
@@ -289,7 +287,7 @@ public class ViewDataActivity extends Activity {
 
                     // call again to get end interval
                     final DatePicker intervalSelector = new DatePicker(ViewDataActivity.this);
-                    AlertDialog.Builder secondInterval = generateIntervalSelector(INTERVAL_TITLE_2);
+                    AlertDialog.Builder secondInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_END);
                     secondInterval.setView(intervalSelector);
 
                     // TODO - rework this sloppy nesting
@@ -298,15 +296,10 @@ public class ViewDataActivity extends Activity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            // get user input
-                            int day = intervalSelector.getDayOfMonth();
-                            int month = intervalSelector.getMonth() + 1; // offset required
-                            int year = intervalSelector.getYear();
-
                             // start input already set, now store end input
-                            endYear = year;
-                            endMonth = month;
-                            endDay = day;
+                            endYear = intervalSelector.getDayOfMonth();
+                            endMonth = intervalSelector.getMonth() + 1; // offset required
+                            endDay = intervalSelector.getYear();
 
                             // now that interval has been entered, update the graph
                             updateGraph();
@@ -376,7 +369,7 @@ public class ViewDataActivity extends Activity {
 
         // attempts to determine whether an interval has been selected
         if (startYear == 0 || endYear == 0) {
-            // interval hasn't been selected, provide default now
+            // startYear and endYear are invalid (interval hasn't been selected), provide default
 
             Calendar now = Calendar.getInstance();
 

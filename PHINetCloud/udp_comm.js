@@ -777,7 +777,6 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
         recentValidations = recentLoginValidations;
     }
 
-
     for (var i = 0; i < recentValidations.length; i++) {
         if (recentValidations[i].userID === packetUserID) {
             recentValidations.splice(i, 1); // remove element
@@ -792,13 +791,17 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
     // client's login/register has been validated; reply with portion if FIB (refer to paper for more information)
     if (userValidationFound) {
 
+        /**
+         * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+         */
+
         if (requestType === StringConst.REGISTER_REQUEST) {
             // set process id to DATA_REGISTER_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, packetUserID,
                 utils.getCurrentTime(), StringConst.DATA_REGISTER_RESULT);
         } else {
             // only requestType left is login; set process id to DATA_LOGIN_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, packetUserID,
                 utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
         }
 

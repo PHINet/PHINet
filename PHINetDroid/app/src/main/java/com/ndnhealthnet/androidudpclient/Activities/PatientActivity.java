@@ -31,10 +31,6 @@ import java.util.ArrayList;
 
 /**
  * Activity deals specifically with interacting with patient.
- *
- * Uses include
- * 1. requesting and viewing patient data
- * 2. editing/saving patient information
  */
 public class PatientActivity extends Activity {
 
@@ -43,19 +39,17 @@ public class PatientActivity extends Activity {
     TextView nameText, loggedInText;
     String patientIP, patientUserID;
 
+    // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
     private int endYear = 0, endMonth = 0, endDay = 0;
-
-    // title of dialog that allows user to select interval
-    private final String INTERVAL_TITLE_1 = "Choose the start interval.";
-    private final String INTERVAL_TITLE_2 = "Choose the end interval.";
+    // --- used by the interval selector ---
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
@@ -66,7 +60,7 @@ public class PatientActivity extends Activity {
         patientUserID = getIntent().getExtras().getString(PatientListActivity.PATIENT_USER_ID);
 
         nameText = (TextView) findViewById(R.id.nameText);
-        nameText.setText(patientUserID);
+        nameText.setText(patientUserID);  // place userID on screen
 
         ipEditText = (EditText) findViewById(R.id.ip_editText);
         ipEditText.setText(patientIP);
@@ -87,7 +81,7 @@ public class PatientActivity extends Activity {
             public void onClick(View v) {
 
                 resetIntervalParams(); // clear so that new/first request may be made
-                AlertDialog.Builder initialInterval = generateIntervalSelector(INTERVAL_TITLE_1);
+                AlertDialog.Builder initialInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_START);
                 initialInterval.show();
             }
         });
@@ -123,7 +117,6 @@ public class PatientActivity extends Activity {
             }
         });
 
-        /** Returns to GetCliBeat **/
         backBtn = (Button) findViewById(R.id.patientDataBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -147,7 +140,7 @@ public class PatientActivity extends Activity {
     }
 
     /**
-     * handles logic associated with requesting patient data
+     * Handles logic associated with requesting patient data
      */
     private void requestHelper() {
 
@@ -156,12 +149,13 @@ public class PatientActivity extends Activity {
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         boolean isValidIP = Utils.isValidIP(patientIP);
 
-        if (mWifi.isConnected()) {
+        if (mWifi.isConnected() && isValidIP) {
 
-            ArrayList<DBData> pitEntries = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralPITData(patientUserID);
+            ArrayList<DBData> pitEntries = DBSingleton.getInstance(getApplicationContext())
+                    .getDB().getGeneralPITData(patientUserID);
 
             // place entry into PIT for self; this is because if a request is
-            // received for same data, we won't send two identical PITs
+            // received for same data we request, we won't send another, identical Interest
             if (pitEntries == null) {
 
                 DBData selfPITEntry = new DBData();
@@ -192,11 +186,11 @@ public class PatientActivity extends Activity {
                 }*/
             }
 
-            ArrayList<DBData> allFIBEntries = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
+            ArrayList<DBData> allFIBEntries = DBSingleton
+                    .getInstance(getApplicationContext()).getDB().getAllFIBData();
 
             int fibRequestsSent = 0;
 
-            System.out.println("prior to interest loop");
             for (int i = 0; i < allFIBEntries.size(); i++) {
                 // send request to everyone in FIB; only send to users with actual ip
                 if (Utils.isValidIP(allFIBEntries.get(i).getIpAddr())) {
@@ -210,8 +204,7 @@ public class PatientActivity extends Activity {
                             .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
                     // store received packet in database for further review
-                    DBSingleton.getInstance(getApplicationContext()).getDB()
-                            .addPacketData(new DBData(interest.getName().toUri(), Utils.convertInterestToString(interest)));
+                    Utils.storeInterestPacket(getApplicationContext(), interest);
 
                     fibRequestsSent++;
                 }
@@ -225,13 +218,11 @@ public class PatientActivity extends Activity {
 
         } else if (!isValidIP) {
             // invalid ip
-
             Toast toast = Toast.makeText(getApplicationContext(),
                     "The IP address is invalid. Enter valid then save.", Toast.LENGTH_LONG);
             toast.show();
         } else {
             // not connected to wifi
-
             Toast toast = Toast.makeText(getApplicationContext(),
                     "You must first connect to WiFi.", Toast.LENGTH_LONG);
             toast.show();
@@ -260,7 +251,8 @@ public class PatientActivity extends Activity {
                 int year = intervalSelector.getYear();
 
                 if (startYear == 0) {
-                    // this is the first input, store now and request again
+                    // startYear == 0 means this is the first input (nothing has been set)
+                            // store now and request again
 
                     startYear = year;
                     startMonth = month;
@@ -268,7 +260,7 @@ public class PatientActivity extends Activity {
 
                     // call again to get end interval
                     final DatePicker intervalSelector = new DatePicker(PatientActivity.this);
-                    AlertDialog.Builder secondInterval = generateIntervalSelector(INTERVAL_TITLE_2);
+                    AlertDialog.Builder secondInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_END);
                     secondInterval.setView(intervalSelector);
 
                     // TODO - rework this sloppy nesting
@@ -328,7 +320,7 @@ public class PatientActivity extends Activity {
             // TIME_STRING FORMAT: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS";
                     // where the former is start, latter is end
 
-            // by default, set HH.mm.ss.SSS from request interval to 00.00.00.00000
+            // by default, set HH.mm.ss.SSS from request interval to 00.00.00.000
             timeString += Integer.toString(startYear) + "-" + startMonthString + "-";
             timeString += Integer.toString(startDay) + "T00.00.00.000||" + Integer.toString(endYear) + "-";
             timeString += endMonthString + "-" + Integer.toString(endDay) + "T00.00.00.000";
@@ -345,10 +337,8 @@ public class PatientActivity extends Activity {
     void updatePatientData() {
 
         // updates patient data
-        DBData updatedFIBEntry = new DBData();
-        updatedFIBEntry.setTimeString(ConstVar.CURRENT_TIME);
-        updatedFIBEntry.setIpAddr(ipEditText.getText().toString());
-        updatedFIBEntry.setUserID(patientUserID);
+        DBData updatedFIBEntry = new DBData(patientUserID, ConstVar.CURRENT_TIME,
+                ipEditText.getText().toString());
 
         DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(updatedFIBEntry);
 

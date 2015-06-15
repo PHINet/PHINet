@@ -68,15 +68,11 @@ public class RecordHeartbeatActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recordbeat);
 
-        // --- place username on screen ---
-
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedinText = (TextView) findViewById(R.id.loggedInTextView);
-        loggedinText.setText(currentUserID);
-
-        // --- place username on screen ---
+        loggedinText.setText(currentUserID);  // place username on screen
 
         preview = (SurfaceView) findViewById(R.id.preview);
         previewHolder = preview.getHolder();

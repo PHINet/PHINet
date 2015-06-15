@@ -12,7 +12,7 @@ Named Data Networking, a future networking paradigm, allows for features such as
 
 Our client application will soon be available for download on android devices.
 
-[Visit our website for additional information/functionality.](http://ndn-healthnet.elasticbeanstalk.com/)
+[Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/)
 
 # Contributing
 

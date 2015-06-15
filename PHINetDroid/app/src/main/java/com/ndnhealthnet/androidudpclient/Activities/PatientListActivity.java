@@ -50,7 +50,7 @@ public class PatientListActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patientlist);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
@@ -101,22 +101,19 @@ public class PatientListActivity extends ListActivity {
                                 // this means there was no comma; user likely didn't enter IP
                                 ipEntered = false;
 
-                                isValidInput &= patientInput.getText().toString().length() <= 15; // max name requirement
+                                isValidInput &= Utils.isValidUserName(patientInput.getText().toString());
                             } else {
                                 ipEntered = true;
 
                                 // if syntactically correct, input is separated by comma
                                 patientInputString = patientInput.getText().toString().split(",");
 
-                                // tests validity of input
-                                patientInputString[0] = patientInputString[0].trim(); // name input
-                                patientInputString[1] = patientInputString[1].trim(); // ip input
+                                patientInputString[0] = patientInputString[0].trim(); // ip input
+                                patientInputString[1] = patientInputString[1].trim(); // name input
 
+                                // perform input validation
                                 isValidInput = Utils.isValidIP(patientInputString[0]);
-
-                                // NOTE: name-length constraints were chosen somewhat arbitrarily
-                                isValidInput &= patientInputString[1].length() >= 3; // min. name requirement
-                                isValidInput &= patientInputString[1].length() <= 15; // max name requirement
+                                isValidInput &= Utils.isValidUserName(patientInputString[1]);
                             }
 
                         } catch (Exception e) {
@@ -139,7 +136,9 @@ public class PatientListActivity extends ListActivity {
                                 data.setUserID(patientInputString[1]);
                                 data.setTimeString(ConstVar.CURRENT_TIME);
 
-                                if (DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(patientInputString[0]) == null) {
+                                // determine if username already exists in FIB
+                                if (DBSingleton.getInstance(getApplicationContext())
+                                                    .getDB().getFIBData(data.getUserID()) == null) {
                                     // user entered valid patient, now add to fib
 
                                     DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
@@ -147,8 +146,8 @@ public class PatientListActivity extends ListActivity {
                                     // hide "empty patient list" text when patient added
                                     emptyListTextView.setVisibility(View.GONE);
                                 } else {
-                                    // user entered previous patient, just update
 
+                                    // user entered previous-entered patient, just update
                                     DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(data);
                                 }
                             }
@@ -158,7 +157,7 @@ public class PatientListActivity extends ListActivity {
                             emptyListTextView.setVisibility(View.GONE); // hide "no patients" text
                         } else {
                             Toast toast = Toast.makeText(PatientListActivity.this,
-                                    "Invalid IP or name length (3-15 characters).", Toast.LENGTH_LONG);
+                                    "Invalid IP, or invalid name length.", Toast.LENGTH_LONG);
                             toast.show();
                         }
                     }

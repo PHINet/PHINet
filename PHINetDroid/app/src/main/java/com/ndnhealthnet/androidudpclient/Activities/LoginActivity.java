@@ -108,16 +108,13 @@ public class LoginActivity extends Activity {
                     }
                     // one input (or both) were invalid, notify user
                     else {
-                        Toast toast = Toast.makeText(getApplicationContext(), "Input invalid", Toast.LENGTH_LONG);
-                        toast.show();
 
                         errorText.setText("Error: input syntactically incorrect.");
                     }
                 }
                 // wifi connection invalid; notify user
                 else {
-                    Toast toast = Toast.makeText(getApplicationContext(), "A WiFi connection is required.", Toast.LENGTH_LONG);
-                    toast.show();
+                    errorText.setText("Error: WiFi connection required.");
                 }
             }
         });
@@ -163,6 +160,9 @@ public class LoginActivity extends Activity {
 
             DBData interestFound = null;
             for (int i = 0; i < pitRows.size(); i++) {
+                // TODO - verify that the credential request was for this user (and not another)
+
+                // search for Interest with PID CREDENTIAL_REQUEST
                 if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
@@ -235,10 +235,10 @@ public class LoginActivity extends Activity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-        Blob blobInner = interest.wireEncode();
+        Blob blob = interest.wireEncode();
 
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(blobInner.getImmutableArray()); // reply to interest with DATA from cache
+                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -252,41 +252,47 @@ public class LoginActivity extends Activity {
     }
 
     /**
-     * Method invoked via handler, after query for result of login send,
+     * Method invoked via handler, after query for result of login sent,
      * and checks the content store for the result before deleting it.
      *
      * @param userID entered to login
      * @param password entered to login
      */
     private void credentialQueryResultHandler(String userID, String password) {
-        // query the ContentStore for the login result
 
         progressBar.setVisibility(View.GONE); // results have come back; remove progress bar
 
+        // query the ContentStore for the login result
         ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
                 .getGeneralCSData(ConstVar.SERVER_ID);
 
         if (potentiallyValidRows == null) {
+
             errorText.setText("The login failed.\nCould not reach server.");
             progressBar.setVisibility(View.GONE); // hide progress; login failed
 
         } else {
             DBData loginResult = null;
 
+            /**
+             * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+             */
+
             for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_LOGIN_RESULT)) {
+                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_LOGIN_RESULT)
+                        && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
 
                     loginResult = potentiallyValidRows.get(i);
-
-                    // TODO - provide more validation (this may not be the login result for THIS client)
                 }
             }
 
             if (loginResult == null || loginResult.getProcessID().equals(ConstVar.LOGIN_FAILED)) {
+
                 // failure
                 errorText.setText("Login failed.\nAccount does not seem to exist.");
                 progressBar.setVisibility(View.GONE); // hide progress; login failed
             } else {
+
                 // after reading entry, delete it so that others can't get it
                 DBSingleton.getInstance(getApplicationContext())
                         .getDB().deleteCSEntry(loginResult.getUserID(), loginResult.getTimeString());
@@ -297,8 +303,7 @@ public class LoginActivity extends Activity {
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
 
                 // go to main page; login was successful
-                Intent returnIntent = new Intent();
-                setResult(RESULT_OK,returnIntent);
+                setResult(RESULT_OK, new Intent());
                 finish();
             }
         }

@@ -34,10 +34,10 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
             clientSocket.send(sendPacket);
 
             /**
-             * method must listen for incoming packet if we've just sent a packet, otherwise
+             * if we've just sent a packet, method must listen for incoming packet; otherwise
              * we may not be able to detect incoming, requested packets from the server
              *
-             * listen in new thread for 1 second
+             * listen in new thread for 2 seconds (arbitrarily chosen)
              */
             Timer t = new Timer();
             t.schedule(new TimerTask() {
@@ -51,7 +51,7 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                     try {
-                        clientSocket.setSoTimeout(1000); // only listen for 1 second
+                        clientSocket.setSoTimeout(2000); // only listen for 2 seconds
                         clientSocket.receive(receivePacket);
                         String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
                         int packetPort = receivePacket.getPort();
@@ -66,7 +66,7 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                     this.cancel();
 
                 }
-            }, 1000L);
+            }, 0); // start listening now (i.e., wait 0 seconds)
 
         } catch (Exception e) {
             System.out.println(e.toString());

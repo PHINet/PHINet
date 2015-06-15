@@ -89,22 +89,24 @@ public class SignupActivity extends Activity {
                 if (mWifi.isConnected()) {
 
                     /**
-                     * Due to the nature of NDN, the client must first send register Interest to
+                     * Due to the nature of NDN, the client must first send signup Interest to
                      * server (because the server is the only one who can validate such requests). The
                      * server will then reply with a blank Data and, shortly, an Interest requesting
-                     * register credentials, and the client will then reply with a Data packet containing
+                     * signup credentials, and the client will then reply with a Data packet containing
                      * them. The client then sends an Interest to the server querying for the result,
                      * to which the server replies with a Data packet. If the results are positive,
                      * the client has signed up; otherwise, signup failed.
                      */
 
                     final String userID = userNameEdit.getText().toString();
-                    final String password = BCrypt.hashpw(pwEdit.getText().toString(), BCrypt.gensalt());
-                    final String email = emailEdit.getText().toString().equals("") ? "null" : emailEdit.getText().toString();
+                    final String password = pwEdit.getText().toString();
+                    final String email = emailEdit.getText().toString().equals("")
+                            ? ConstVar.NULL_FIELD : emailEdit.getText().toString();
+                    final boolean pwMatch = password.equals(verifyPWEdit.getText().toString());
 
                     // both inputs are valid, now query server for signup
-                    if (Utils.isValidUserName(userID) && Utils.isValidPassword(password)
-                            && Utils.isValidEmail(email)) {
+                    if (pwMatch && Utils.isValidUserName(userID) && Utils.isValidPassword(password)
+                            && (email.equals(ConstVar.NULL_FIELD) || Utils.isValidEmail(email))) {
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
@@ -132,18 +134,18 @@ public class SignupActivity extends Activity {
                         }, 1000);
 
                     }
+                    // passwords don't match; only notify is PW was valid in first place
+                    else if (Utils.isValidPassword(password) && !pwMatch) {
+                        errorText.setText("Error: passwords don't match.");
+                    }
                     // one input (or both) were invalid, notify user
                     else {
-                        Toast toast = Toast.makeText(getApplicationContext(), "Input invalid", Toast.LENGTH_LONG);
-                        toast.show();
-
                         errorText.setText("Error: input syntactically incorrect.");
                     }
                 }
                 // wifi connection invalid; notify user
                 else {
-                    Toast toast = Toast.makeText(getApplicationContext(), "A WiFi connection is required.", Toast.LENGTH_LONG);
-                    toast.show();
+                    errorText.setText("Error: WiFi connection is required.");
                 }
             }
         });
@@ -166,6 +168,9 @@ public class SignupActivity extends Activity {
 
             DBData interestFound = null;
             for (int i = 0; i < pitRows.size(); i++) {
+                // TODO - verify that the credential request was for this user (and not another)
+
+                // search for Interest with PID CREDENTIAL_REQUEST
                 if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
@@ -276,12 +281,15 @@ public class SignupActivity extends Activity {
         } else {
             DBData signupResult = null;
 
+            /**
+             * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+             */
+
             for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_REGISTER_RESULT)) {
+                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_REGISTER_RESULT)
+                        && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
 
                     signupResult = potentiallyValidRows.get(i);
-
-                    // TODO - provide more validation (this may not be the signup result for THIS client)
                 }
             }
 
@@ -301,8 +309,7 @@ public class SignupActivity extends Activity {
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
 
                 // go to main page; signup was successful
-                Intent returnIntent = new Intent();
-                setResult(RESULT_OK,returnIntent);
+                setResult(RESULT_OK, new Intent());
                 finish();
             }
         }

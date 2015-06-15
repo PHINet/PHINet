@@ -32,7 +32,7 @@ import net.named_data.jndn.util.Blob;
  */
 public class MainActivity extends Activity {
 
-    final int CREDENTIAL_RESULT_CODE = 1;
+    final int CREDENTIAL_RESULT_CODE = 1; // used to identify the result of Login/Signup Activities
 
 	Button clearDatabaseBtn, logoutBtn, myDataBtn, cliBeatBtn,
             loginBtn, signupBtn, sensorBtn, viewPacketsBtn;
@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
     // used to specify when listener "receiverThread" should actively listen for packets
     public static boolean continueReceiverExecution = true;
 
-    public static String deviceIP;
+    public static String deviceIP; // the IP of this particular client
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
         serverSynchWorker.start();
 
         /*
-        TODO -
+        TODO - initiate bluetooth comm. component
         btSensorComm = new BTSensorComm(getApplicationContext());
         btSensorComm.start(); // initiate bluetooth sensor communication thread
         */
@@ -70,24 +70,26 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * method exists so that layout can easily be reset
+     * Method exists so that layout can easily be reset after certain actions (i.e., login/signup)
      */
     private void onCreateHelper()
     {
         setContentView(R.layout.activity_main);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+       final  String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+        final String myPassword = Utils.getFromPrefs(getApplicationContext(),
+                ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
 
-        if (currentUserID != "" || currentUserID != null) {
+
+        if (!myUserID.equals("")) {
+            // place userID on screen if user has logged in
             loggedInText = (TextView) findViewById(R.id.loggedInTextView);
-            loggedInText.setText(currentUserID);
+            loggedInText.setText(myUserID);
         }
 
-        String myPasswordID = Utils.getFromPrefs(getApplicationContext(),
-                ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
-        String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+        System.out.println("my pw, main: " + myPassword);
+        System.out.println("my uid, main: " + myUserID);
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
         doctorText = (TextView) findViewById(R.id.doctorTextView);
@@ -110,6 +112,7 @@ public class MainActivity extends Activity {
         logoutBtn = (Button) findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
+                // clear userID & password on logout
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
 
@@ -138,9 +141,6 @@ public class MainActivity extends Activity {
 
                 Intent intent = new Intent(MainActivity.this, ViewDataActivity.class);
 
-                String myUserID = Utils.getFromPrefs(getApplicationContext(),
-                        ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
-
                 // to view client's data, pass their user id
                 intent.putExtra(ConstVar.ENTITY_NAME, myUserID);
                 startActivity(intent);
@@ -164,8 +164,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        if (myPasswordID == null || myUserID == null
-                || myPasswordID.equals("") || myUserID.equals("")) {
+        if (myPassword == null || myUserID == null
+                || myPassword.equals("") || myUserID.equals("")) {
 
             //destroy all buttons until user enters credentials
             cliBeatBtn.setVisibility(View.GONE);
@@ -187,7 +187,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * should be invoked automatically after user enters credentials
+     * Should be invoked automatically after user enters credentials
      *
      * @param requestCode code of activity that has returned a result
      * @param resultCode status of activity return
@@ -209,16 +209,17 @@ public class MainActivity extends Activity {
         return new Thread(new Runnable() {
             public void run() {
 
+                // each loop sends server-synch requests then sleeps for SYNC_INTERVAL_MILLIS
                 while (true) {
 
                     ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                     NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-                    // only attend synch of wifi is connected
+                    // only attempt synch of wifi is connected
                     if (mWifi.isConnected()) {
 
-                        // synch request is each hour, interval syntax: start||end
-                        String currentTime = Utils.getPreviousHourTime() + "||" + Utils.getCurrentTime();
+                        // interval syntax: start||end
+                        String currentTime = Utils.getPreviousSynchTime() + "||" + Utils.getCurrentTime();
 
                         String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 

@@ -269,7 +269,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         }
 
-        if (cursor.getCount() > 1) {
+        if (cursor != null && cursor.getCount() > 1) {
             db.close();
             throw new IllegalStateException("!!Error querying PIT data: redundant entries found.");
         } else {
@@ -588,11 +588,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true of update was successful, false otherwise
      */
     public boolean updateSensorData(DBData data) {
-        if (data == null) {
-            return false;
-        }
 
-        return updateData(data, ConstVar.SENSOR_DB);
+        return data != null && updateData(data, ConstVar.SENSOR_DB);
     }
 
     /**
@@ -603,11 +600,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public boolean updateFIBData(DBData data) {
 
-        if (data == null) {
-            return false;
-        }
-
-        return updateData(data, ConstVar.FIB_DB);
+        return data != null && updateData(data, ConstVar.FIB_DB);
     }
 
     /**
@@ -618,11 +611,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public boolean updatePITData(DBData data) {
 
-        if (data == null) {
-            return false;
-        }
-
-        return updateData(data, ConstVar.PIT_DB);
+        return data != null && updateData(data, ConstVar.PIT_DB);
     }
 
     /**
@@ -633,11 +622,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public boolean updateCSData(DBData data) {
 
-        if (data == null) {
-            return false;
-        }
-
-        return updateData(data, ConstVar.CS_DB);
+        return data != null && updateData(data, ConstVar.CS_DB);
     }
 
     /**

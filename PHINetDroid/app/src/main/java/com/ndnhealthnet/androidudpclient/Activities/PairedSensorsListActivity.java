@@ -65,7 +65,7 @@ public class PairedSensorsListActivity  extends ListActivity {
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                setResult(RESULT_CANCELED, new Intent()); // notifies parent activity of success
+                setResult(RESULT_CANCELED, new Intent()); // notifies parent activity of none chosen
 
                 finish();
             }
@@ -76,7 +76,8 @@ public class PairedSensorsListActivity  extends ListActivity {
             public void onClick(View v) {
                 discoverSensors();
 
-                Toast toast = Toast.makeText(getApplicationContext(), "Results (if any) should appear within 15 seconds.", Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "Results (if any) should appear within 15 seconds.", Toast.LENGTH_LONG);
                 toast.show();
             }
         });
@@ -93,11 +94,10 @@ public class PairedSensorsListActivity  extends ListActivity {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         ArrayList<String> pairedDeviceNames = new ArrayList<>();
 
-        // If there are paired devices
+        // if there are paired devices
         if (pairedDevices.size() > 0) {
-            // Loop through paired devices
+            // loop through paired devices
             for (BluetoothDevice device : pairedDevices) {
-
                 pairedDeviceNames.add(device.getName() + "\n" + device.getAddress());
             }
         }
@@ -110,23 +110,23 @@ public class PairedSensorsListActivity  extends ListActivity {
      */
     private void discoverSensors() {
 
-        // Create a BroadcastReceiver for ACTION_FOUND
+        // create a BroadcastReceiver for ACTION_FOUND
         final BroadcastReceiver mReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                // When discovery finds a device
+                // when discovery finds a device
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    // Get the BluetoothDevice object from the Intent
+                    // get the BluetoothDevice object from the Intent
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    // Add the name and address to an array adapter to show in a ListView
+                    // add the name and address to an array adapter to show in a ListView
                     adapter.add(device.getName() + "\n" + device.getAddress());
                 }
             }
         };
 
-        // Register the BroadcastReceiver
+        // register the BroadcastReceiver
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
+        registerReceiver(mReceiver, filter);
     }
 
     /**

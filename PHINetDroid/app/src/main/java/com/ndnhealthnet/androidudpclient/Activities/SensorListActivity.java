@@ -30,6 +30,7 @@ public class SensorListActivity extends ListActivity {
     Button backBtn, addSensorBtn;
     TextView loggedInText;
 
+    // used to pass selected sensor across Activities via Intent
     final static String SENSOR_NAME = "SENSOR_NAME";
 
     @Override
@@ -53,7 +54,7 @@ public class SensorListActivity extends ListActivity {
         final SensorAdapter adapter = new SensorAdapter(this, sensorList);
         setListAdapter(adapter);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
@@ -72,7 +73,11 @@ public class SensorListActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        if (!sensorInput.getText().toString().equals("") && sensorInput.getText() != null) {
+                        DBData sensorQuery = DBSingleton.getInstance(getApplicationContext())
+                                .getDB().getSpecificSensorData(sensorInput.getText().toString());
+
+                        if (!sensorInput.getText().toString().equals("")
+                                && sensorInput.getText() != null && sensorQuery == null) {
                             // TODO - perform input validation (e.g., syntax correct and unique)
 
                             Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
@@ -84,9 +89,13 @@ public class SensorListActivity extends ListActivity {
                             intent.putExtra(SENSOR_NAME, sensorName);
                             startActivity(intent);
 
+                        } else if (sensorQuery != null) {
+                            // notify user of sensor already existing
+                            Toast toast = Toast.makeText(SensorListActivity.this,
+                                    "Sensor already exists.", Toast.LENGTH_LONG);
+                            toast.show();
                         } else {
                             // notify user of bad input
-
                             Toast toast = Toast.makeText(SensorListActivity.this,
                                     "Invalid sensor name.", Toast.LENGTH_LONG);
                             toast.show();

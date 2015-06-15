@@ -38,7 +38,7 @@ public class SensorSettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensorsettings);
 
-        String currentUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         // use IP and ID from intent to find patient among all patients
@@ -55,7 +55,7 @@ public class SensorSettingsActivity extends Activity {
         }
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
-        loggedInText.setText(currentUserID);
+        loggedInText.setText(currentUserID);  // place username on screen
 
         sensorNameText = (TextView) findViewById(R.id.specificSensorNameTextView);
         sensorNameText.setText(sensorName);
@@ -75,6 +75,7 @@ public class SensorSettingsActivity extends Activity {
                     toast.show();
                 } else {
                     if (!mBluetoothAdapter.isEnabled()) {
+                        // if bluetooth isn't enabled, ask user to enable it here
                         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                         startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
                     } else {
@@ -87,7 +88,6 @@ public class SensorSettingsActivity extends Activity {
         saveBtn = (Button) findViewById(R.id.sensorDataSubmitBtn);
         saveBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
                 saveChanges();
             }
         });
@@ -167,7 +167,7 @@ public class SensorSettingsActivity extends Activity {
     }
 
     /**
-     * TODO - doc
+     * Invoked when user elects to save sensor-setting changes.
      */
     private void saveChanges() {
         int chosenInterval = Integer.parseInt(intervalEdit.getText().toString());
