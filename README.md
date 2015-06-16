@@ -18,7 +18,17 @@ Our client application will soon be available for download on android devices.
 
 All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas.
 
+GENERAL
+- REQUIRED: test multiple clients interacting
+- REQUIRED: improve docs (for both website and wiki)
+
 CLIENT
+- REQUIRED: assess memory usage
+- REQUIRED: rework patient/doctor relationship -- (query server before adding)
+- REQUIRED: specify which sensor when requesting patient data
+- REQUIRED: handle case of if user already sent interest and its still in pit (not satisfied)
+- REQUIRED: make sure all pit entries are being deleted appropriately
+- REQUIRED: if data arrives, don't just assume its for yourself, send it to everyone who requested it
 - DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
@@ -26,6 +36,10 @@ CLIENT
 - DESIRED: allow interval-selection in PacketListActvity
 
 WEB
+- REQUIRED: improve handling in server.js
+- REQUIRED: view patient data (if applicable)
+- REQUIRED: edit profile data
+- DESIRED: improve layout
 - DESIRED: basic testing page (to test with device)
 - DESIRED: modify/use all NDN packet components
 - DESIRED: perform more complex analytics
@@ -33,9 +47,13 @@ WEB
 
 # Tests
 
-In order to run the PHINetCloud tests, you must install mocha (preferably globally): "npm install -g mocha". Then, within the tests directory, run "mocha test_x.js" where "x" is the test you'd like to run.
+In order to run the PHINetCloud tests, you must install mocha (preferably globally): "npm install -g mocha". Then, within the tests directory, run "mocha test_x.js" where "x" is the test you'd like to run. Moreover, all tests can be run given the following command: "mocha test_*.js".
 
 In order to run PHINetDroid tests, right click on the ApplicationTest file and click the android icon (if your configrations are different, you must delete them and then click).
+
+# Running Server Code Locally
+
+If you want an android device to interact with PHINetCloud running locally, simply change the android's SERVER_IP (from within ConstVar) to the IP of your machine.
 
 # Support 
 
