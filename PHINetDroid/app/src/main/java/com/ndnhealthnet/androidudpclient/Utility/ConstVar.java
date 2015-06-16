@@ -38,17 +38,11 @@ public class ConstVar {
     // notify recipient (in this case the server) that content in data packet is user signup credentials
     static public final String REGISTER_CREDENTIAL_DATA = "REGISTER_CREDENTIAL_DATA";
 
-    // request the result of login from  (in this case the server)
-    static public final String INTEREST_LOGIN_RESULT = "INTEREST_LOGIN_RESULT";
+    //  used by client to request and server to respond to register login request
+    static public final String LOGIN_RESULT = "LOGIN_RESULT";
 
-    // request the result of login from  (in this case the server)
-    static public final String INTEREST_REGISTER_RESULT = "INTEREST_REGISTER_RESULT";
-
-    // used by server to respond to login result request
-    static public final String DATA_LOGIN_RESULT = "DATA_LOGIN_RESULT";
-
-    // used by server to respond to register result request
-    static public final String DATA_REGISTER_RESULT = "DATA_REGISTER_RESULT";
+    // used by client to request and server to respond to register result request
+    static public final String REGISTER_RESULT = "REGISTER_RESULT";
 
     // placeholder in name when a field isn't needed for specific packet
     public static final String NULL_FIELD = "NULL_FIELD";

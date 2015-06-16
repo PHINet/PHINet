@@ -51,27 +51,37 @@ exports.LoginCredentials = function (tableName) {
 
                     if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
                         console.log("!! Error in user insertion: entity is of invalid type \'" + entityType + "\' .");
-
                         return false;
                     }
 
-                    client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID + ", "
-                            + StringConst.KEY_EMAIL + ", " + StringConst.KEY_ENTITY_TYPE + ", "
-                            + StringConst.KEY_PASSWORD + ") values($1, $2, $3, $4)",
-                            [userID, email, entityType, password],
+                    this.getUserByEmail(email, function(rowsTouched, queryResults) {
+                        // user with that email already exists AND the email isn't the default NULL_FIELD, return null
+                        if ((rowsTouched > 0 || queryResults.length > 0) && email != StringConst.NULL_FIELD) {
+                            insCallback(0); // do not insert user if another user has same email
+                        } else {
 
-                        function(err, result) {
-                            if (err) {
+                            // no other user has this email, add now
+                            client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID + ", "
+                                + StringConst.KEY_EMAIL + ", " + StringConst.KEY_ENTITY_TYPE + ", "
+                                + StringConst.KEY_PASSWORD + ") values($1, $2, $3, $4)",
+                                [userID, email, entityType, password],
 
-                                insCallback(0);  // error occurred - 0 rows modified; return
-                            } else {
+                                function(err, result) {
 
-                                insCallback(result.rowCount);
-                            }
-                        });
+                                    if (err) {
 
-                    return true;
+                                        insCallback(0);  // error occurred - 0 rows modified; return
+                                    } else {
+
+                                        insCallback(result.rowCount);
+                                    }
+                                });
+                        }
+
+                    });
                 }
+
+                return true;
             } catch (err) {
                 console.log("!!Error in LoginCredentials.insertNewUser(): " + err);
                 return false;
@@ -85,7 +95,7 @@ exports.LoginCredentials = function (tableName) {
          * @param getCallback testing callback: rowCount is returned and checked against expected value
          * @return boolean - true if valid query, false otherwise
          */
-        getUser: function(userID, getCallback) {
+        getUserByID: function(userID, getCallback) {
 
             try {
                 if (!userID || !getCallback) {
@@ -119,7 +129,55 @@ exports.LoginCredentials = function (tableName) {
                     return true;
                 }
             } catch (err) {
-                console.log("!!Error in LoginCredentials.getUser(): " + err);
+                console.log("!!Error in LoginCredentials.getUserByID(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * Method returns user if found in DB.
+         *
+         * @param email of requested user
+         * @param getCallback testing callback: rowCount is returned and checked against expected value
+         * @return boolean - true if valid query, false otherwise
+         */
+        getUserByEmail: function(email, getCallback) {
+
+            try {
+                if (!email || !getCallback) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_EMAIL + " = \'"
+                        + email + "\'",
+
+                        function(err, result) {
+
+                            if (err || !result || result.rowCount == 0) {
+
+                                getCallback(0, []);  // error occurred - 0 rows modified; return
+                            } else {
+
+                                var users = [];
+                                for (var i = 0; i < result.rows.length; i++) {
+
+                                    var queriedRow = UserClass.User();
+
+                                    queriedRow.setUserID(result.rows[i]._userid);
+                                    queriedRow.setEntityType(result.rows[i].entitytype);
+                                    queriedRow.setPassword(result.rows[i].password);
+                                    queriedRow.setEmail(result.rows[i].email);
+
+                                    users.push(queriedRow);
+                                }
+
+                                getCallback(result.rowCount, users);
+                            }
+                        });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.getUserByID(): " + err);
                 return false;
             }
         },

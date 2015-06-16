@@ -76,17 +76,13 @@ public class SensorListActivity extends ListActivity {
                         DBData sensorQuery = DBSingleton.getInstance(getApplicationContext())
                                 .getDB().getSpecificSensorData(sensorInput.getText().toString());
 
-                        if (!sensorInput.getText().toString().equals("")
-                                && sensorInput.getText() != null && sensorQuery == null) {
-                            // TODO - perform input validation (e.g., syntax correct and unique)
+                        // verify that name is syntactically correct and unique
+                        if (Utils.isValidSensorName(sensorInput.getText().toString()) && sensorQuery == null) {
 
                             Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
 
-                            // TODO - perform a better removal of spaces (such as notify user)
-                            String sensorName = sensorInput.getText().toString().replace(" ", "");
-
                             // through intent, pass sensor information to activity
-                            intent.putExtra(SENSOR_NAME, sensorName);
+                            intent.putExtra(SENSOR_NAME, sensorInput.getText().toString());
                             startActivity(intent);
 
                         } else if (sensorQuery != null) {

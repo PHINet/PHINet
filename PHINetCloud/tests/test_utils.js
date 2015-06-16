@@ -87,6 +87,9 @@ describe('Utils', function(){
             var testInterval1 = "2015-02-22T00.00.00.000||2015-04-22T00.00.00.000";
             var dataTime1 = "2015-03-22T22.58.10.878";
 
+            var testInterval2 = "2015-02-22T00.00.00.000||2015-04-22T00.00.00.000";
+            var dataTime2 = "2015-02-22T04.04.04.004";
+
             // --- test bad input ---
             expect(utils.isValidForTimeInterval(null, null)).to.equal(false); // null entries
 
@@ -107,6 +110,7 @@ describe('Utils', function(){
             // test input acceptance if during interval
             expect(utils.isValidForTimeInterval(goodRequestInterval, goodDataInterval1)).to.equal(true);
             expect(utils.isValidForTimeInterval(testInterval1, dataTime1)).to.equal(true);
+            expect(utils.isValidForTimeInterval(testInterval2, dataTime2)).to.equal(true);
 
             done(); // the invocation of done() tells testing framework that all tests are complete
         })

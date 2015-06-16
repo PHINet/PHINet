@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.TimeZone;
@@ -87,6 +88,48 @@ public class Utils {
     }
 
     /**
+     * Method takes integer date inputs and returns the application-specific time string. The last
+     * parameter is disregarded unless input is invalid; then it's used to generate default.
+     *
+     * If an input is invalid, method returns default timeString. As timeStrings are often
+     * combined to form intervals, the final parameter determines whether the timeString
+     * will be used for the start (previous year) or end (next year) of an interval.
+     *
+     * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS"
+     *
+     * @param year to be converted
+     * @param month to be converted
+     * @param day to be converted
+     * @param isEndDate whether output is for start (previous year) or end (next year) of an interval
+     * @return the application-specific timeString given input
+     */
+    public static String generateTimeStringFromInts(int year, int month, int day, boolean isEndDate) {
+
+        int selectedYear = year;
+        int selectedMonth = month;
+        int selectedDay = day;
+
+        // attempts to determine whether an interval has been selected
+        if (year <= 0 || month < 0 || day < 0) {
+            // an input is invalid, set
+
+            Calendar now = Calendar.getInstance();
+
+            selectedMonth = now.get(Calendar.MONTH) + 1; // offset required (months are 0-indexed)
+            selectedDay = now.get(Calendar.DAY_OF_MONTH);
+
+            if (isEndDate) {
+                selectedYear = now.get(Calendar.YEAR) + 1;
+            } else {
+                // if not endDate, must be start date
+                selectedYear = now.get(Calendar.YEAR) - 1;
+            }
+        }
+        return Integer.toString(selectedYear) + "-" + Integer.toString(selectedMonth)
+                + "-" + Integer.toString(selectedDay) + "T00.00.00.000"; // append zeros at end
+    }
+
+    /**
      * Method takes query results, filters based upon input parameters,
      * and then converts to a format that can be presented via graph
      *
@@ -134,30 +177,52 @@ public class Utils {
      * Input Syntax: "MM/DD/YYYY - MM/DD/YYYY"
      * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
      *
-     * @param chosenInterval to be converted to alternative syntax
+     * @param analyticTimeInterval to be converted to alternative syntax
      * @return the syntactically-converted interval
      */
-    public static String createAnalyticTimeInterval(String chosenInterval)  {
+    public static String createTimeStringInterval(String analyticTimeInterval)  {
 
         try {
-            String convertedAnalyticInterval = "";
+            analyticTimeInterval = analyticTimeInterval.replace(" ", ""); // remove spaces
 
-            chosenInterval = chosenInterval.replace(" ", ""); // remove spaces
-
-            String [] intervals = chosenInterval.split("-");
+            String [] intervals = analyticTimeInterval.split("-");
 
             String [] startInterval = intervals[0].split("/");
             String [] endInterval = intervals[1].split("/");
 
             // set hours,minutes,seconds,millis all to 0 as default
-            convertedAnalyticInterval += startInterval[2] + "-" + startInterval[0] + "-" +
+            return startInterval[2] + "-" + startInterval[0] + "-" +
                     startInterval[1] + "T00.00.00.000||" + endInterval[2] + "-" + endInterval[0] +
                     "-" + endInterval[1] + "T00.00.00.000";
+        } catch (Exception e) {
+            throw new IllegalArgumentException("!!Error occurred in Utils.createTimeStringInterval(): \" + e");
+        }
+    }
 
-            return convertedAnalyticInterval;
+    /**
+     * Converts the date format (timeString) used to internally represent time
+     * to one that is more easily understood by the user.
+     *
+     * Method is inverse of Utils.createTimeStringInterval(String chosenInterval)
+     *
+     * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
+     * Input Syntax: "MM/DD/YYYY - MM/DD/YYYY"
+     *
+     * @param timeStringInterval to be converted to alternative syntax
+     * @return the syntactically-converted interval
+     */
+    public static String createAnalyticTimeInterval(String timeStringInterval) {
+
+        try {
+            String [] intervals = timeStringInterval.split("\\|\\|");
+            String [] startInterval = intervals[0].split("T")[0].split("-"); // disregard hours, etc
+            String [] endInterval = intervals[1].split("T")[0].split("-"); // disregard hours, etc
+
+            return startInterval[1] + "/" + startInterval[2] + "/" + startInterval[0] + " - "
+                    + endInterval[1] + "/" + endInterval[2] + "/" + endInterval[0];
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("!!Error occurred in Utils.createAnalyticTimeInterval: \" + e");
+            throw new IllegalArgumentException("!!Error occurred in Utils.createTimeStringInterval(): \" + e");
         }
     }
 
@@ -345,7 +410,13 @@ public class Utils {
      */
     public static boolean isValidUserName(String userID) {
 
-        return userID.matches("^[a-zA-Z0-9._]{3,15}$");
+        // NOTE: keep username validation separate from password; they may change
+
+        if (userID != null) {
+            return userID.matches("^[a-zA-Z0-9._]{3,15}$");
+        } else {
+            return false;
+        }
       }
 
     /**
@@ -358,7 +429,28 @@ public class Utils {
      */
     public static boolean isValidPassword(String password) {
 
-        return password.matches("^[a-zA-Z0-9._]{3,15}$");
+        if (password != null) {
+            return password.matches("^[a-zA-Z0-9._]{3,15}$");
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to determine whether sensorname is valid
+     *
+     * Passwords may be between 3-20 characters and contain alpha-numeric characters and underscore.
+     *
+     * @param name input to have validity assessed
+     * @return boolean regarding validity of input
+     */
+    public static boolean isValidSensorName(String name) {
+
+        if (name != null) {
+            return name.matches("^[a-zA-Z0-9._]{3,20}$");
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -463,7 +555,7 @@ public class Utils {
      */
     public static String convertContentToString(Data data) {
 
-        String contentType = "CONTENT-TYPE-TYPE TLV-LENGTH "; // TODO - get content type
+        String contentType = "CONTENT-TYPE-TYPE TLV-LENGTH " + data.getMetaInfo().getType();
         String content = data.getContent().toString();
 
         int length = contentType.length() + content.length();
@@ -481,8 +573,10 @@ public class Utils {
      */
     public static String convertSignatureToString(Data data) {
 
-        String signatureInfo = "SIGNATURE-INFO-TYPE TLV-LENGTH "; // TODO - get signature info
-        String signatureBits = "SIGNATURE-VALUE-TYPE TLV-LENGTH "; // TODO - get signature value
+        // TODO - create correct signature
+
+        String signatureInfo = "SIGNATURE-INFO-TYPE TLV-LENGTH "; // + data.getSignature().hashCode();
+        String signatureBits = "SIGNATURE-VALUE-TYPE TLV-LENGTH " + data.getSignature().hashCode();
 
        return signatureInfo + " " + signatureBits;
     }
@@ -522,7 +616,7 @@ public class Utils {
 
         String minSuffixComponents = "MIN-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMinSuffixComponents();
         String maxSuffixComponents = "MAX-SUFFIX-COMPONENTS-TYPE TLV-LENGTH " + interest.getMaxSuffixComponents();
-        String publisherPublicKeyLocator = ""; // TODO - rework this (it returns object address) interest.getKeyLocator().toString();
+        String publisherPublicKeyLocator = interest.getKeyLocator().getKeyName().toUri();
         String exclude = "EXCLUDE-TYPE TLV-LENGTH ANY-TYPE TLV-LENGTH(=0)";
         String childSelector = "CHILD-SELECTOR-TYPE TLV-LENGTH " + interest.getChildSelector();
         String mustBeFresh = "MUST-BE-FRESH-TYPE TLV-LENGTH(=0)";

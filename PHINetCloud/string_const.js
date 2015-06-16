@@ -32,17 +32,11 @@ exports.StringConst = {
     // notify recipient (in this case the server) that content in data packet is user signup credentials
     REGISTER_CREDENTIAL_DATA : "REGISTER_CREDENTIAL_DATA",
 
-    // request the result of login from  (in this case the server)
-    INTEREST_LOGIN_RESULT : "INTEREST_LOGIN_RESULT",
+    //  used by client to request and server to respond to register login request
+    LOGIN_RESULT : "LOGIN_RESULT",
 
-    // request the result of login from  (in this case the server)
-    INTEREST_REGISTER_RESULT : "INTEREST_REGISTER_RESULT",
-
-    // used by server to respond to login result request
-    DATA_LOGIN_RESULT : "DATA_LOGIN_RESULT",
-
-    // used by server to respond to register result request
-    DATA_REGISTER_RESULT : "DATA_REGISTER_RESULT",
+    // used by client to request and server to respond to register result request
+    REGISTER_RESULT : "REGISTER_RESULT",
 
     // notify recipient that content in data packet is FIBData
     DATA_FIB : "DATA_FIB",
@@ -71,7 +65,7 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: "ASK FOR PERMISSION",
+    DB_CONNECTION_STRING: "pg://troy_admin:8n0o2z0a6@ndnhealthdb.cunk36nc1e3u.us-west-2.rds.amazonaws.com:5432/ndnhealth",
 
     // db variables
     CS_DB : "ContentStore",

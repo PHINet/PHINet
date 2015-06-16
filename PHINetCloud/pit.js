@@ -84,7 +84,7 @@ exports.PIT = function (tableName) {
                     return false;
                 } else {
 
-                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + "= \'"
+                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_TIME_STRING + " = \'"
                     + dbDataObject.getTimeString() + "\' WHERE "+ StringConst.KEY_PROCESS_ID + " = \'"
                         + dbDataObject.getProcessID() + "\' AND " + StringConst.KEY_IP_ADDRESS + " = \'"
                         + dbDataObject.getIpAddr() + "\' AND " + StringConst.KEY_SENSOR_ID + " = \'"
@@ -103,7 +103,6 @@ exports.PIT = function (tableName) {
 
                     return true;
                 }
-
             }
             catch (err) {
 

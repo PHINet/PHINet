@@ -72,6 +72,7 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                         // Data packet detected
                         handleDataPacket(data, rinfo.address);
                     } else {
+                        console.log("unknown found");
                         // unknown packet type; drop it
                     }
                 } catch (e) {
@@ -126,59 +127,59 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
             // the indexes used are position + 1 (the addition 1 due to empty string in 0-index)
-            var packetUserID = nameComponent[2];
-            var packetSensorID = nameComponent[3];
-            var packetTimeString = nameComponent[4];
-            var packetProcessID = nameComponent[5];
+            var userID = nameComponent[2];
+            var sensorID = nameComponent[3];
+            var timeString = nameComponent[4];
+            var processID = nameComponent[5];
 
             // check if packet is an INTEREST for FIB data
-            if (packetProcessID === StringConst.INTEREST_FIB) {
+            if (processID === StringConst.INTEREST_FIB) {
 
-                handleInterestFIBRequest(packetUserID, packetSensorID, packetIP, packetPort);
+                handleInterestFIBRequest(userID, sensorID, packetIP, packetPort);
             }
             // check if packet is an INTEREST for CACHE data
-            else if (packetProcessID === StringConst.INTEREST_CACHE_DATA) {
+            else if (processID === StringConst.INTEREST_CACHE_DATA) {
 
-                handleInterestCacheRequest(packetUserID, packetSensorID, packetTimeString, packetProcessID,
+                handleInterestCacheRequest(userID, sensorID, timeString, processID,
                     packetIP, packetPort);
             }
             // a client application requests login; initiate process now
-            else if (packetProcessID === StringConst.LOGIN_REQUEST) {
+            else if (processID === StringConst.LOGIN_REQUEST) {
 
-                handleInterestLoginRequest(packetUserID, packetIP, packetPort);
+                handleInterestLoginRequest(userID, packetIP, packetPort);
             }
             // a client application requests register; initiate process now
-            else if (packetProcessID === StringConst.REGISTER_REQUEST) {
+            else if (processID === StringConst.REGISTER_REQUEST) {
 
-                handleInterestRegisterRequest(packetUserID, packetIP, packetPort);
+                handleInterestRegisterRequest(userID, packetIP, packetPort);
             }
             // a client requests result of login
-            else if (packetProcessID === StringConst.INTEREST_LOGIN_RESULT) {
+            else if (processID === StringConst.LOGIN_RESULT) {
 
-                handleLoginResultRequest(packetUserID, packetIP, packetPort);
+                handleLoginResultRequest(userID, sensorID, packetIP, packetPort);
             }
             // a client requests the result of registration
-            else if (packetProcessID === StringConst.INTEREST_REGISTER_RESULT) {
+            else if (processID === StringConst.REGISTER_RESULT) {
 
-                handleRegisterResultRequest(packetUserID, packetIP, packetPort);
+                handleRegisterResultRequest(userID, sensorID, packetIP, packetPort);
             }
             // client requests mode analytic task on data
-            else if (packetProcessID === StringConst.MODE_ANALYTIC) {
+            else if (processID === StringConst.MODE_ANALYTIC) {
 
-                handleModeAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+                handleModeAnalyticTask(userID, sensorID, timeString, packetIP, packetPort);
             }
             // client requests median analytic task on data
-            else if (packetProcessID === StringConst.MEDIAN_ANALYTIC) {
-                handleMedianAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+            else if (processID === StringConst.MEDIAN_ANALYTIC) {
+                handleMedianAnalyticTask(userID, sensorID, timeString, packetIP, packetPort);
             }
             // client requests mean analytic task on data
-            else if (packetProcessID === StringConst.MEAN_ANALYTIC) {
-                handleMeanAnalyticTask(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+            else if (processID === StringConst.MEAN_ANALYTIC) {
+                handleMeanAnalyticTask(userID, sensorID, timeString, packetIP, packetPort);
             }
             // client requests initialization of sync request
-            else if (packetProcessID === StringConst.INITIATE_SYNCH_REQUEST) {
+            else if (processID === StringConst.INITIATE_SYNCH_REQUEST) {
 
-                handleSynchRequest(packetUserID, packetSensorID, packetTimeString, packetIP, packetPort);
+                handleSynchRequest(userID, sensorID, timeString, packetIP, packetPort);
             } else  {
                 // unknown process id; drop packet
             }
@@ -201,15 +202,15 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // information extracted from our name format:
             // "/ndn/userID/sensorID/timeString/processID"
             // the indexes used are position + 1 (the addition 1 due to empty string in 0-index)
-            var packetUserID = nameComponent[2];
-            var packetSensorID = nameComponent[3];
-            var packetTimeString = nameComponent[4];
-            var packetProcessID = nameComponent[5];
+            var userID = nameComponent[2];
+            var sensorID = nameComponent[3];
+            var timeString = nameComponent[4];
+            var processID = nameComponent[5];
 
             console.log("before general pit data, name: " + nameComponent);
 
             // first, determine who wants the data
-            PIT.getGeneralPITData(packetUserID, hostIP, function(rowsTouched, allValidPITEntries) {
+            PIT.getGeneralPITData(userID, hostIP, function(rowsTouched, allValidPITEntries) {
 
                 console.log("length of returned pit entries: " + allValidPITEntries);
 
@@ -222,12 +223,12 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                     var requestFoundWithinInterval = false;
                     for (var i = 0; i < allValidPITEntries.length; i++) {
 
-                        if (utils.isValidForTimeInterval(allValidPITEntries[i].getTimeString(), packetTimeString)) {
+                        if (utils.isValidForTimeInterval(allValidPITEntries[i].getTimeString(), timeString)) {
                             requestFoundWithinInterval = true;
                             break;
                         }
 
-                        if ((packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA || packetProcessID === StringConst.REGISTER_CREDENTIAL_DATA)
+                        if ((processID === StringConst.LOGIN_CREDENTIAL_DATA || processID === StringConst.REGISTER_CREDENTIAL_DATA)
                             && allValidPITEntries[i].getProcessID() === StringConst.CREDENTIAL_REQUEST) {
 
                             /**
@@ -240,8 +241,8 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                             break;
                         }
 
-                        if (packetProcessID === StringConst.SYNCH_DATA_REQUEST
-                            && allValidPITEntries[i].getTimeString() === packetTimeString) {
+                        if (processID === StringConst.SYNCH_DATA_REQUEST
+                            && allValidPITEntries[i].getTimeString() === timeString) {
 
                             /**
                              * TODO - doc here (the user ids won't match and both time strings are intervals)
@@ -255,30 +256,30 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                     if (requestFoundWithinInterval) { // positive request count, process packet now
 
                         // check if DATA packet contains FIB data
-                        if (packetProcessID === StringConst.DATA_FIB) {
+                        if (processID === StringConst.DATA_FIB) {
 
                             handleFIBData(dataContents);
                         }
                         // check if DATA packet contains CACHE data
-                        else if (packetProcessID === StringConst.DATA_CACHE) {
+                        else if (processID === StringConst.DATA_CACHE) {
 
-                            handleCacheData(packetUserID, packetSensorID, packetTimeString,
-                                packetProcessID, dataContents, allValidPITEntries);
+                            handleCacheData(userID, sensorID, timeString,
+                                processID, dataContents, allValidPITEntries);
                         }
                         // client has sent login credentials to server for validation
-                        else if (packetProcessID === StringConst.LOGIN_CREDENTIAL_DATA) {
+                        else if (processID === StringConst.LOGIN_CREDENTIAL_DATA) {
 
                             handleLoginData(dataContents);
                         }
                         // client has sent register credentials to server for validation
-                        else if (packetProcessID === StringConst.REGISTER_CREDENTIAL_DATA) {
+                        else if (processID === StringConst.REGISTER_CREDENTIAL_DATA) {
 
                              handleRegisterData(dataContents);
                         }
                         // client has responded to server's synchronization request
-                        else if (packetProcessID === StringConst.SYNCH_DATA_REQUEST) {
+                        else if (processID === StringConst.SYNCH_DATA_REQUEST) {
 
-                            handleSynchRequestData(packetUserID, packetTimeString, dataContents);
+                            handleSynchRequestData(userID, timeString, dataContents);
                         } else {
                             // unknown process id; drop packet
                         }
@@ -351,23 +352,23 @@ function handleFIBData (packetFloatContent) {
 /**
  * Method handles incoming Non-FIB data
  *
- * @param packetUserID userID associated with incoming Data packet
- * @param packetSensorID sensorID associated with incoming Data packet
- * @param packetTimeString timeString associated with incoming Data packet
- * @param packetProcessID processID associated with incoming Data packet
+ * @param userID userID associated with incoming Data packet
+ * @param sensorID sensorID associated with incoming Data packet
+ * @param timeString timeString associated with incoming Data packet
+ * @param processID processID associated with incoming Data packet
  * @param packetFloatContent contents of incoming Data packet
  * @param allValidPITEntries ArrayList of all PIT entries requesting this data
  */
-function handleCacheData (packetUserID, packetSensorID, packetTimeString,
-                           packetProcessID, packetFloatContent, allValidPITEntries) {
+function handleCacheData (userID, sensorID, timeString,
+                           processID, packetFloatContent, allValidPITEntries) {
 
     var data = DBData.DATA();
-    data.csData(packetUserID, packetSensorID, packetTimeString, packetFloatContent);
+    data.csData(userID, sensorID, timeString, packetFloatContent);
 
     // TODO - again, rework for specific CS data once TIME_STRING valid
 
     // if data exists in cache, just update; otherwise insert
-    CS.getGeneralCSData(packetUserID, function(rowsTouched, queryResult) {
+    CS.getGeneralCSData(userID, function(rowsTouched, queryResult) {
         if (queryResult !== null) {
 
             CS.updateCSData(data, function(){});
@@ -391,7 +392,7 @@ function handleCacheData (packetUserID, packetSensorID, packetTimeString,
             if (allValidPITEntries[i].ipAddr !== myIPAddress) {
 
                 // create and send NDN-compliant packet using ndn-js module
-                var packetName = ndnjs_utils.createName(packetUserID, packetSensorID, packetTimeString, packetProcessID);
+                var packetName = ndnjs_utils.createName(userID, sensorID, timeString, processID);
                 var data = ndnjs_utils.createDataPacket(packetFloatContent, packetName);
 
                 var encodedPacket = data.wireEncode();
@@ -419,14 +420,19 @@ function handleLoginData(dataContents) {
         var userID = loginCredentials[0].trim();
         var password = loginCredentials[1].trim();
 
-        USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
+        console.log("login credentials: " + loginCredentials);
+
+        USER_CREDENTIALS.getUserByID(userID, function(rowCount, queryResult) {
 
             // only one row (user) should have been found and returned
             if (rowCount === 1 && queryResult) {
 
+                console.log("if 1");
+
                 utils.comparePassword(password, queryResult.getPassword(),
                     function (err, isPasswordMatch) {
 
+                        console.log("passwords match: " + isPasswordMatch);
                         // login successful
                         if (isPasswordMatch) {
 
@@ -440,6 +446,7 @@ function handleLoginData(dataContents) {
                     });
 
             } else {
+                console.log("else1");
                 // user was not found in database; login unsuccessful
             }
         });
@@ -469,7 +476,7 @@ function handleRegisterData(dataContents) {
 
         // TODO - handle email
 
-        USER_CREDENTIALS.getUser(userID, function(rowCount, queryResult) {
+        USER_CREDENTIALS.getUserByID(userID, function(rowCount, queryResult) {
 
             // register unsuccessful
             if (rowCount === 1 && queryResult) {
@@ -531,13 +538,13 @@ function handleSynchRequestData(userID, timeString, dataContents) {
 /**
  * Returns entire FIB to user who requested it
  *
- * @param packetUserID userID of entity that requested FIB contents
- * @param packetSensorID sensorID of entity that requested FIB contents
+ * @param userID userID of entity that requested FIB contents
+ * @param sensorID sensorID of entity that requested FIB contents
  * @param packetIP specifies IP that will receive reply if parse success
  * @param packetPort specifies IP that will receive reply if parse success
  */
-function  handleInterestFIBRequest (packetUserID, packetSensorID, packetIP, packetPort) {
-    if (packetUserID && packetSensorID && packetIP && packetPort) {
+function  handleInterestFIBRequest (userID, sensorID, packetIP, packetPort) {
+    if (userID && sensorID && packetIP && packetPort) {
 
         FIB.getAllFIBData(function(rowsTouched, allFIBData) {
 
@@ -572,16 +579,16 @@ function  handleInterestFIBRequest (packetUserID, packetSensorID, packetIP, pack
 /**
  * performs NDN logic on packet that requests data
  *
- * @param packetUserID userID associated with requested data from cache
- * @param packetSensorID sensorID associated with requested data from cache
- * @param packetTimeString timeString associated with requested data from cache
- * @param packetProcessID processID associated with requested data from cache
+ * @param userID userID associated with requested data from cache
+ * @param sensorID sensorID associated with requested data from cache
+ * @param timeString timeString associated with requested data from cache
+ * @param processID processID associated with requested data from cache
  * @param packetIP specifies IP that will receive reply if parse success
  * @param packetPort specifies IP that will receive reply if parse success
  * @return boolean - true if a packet sent, false otherwise (true indicates valid input; useful during testing)
  */
-function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeString,
-                                       packetProcessID, packetIP, packetPort)
+function handleInterestCacheRequest (userID, sensorID, timeString,
+                                       processID, packetIP, packetPort)
 {
     // TODO - should packetPort be used?
     // TODO - rework with specific data once TIME variable valid!
@@ -589,7 +596,7 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
     console.log("inside interest cache data");
 
     // first, check CONTENT STORE (cache) for requested information
-    CS.getGeneralCSData(packetUserID, function(rowsTouched, csQueryResults) {
+    CS.getGeneralCSData(userID, function(rowsTouched, csQueryResults) {
 
         // data was in cache; send to requester
         if (csQueryResults) {
@@ -622,14 +629,14 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 
             var newPITEntry;
 
-            PIT.getGeneralPITData(packetUserID, packetIP, function(rowsTouched, queryResults) {
+            PIT.getGeneralPITData(userID, packetIP, function(rowsTouched, queryResults) {
 
                 // query returned NULL: no INTEREST sent yet; do so now
                 if (!rowsTouched || !queryResults) {
 
                     // add new request to PIT, then look into FIB before sending request
                     newPITEntry = DBData.DATA();
-                    newPITEntry.pitData(packetUserID, packetSensorID, packetProcessID, packetTimeString, packetIP);
+                    newPITEntry.pitData(userID, sensorID, processID, timeString, packetIP);
                     PIT.insertPITData(newPITEntry, function(){});
 
                     FIB.getAllFIBData(function(rowCount, queryResults) {
@@ -647,8 +654,8 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
                                 if (allFIBData[i].ipAddr !== packetIP && allFIBData[i].ipAddr !== null) {
 
                                     // create and send packet with ndn-js module
-                                    var packetName = ndnjs_utils.createName(packetUserID, packetSensorID,
-                                        packetTimeString,  packetProcessID);
+                                    var packetName = ndnjs_utils.createName(userID, sensorID,
+                                        timeString,  processID);
                                     var interest = ndnjs_utils.createInterestPacket(packetName);
 
                                     var encodedPacket = interest.wireEncode();
@@ -664,7 +671,7 @@ function handleInterestCacheRequest (packetUserID, packetSensorID, packetTimeStr
 
                     // add new request to PIT and wait, request has already been sent
                     newPITEntry = DBData.DATA();
-                    newPITEntry.pitData(packetUserID, packetSensorID, packetProcessID, packetTimeString, packetIP);
+                    newPITEntry.pitData(userID, sensorID, processID, timeString, packetIP);
 
                     PIT.insertPITData(newPITEntry, function(){});
                 }
@@ -737,36 +744,50 @@ function handleInterestRegisterRequest(clientID, hostIP, hostPort) {
  * Handles user's query as to whether login was success; if found,
  * replies with previously-stored login result then deletes it from array.
  *
- * @param packetUserID of querying user
+ * @param userID of querying user
  * @param hostIP of querying user
+ * @param sensorID of querying user
  * @param hostPort of querying user
  */
-function handleLoginResultRequest(packetUserID, hostIP, hostPort) {
-    handleResultRequest(packetUserID, hostIP, hostPort, StringConst.LOGIN_REQUEST);
+function handleLoginResultRequest(userID, sensorID, hostIP, hostPort) {
+
+    /** 
+     * Here userID is stored in sensorID position. We needed to send userID 
+     * but had no place to do so and sensorID would have otherwise been null. 
+     */
+
+    handleResultRequest(sensorID, hostIP, hostPort, StringConst.LOGIN_REQUEST);
 }
 
 /**
  * Handles user's query as to whether register was success; if found,
  * replies with previously-stored register result then deletes it from array.
  *
- * @param packetUserID of querying user
+ * @param userID of querying user
+ * @param sensorID of querying user
  * @param hostIP of querying user
  * @param hostPort of querying user
  */
-function handleRegisterResultRequest(packetUserID, hostIP, hostPort) {
-    handleResultRequest(packetUserID, hostIP, hostPort, StringConst.REGISTER_REQUEST);
+function handleRegisterResultRequest(userID, sensorID, hostIP, hostPort) {
+
+    /** 
+     * Here userID is stored in sensorID position. We needed to send userID 
+     * but had no place to do so and sensorID would have otherwise been null. 
+     */
+
+    handleResultRequest(sensorID, hostIP, hostPort, StringConst.REGISTER_REQUEST);
 }
 
 /**
  * Handles user's query as to whether register/login was success; if found,
  * replies with previously-stored register result then deletes it from array.
  *
- * @param packetUserID of querying user
+ * @param userID of querying user
  * @param hostIP of querying user
  * @param hostPort of querying user
  * @param requestType (i.e., either LOGIN_REQUEST or REGISTER_REQUEST)
  */
-function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
+function handleResultRequest(userID, hostIP, hostPort, requestType) {
     var userValidationFound = false;
     var recentValidations;
 
@@ -778,7 +799,8 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
     }
 
     for (var i = 0; i < recentValidations.length; i++) {
-        if (recentValidations[i].userID === packetUserID) {
+
+        if (recentValidations[i].userID === userID) {
             recentValidations.splice(i, 1); // remove element
             userValidationFound = true;
 
@@ -791,18 +813,19 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
     // client's login/register has been validated; reply with portion if FIB (refer to paper for more information)
     if (userValidationFound) {
 
-        /**
-         * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+        /** 
+         * Here userID is stored in sensorID position. We needed to send userID 
+         * but had no place to do so and sensorID would have otherwise been null. 
          */
 
         if (requestType === StringConst.REGISTER_REQUEST) {
-            // set process id to DATA_REGISTER_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, packetUserID,
-                utils.getCurrentTime(), StringConst.DATA_REGISTER_RESULT);
+            // set process id to REGISTER_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID,
+                utils.getCurrentTime(), StringConst.REGISTER_RESULT);
         } else {
-            // only requestType left is login; set process id to DATA_LOGIN_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, packetUserID,
-                utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+            // only requestType left is login; set process id to LOGIN_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID,
+                utils.getCurrentTime(), StringConst.LOGIN_RESULT);
         }
 
         FIB.getAllFIBData(function(rowsTouched, queryResult) {
@@ -835,17 +858,22 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
     // client's login/register has not been validated; reply with an empty data packet
     else {
 
+        /** 
+         * Here userID is stored in sensorID position. We needed to send userID 
+         * but had no place to do so and sensorID would have otherwise been null. 
+         */
+
         var data;
         if (requestType === StringConst.REGISTER_REQUEST) {
-            // set process id to DATA_REGISTER_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-                utils.getCurrentTime(), StringConst.DATA_REGISTER_RESULT);
+            // set process id to REGISTER_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID,
+                utils.getCurrentTime(), StringConst.REGISTER_RESULT);
 
             data = ndnjs_utils.createDataPacket(StringConst.REGISTER_FAILED, packetName);
         } else {
-            // only requestType left is login; set process id to DATA_LOGIN_RESULT
-            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, StringConst.NULL_FIELD,
-                utils.getCurrentTime(), StringConst.DATA_LOGIN_RESULT);
+            // only requestType left is login; set process id to LOGIN_RESULT
+            packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID,
+                utils.getCurrentTime(), StringConst.LOGIN_RESULT);
 
             data = ndnjs_utils.createDataPacket(StringConst.LOGIN_FAILED, packetName);
         }
@@ -957,7 +985,6 @@ function getRequestedData(userID, sensorID, timeString, callback) {
             // TODO - improve upon this naive data-matching
             var matchingData = [];
 
-            console.log("looping for requested data");
             for (var i = 0; i < queryResults.length; i++) {
 
                 if (queryResults[i].getSensorID() === sensorID
@@ -965,8 +992,6 @@ function getRequestedData(userID, sensorID, timeString, callback) {
 
                     // match found, place in array to be returned to caller function
                     matchingData.push(parseInt(queryResults[i].getDataFloat()));
-
-                    console.log("adding data");
                 }
             }
 

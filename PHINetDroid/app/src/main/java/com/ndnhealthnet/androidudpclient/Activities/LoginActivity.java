@@ -218,16 +218,19 @@ public class LoginActivity extends Activity {
     private void credentialQueryHandler(final String userID, final String password) {
         String currentTime = Utils.getCurrentTime();
 
+        /**
+         * Here userID is stored in sensorID position. We needed to send userID
+         * but had no place to do so and sensorID would have otherwise been null.
+         */
+
         // send interest requesting result of login
-        Name packetNameInner = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                currentTime, ConstVar.INTEREST_LOGIN_RESULT);
+        Name packetNameInner = JNDNUtils.createName(ConstVar.SERVER_ID, userID,
+                currentTime, ConstVar.LOGIN_RESULT);
         Interest interest = JNDNUtils.createInterestPacket(packetNameInner);
 
         // add entry into PIT
-        DBData data = new DBData(ConstVar.PIT_DB, ConstVar.NULL_FIELD, ConstVar.DATA_LOGIN_RESULT,
+        DBData data = new DBData(ConstVar.PIT_DB, userID, ConstVar.LOGIN_RESULT,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
-
-        // TODO - note DATA_LOGIN_RESULT (we should not send an INTEREST PID and expect a DATA PID); fix
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
@@ -269,27 +272,29 @@ public class LoginActivity extends Activity {
             DBData loginResult = null;
 
             /**
-             * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+             * Here userID is stored in sensorID position. We needed to send userID
+             * but had no place to do so and sensorID would have otherwise been null.
              */
 
             for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_LOGIN_RESULT)
+                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.LOGIN_RESULT)
                         && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
 
                     loginResult = potentiallyValidRows.get(i);
                 }
             }
 
-            if (loginResult == null || loginResult.getProcessID().equals(ConstVar.LOGIN_FAILED)) {
+            // after reading entry, delete it so that others can't get it
+            DBSingleton.getInstance(getApplicationContext())
+                    .getDB().deleteCSEntry(loginResult.getUserID(), loginResult.getTimeString());
+
+
+            if (loginResult == null || loginResult.getDataFloat().equals(ConstVar.LOGIN_FAILED)) {
 
                 // failure
                 errorText.setText("Login failed.\nAccount does not seem to exist.");
                 progressBar.setVisibility(View.GONE); // hide progress; login failed
             } else {
-
-                // after reading entry, delete it so that others can't get it
-                DBSingleton.getInstance(getApplicationContext())
-                        .getDB().deleteCSEntry(loginResult.getUserID(), loginResult.getTimeString());
 
                 // login was successful; store values now
                 String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());

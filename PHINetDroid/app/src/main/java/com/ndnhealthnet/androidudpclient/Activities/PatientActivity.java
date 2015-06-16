@@ -263,8 +263,6 @@ public class PatientActivity extends Activity {
                     AlertDialog.Builder secondInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_END);
                     secondInterval.setView(intervalSelector);
 
-                    // TODO - rework this sloppy nesting
-
                     secondInterval.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

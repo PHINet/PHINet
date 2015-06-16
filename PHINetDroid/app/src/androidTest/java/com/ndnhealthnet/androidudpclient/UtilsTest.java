@@ -9,6 +9,7 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * Tests the functionality of Utils.java
@@ -36,11 +37,14 @@ public class UtilsTest extends TestCase {
         testGetCurrentTime();
         testValidIP();
         testCreateAnalyticTimeInterval();
+        testCreateTimeStringInterval();
         testIsValidEmail();
         testFormatSynchData();
         testIsValidUserName();
         testIsValidPassword();
         testIsValidInterval();
+        testIsValidSensorName();
+        testGenerateTimeStringFromInts();
 
         // reset user credentials after test
         assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, ""));
@@ -153,8 +157,8 @@ public class UtilsTest extends TestCase {
      */
     public void testCreateAnalyticTimeInterval() throws Exception {
 
-        String goodInput = "06/11/1990 - 09/10/2000";
-        String goodOutput = "1990-11-06T00.00.00.000||2000-10-09T00.00.00.000";
+        String goodOutput = "06/11/1990 - 09/10/2000";
+        String goodInput = "1990-06-11T00.00.00.000||2000-09-10T00.00.00.000";
 
         String badInput = "2934asdfkj1;23";
         String badOutput = "fdfjjfjfjjda2332---";
@@ -166,6 +170,30 @@ public class UtilsTest extends TestCase {
         boolean exceptionCaught = false;
         try {
             assertFalse(Utils.createAnalyticTimeInterval(badInput).equals(badOutput));
+        } catch (IllegalArgumentException e) {
+            exceptionCaught = true;
+        }
+
+        assertTrue(exceptionCaught); // assert that exception was thrown
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testCreateTimeStringInterval() throws Exception {
+        String goodInput = "06/11/1990 - 09/10/2000";
+        String goodOutput = "1990-06-11T00.00.00.000||2000-09-10T00.00.00.000";
+
+        String badInput = "2934asdfkj1;23";
+        String badOutput = "fdfjjfjfjjda2332---";
+
+        // test on good input
+        assertTrue(Utils.createTimeStringInterval(goodInput).equals(goodOutput));
+
+        // test on bad input
+        boolean exceptionCaught = false;
+        try {
+            assertFalse(Utils.createTimeStringInterval(badInput).equals(badOutput));
         } catch (IllegalArgumentException e) {
             exceptionCaught = true;
         }
@@ -244,8 +272,8 @@ public class UtilsTest extends TestCase {
         String invalidUserName2 = "user;name";
         String invalidUserName3 = "user-name";
         String invalidUserName4 = "user:name";
-        String invalidUserName5 = "a";
-        String invalidUserName6 = "aopsidjfapisjfapisdjfaisdjapsidfj";
+        String invalidUserName5 = "a"; // too short
+        String invalidUserName6 = "aopsidjfapisjfapisdjfaisdjapsidfj"; // too long
 
         // test valid username
         assertTrue(Utils.isValidUserName(validUserName1));
@@ -257,6 +285,7 @@ public class UtilsTest extends TestCase {
         assertFalse(Utils.isValidUserName(invalidUserName4));
         assertFalse(Utils.isValidUserName(invalidUserName5));
         assertFalse(Utils.isValidUserName(invalidUserName6));
+        assertFalse(Utils.isValidUserName(null));
     }
 
     /**
@@ -264,8 +293,8 @@ public class UtilsTest extends TestCase {
      */
     public void testIsValidPassword() throws Exception {
         String validPassword = "hunter2";
-        String invalidPassword1 = "pw";
-        String invalidPassword2 = "asdfjapsidjfapsidjfpaisjdfpaisdjfas";
+        String invalidPassword1 = "pw"; // too short
+        String invalidPassword2 = "asdfjapsidjfapsidjfpaisjdfpaisdjfas"; // too long
 
         // test valid password
         assertTrue(Utils.isValidPassword(validPassword));
@@ -273,6 +302,24 @@ public class UtilsTest extends TestCase {
         // test invalid passwords
         assertFalse(Utils.isValidPassword(invalidPassword1));
         assertFalse(Utils.isValidPassword(invalidPassword2));
+        assertFalse(Utils.isValidPassword(null));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidSensorName() throws Exception {
+        String validSensorName = "HeartbeatSensor";
+        String invalidSensorName1 = "pw"; // too short
+        String invalidSensorName2 = "asdfjapsidjfapsidjfpaisjdfpaisdjfas"; // too long
+
+        // test valid password
+        assertTrue(Utils.isValidSensorName(validSensorName));
+
+        // test invalid passwords
+        assertFalse(Utils.isValidSensorName(invalidSensorName1));
+        assertFalse(Utils.isValidSensorName(invalidSensorName2));
+        assertFalse(Utils.isValidSensorName(null));
     }
 
     /**
@@ -290,5 +337,45 @@ public class UtilsTest extends TestCase {
         assertFalse(Utils.isValidInterval(2000, 4, 3, 2000, 4, 2));
         assertFalse(Utils.isValidInterval(2000, 4, 2, 1999, 4, 2));
         assertFalse(Utils.isValidInterval(2000, 5, 2, 2000, 4, 2));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testGenerateTimeStringFromInts() throws Exception {
+
+        int year = 2100;
+        int month = 10;
+        int day = 4;
+        boolean isEndDate = false; // this parameter is disregarded until input is invalid
+
+        Calendar now = Calendar.getInstance();
+
+        int defaultMonth = now.get(Calendar.MONTH) + 1; // offset required (months are 0-indexed)
+        int defaultDay = now.get(Calendar.DAY_OF_MONTH);
+        int defaultYear = now.get(Calendar.YEAR);
+
+
+        // Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS"
+        String correctTimeString = "2100-10-4T00.00.00.000";
+
+        // subtract 1 (definition of "start" time string)
+        String correctStartTimeString = Integer.toString(defaultYear-1) + "-"
+                + Integer.toString(defaultMonth) + "-" + Integer.toString(defaultDay) + "T00.00.00.000";
+
+        // add 1 (definition of "end" time string)
+        String correctEndTimeString = Integer.toString(defaultYear+1) + "-"
+                + Integer.toString(defaultMonth) + "-" + Integer.toString(defaultDay) + "T00.00.00.000";
+
+        String timeString = Utils.generateTimeStringFromInts(year, month, day, isEndDate);
+
+        // since input is invalid, will result to default given final boolean param
+        String startTimeString = Utils.generateTimeStringFromInts(0, 0, 0, isEndDate);
+        String endTimeString = Utils.generateTimeStringFromInts(0, 0, 0, !isEndDate);
+
+        // test output
+        assertEquals(correctTimeString, timeString);
+        assertEquals(correctStartTimeString, startTimeString);
+        assertEquals(correctEndTimeString, endTimeString);
     }
 }

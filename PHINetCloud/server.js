@@ -177,7 +177,7 @@ app.get('/profile', function (req, res) {
             if (req.cookies && req.cookies.user) {
 
                 // now, query database as second level of validation
-                LoginDB.getUser(req.cookies.user, function(rowsTouched, queryResult) {
+                LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
 
                     // TODO - perform more sophisticated validation
 
@@ -309,7 +309,7 @@ app.post('/loginAction', function(req, res) {
 
     } else {
         // user entered both required params, now query databse to verify password
-        LoginDB.getUser(req.body.user_name, function(rowsTouched, queryResults){
+        LoginDB.getUserByID(req.body.user_name, function(rowsTouched, queryResults){
 
             // only attempt to compare passwords if query was successful
             if (queryResults != null && rowsTouched == 1) {
@@ -438,7 +438,8 @@ app.post('/registerAction', function(req, res) {
                                 if (err) {
                                     console.log("Error serving signup.html: " + err);
                                 } else {
-                                    var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful. Bad input"});
+                                    var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful."
+                                                    + "\nEither username or email already exists."});
                                     res.send(renderedHtml);
                                 }
                             })

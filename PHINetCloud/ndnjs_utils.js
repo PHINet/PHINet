@@ -9,6 +9,7 @@ var Interest = require('./ndn-js/interest.js').Interest;
 var KeyLocator = require('./ndn-js/key-locator.js').KeyLocator;
 var MetaInfo = require('./ndn-js/meta-info.js').MetaInfo;
 var Name = require('./ndn-js/name.js').Name;
+var KeyChain = require('./ndn-js/security/key-chain.js').KeyChain;
 var Sha256WithRsaSignature = require('./ndn-js/sha256-with-rsa-signature.js').Sha256WithRsaSignature;
 
 exports.ndn_utils = {
@@ -97,9 +98,9 @@ exports.ndn_utils = {
 
         var metaInfo = new MetaInfo();
 
-        // TODO - set final block id
-        //  TODO- metaInfo.setType(ContentType.BLOB) // blob is the default type
+        // NOTE: we are currently not using metaInfo.setFinalBlockId
 
+        metaInfo.setType(0);// TODO - 0 is default, but set correctly with MetaInfo.ContentType.BLOB
         metaInfo.setFreshnessPeriod(this.DEFAULT_FRESHNESS_PERIOD);
 
         return metaInfo;
@@ -136,16 +137,15 @@ exports.ndn_utils = {
             metaInfo = this.createMetaInfo();
         }
 
-        // TODO - how to use signature?
+        var data = new Data();
         var signature = new Sha256WithRsaSignature();
 
-        var data = new Data();
-
-        // TODO - set content data.setContent(new Blob(content));
         data.setMetaInfo(metaInfo);
         data.setName(new Name(name));
-        data.setSignature(signature);
         data.setContent(content);
+        data.setSignature(signature);
+
+        // TODO - correctly sign data KeyChain.signWithSha256(data); // sign the data packet
 
         return data;
     },
@@ -167,9 +167,7 @@ exports.ndn_utils = {
     createInterestPacket: function(name, childSelector, interestLifetimeMillis, keyLocator, mustBeFresh, maxSuffixComponents,
                 minSuffixComponents, scope) {
 
-        var exclude = new Exclude(); // TODO - how to use exclude?
-
-        // TODO - can we set interest params to default values?
+        var exclude = new Exclude(); // NOTE: we are not using exclude at this time
 
         var interest = new Interest();
 

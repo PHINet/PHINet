@@ -380,10 +380,10 @@ public class UDPListener extends Thread {
                     break;
                 }
 
-                if ((processID.equals(ConstVar.DATA_LOGIN_RESULT)
-                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.DATA_LOGIN_RESULT))
-                  || (processID.equals(ConstVar.DATA_REGISTER_RESULT)
-                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.DATA_REGISTER_RESULT))) {
+                if ((processID.equals(ConstVar.LOGIN_RESULT)
+                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.LOGIN_RESULT))
+                  || (processID.equals(ConstVar.REGISTER_RESULT)
+                        && allValidPITEntries.get(i).getProcessID().equals(ConstVar.REGISTER_RESULT))) {
 
                     /**
                      * login/register packets (currently) are valid irrespective of time, break if match found
@@ -415,8 +415,8 @@ public class UDPListener extends Thread {
 
                     handleCacheData(userID, sensorID, timeString, processID,
                             dataContents, allValidPITEntries);
-                } else if (processID.equals(ConstVar.DATA_LOGIN_RESULT)
-                        || processID.equals(ConstVar.DATA_REGISTER_RESULT)
+                } else if (processID.equals(ConstVar.LOGIN_RESULT)
+                        || processID.equals(ConstVar.REGISTER_RESULT)
                         || Utils.isAnalyticProcessID(processID)) {
 
                     // these ProcessIDs all result in storing data into the ContentStore

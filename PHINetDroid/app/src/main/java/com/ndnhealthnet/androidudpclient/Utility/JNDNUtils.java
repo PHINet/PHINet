@@ -8,8 +8,9 @@ import net.named_data.jndn.KeyLocator;
 import net.named_data.jndn.KeyLocatorType;
 import net.named_data.jndn.MetaInfo;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.Sha256WithRsaSignature;
+import net.named_data.jndn.security.*;
 import net.named_data.jndn.encoding.EncodingException;
+import net.named_data.jndn.security.SecurityException;
 import net.named_data.jndn.util.Blob;
 
 import java.nio.ByteBuffer;
@@ -129,10 +130,9 @@ public class JNDNUtils {
     public static MetaInfo createMetaInfo() {
         MetaInfo metaInfo = new MetaInfo();
 
-      // TODO - rework with this included; this field is option - we ignore for now
-                        //   metaInfo.setFinalBlockId(finalBlockID);
-        metaInfo.setFreshnessPeriod(DEFAULT_FRESHNESS_PERIOD);
+        // NOTE: we are currently not using metaInfo.setFinalBlockId
 
+        metaInfo.setFreshnessPeriod(DEFAULT_FRESHNESS_PERIOD);
         metaInfo.setType(ContentType.BLOB); // blob is the default type
 
         return metaInfo;
@@ -163,16 +163,23 @@ public class JNDNUtils {
      */
     public static Data createDataPacket(String content, MetaInfo metaInfo, String name) {
 
-        // TODO - how to use signature?
-
-        Sha256WithRsaSignature signature = new Sha256WithRsaSignature();
-
         Data data = new Data();
 
         data.setContent(new Blob(content));
         data.setMetaInfo(metaInfo);
         data.setName(new Name(name));
-        data.setSignature(signature);
+
+        /* TODO - sign packet and validate on server
+        try {
+            // attempt to sign data
+            KeyChain kc = new KeyChain();
+            kc.signWithSha256(data);
+
+        } catch (SecurityException e) {
+            // sign failed
+
+            // TODO - handle this error
+        }*/
 
         return data;
     }
@@ -199,16 +206,23 @@ public class JNDNUtils {
      */
     public static Data createDataPacket(String content, String name) {
 
-        // TODO - how to use signature?
-
-        Sha256WithRsaSignature signature = new Sha256WithRsaSignature();
-
         Data data = new Data();
 
         data.setContent(new Blob(content));
         data.setMetaInfo(createMetaInfo());
         data.setName(new Name(name));
-        data.setSignature(signature);
+
+        /* TODO - sign packet and validate on server
+        try {
+            // attempt to sign data
+            KeyChain kc = new KeyChain();
+            kc.signWithSha256(data);
+
+        } catch (SecurityException e) {
+            // sign failed
+
+            // TODO - handle this error
+        }*/
 
         return data;
     }
@@ -242,7 +256,7 @@ public class JNDNUtils {
                                                 KeyLocator keyLocator, boolean mustBeFresh, int maxSuffixComponents,
                                                 int minSuffixComponents, String name, int scope) {
 
-        Exclude exclude = new Exclude(); // TODO - how to use exclude
+        Exclude exclude = new Exclude(); // NOTE: we are not using exclude at this time
 
         Interest interest = new Interest();
 

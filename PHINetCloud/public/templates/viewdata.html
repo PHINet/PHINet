@@ -61,9 +61,11 @@
             <div id="content">
 
                 <h1>View Data</h1>
+                <hr>
 
                 <p>&nbsp;</p>
 
+                <p>Content coming soon...</p>
 
                 <canvas id="myChart" width="800" height="400"></canvas>
 
@@ -80,12 +82,15 @@
         </div>
     </div>
 
+
     <script>
         // define variable using server-side data so that it can be accessed in graph_data.js
         var queryData = JSON.parse('<%- data %>');
     </script>
 
+    <!--
     <script src="/public/static/bootstrap/js/Chart.min.js"></script>
     <script type="text/javascript" src="/public/static/bootstrap/js/graph_data.js"></script>
+    -->
 </body>
 </html>

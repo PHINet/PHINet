@@ -168,7 +168,7 @@ public class SignupActivity extends Activity {
 
                 // search for Interest with PID CREDENTIAL_REQUEST && request for this user
                 if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)
-                        && pitRows.get(i).getProcessID().equals(userID)) {
+                        && pitRows.get(i).getUserID().equals(userID)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
                 }
@@ -204,14 +204,14 @@ public class SignupActivity extends Activity {
             }
             // the server has not replied with an Interest; error
             else {
-                errorText.setText("Signup failed.\nCould not reach server.");
+                errorText.setText("Signup failed.\nCould not reach server123.");
                 progressBar.setVisibility(View.GONE); // hide progress; signup failed
             }
 
         }
         // the server has not replied with an Interest; error
         else {
-            errorText.setText("Signup failed.\nCould not reach server.");
+            errorText.setText("Signup failed.\nCould not reach server456.");
             progressBar.setVisibility(View.GONE); // hide progress; signup failed
         }
     }
@@ -226,16 +226,19 @@ public class SignupActivity extends Activity {
     private void credentialQueryHandler(final String userID, final String password) {
         String currentTime = Utils.getCurrentTime();
 
+        /**
+         * Here userID is stored in sensorID position. We needed to send userID
+         * but had no place to do so and sensorID would have otherwise been null.
+         */
+
         // send interest requesting result of signup
-        Name packetNameInner = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                currentTime, ConstVar.INTEREST_REGISTER_RESULT);
+        Name packetNameInner = JNDNUtils.createName(ConstVar.SERVER_ID, userID,
+                currentTime, ConstVar.REGISTER_RESULT);
         Interest interest = JNDNUtils.createInterestPacket(packetNameInner);
 
         // add entry into PIT
-        DBData data = new DBData(ConstVar.PIT_DB, ConstVar.NULL_FIELD, ConstVar.DATA_REGISTER_RESULT,
+        DBData data = new DBData(ConstVar.PIT_DB, userID, ConstVar.REGISTER_RESULT,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
-
-        // TODO - note DATA_REGISTER_RESULT (we should not send an INTEREST PID and expect a DATA PID); fix
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
@@ -276,26 +279,29 @@ public class SignupActivity extends Activity {
             DBData signupResult = null;
 
             /**
-             * TODO - doc use of packetUserID in place of (otherwise null) sensorID
+             * Here userID is stored in sensorID position. We needed to send userID
+             * but had no place to do so and sensorID would have otherwise been null.
              */
 
             for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.DATA_REGISTER_RESULT)
+                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.REGISTER_RESULT)
                         && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
 
                     signupResult = potentiallyValidRows.get(i);
                 }
             }
 
-            if (signupResult == null || signupResult.getProcessID().equals(ConstVar.REGISTER_FAILED)) {
+            // after reading entry, delete it so that others can't get it
+            DBSingleton.getInstance(getApplicationContext())
+                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
+
+
+            if (signupResult == null || signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
                 // failure
                 errorText.setText("Register failed.\nAccount may already exist.");
                 progressBar.setVisibility(View.GONE); // hide progress; signup failed
 
             } else {
-                // after reading entry, delete it so that others can't get it
-                DBSingleton.getInstance(getApplicationContext())
-                        .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
 
                 // signup was successful; store values now
                 String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());

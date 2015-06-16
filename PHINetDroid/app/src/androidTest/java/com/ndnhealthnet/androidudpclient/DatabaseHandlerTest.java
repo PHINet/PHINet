@@ -275,8 +275,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(pitSpecific3.getUserID(), pitData3.getUserID());
 
         // test bad input gets a null return
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData(null, null), null);
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("validUSERID", null), null);
+        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData(null, null, null), null);
+        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("validUSERID", null, null), null);
     }
 
     /**
@@ -443,7 +443,7 @@ public class DatabaseHandlerTest extends TestCase {
         DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing insertion
 
         // check null returned for empty CS
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("userid", "timestring"), null);
+        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("userid", "timestring", "processid"), null);
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData1));
@@ -452,8 +452,10 @@ public class DatabaseHandlerTest extends TestCase {
 
         // test that, although both have same userID, two different entries are returned
                     // due to their respective time stamps
-        DBData csReturn1 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(), csData1.getTimeString());
-        DBData csReturn3 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData3.getUserID(), csData3.getTimeString());
+        DBData csReturn1 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+                csData1.getTimeString(), csData1.getProcessID());
+        DBData csReturn3 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData3.getUserID(),
+                csData3.getTimeString(), csData3.getProcessID());
 
         assertEquals(csReturn1.getDataFloat(), csData1.getDataFloat());
         assertEquals(csReturn3.getDataFloat(), csData3.getDataFloat());
@@ -547,7 +549,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(), csData1.getTimeString());
+        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+                csData1.getTimeString(), csData1.getProcessID());
         assertEquals(originalReturn.getDataFloat(), csData1.getDataFloat());
 
         // now, modify and check return
@@ -556,7 +559,8 @@ public class DatabaseHandlerTest extends TestCase {
         // test validity of update
         assertTrue(DBSingleton.getInstance(context).getDB().updateCSData(csData1));
 
-        DBData updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(), csData1.getTimeString());
+        DBData updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+                csData1.getTimeString(), csData1.getProcessID());
         assertEquals(updatedReturn.getDataFloat(), csData1.getDataFloat());
 
         // test bad update return
@@ -685,7 +689,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(), csData1.getTimeString());
+        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+                csData1.getTimeString(), csData1.getProcessID());
         assertEquals(originalReturn.getDataFloat(), csData1.getDataFloat());
 
         // check null data rejected
@@ -695,7 +700,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().deleteCSEntry(csData1.getUserID(), csData1.getTimeString()));
 
         // check, now deleted, entry returns null
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(), csData1.getTimeString()), null);
+        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+                csData1.getTimeString(), csData1.getProcessID()), null);
     }
 
     /**

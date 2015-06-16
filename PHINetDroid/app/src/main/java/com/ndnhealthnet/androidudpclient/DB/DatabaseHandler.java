@@ -18,8 +18,6 @@ import java.util.ArrayList;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-    // TODO - refactor this class into numerous, specific classes
-
     private static final String DATABASE_NAME = "NDNHealthNet8";
     private static final int DATABASE_VERSION = 8;
 
@@ -494,10 +492,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param timeString associated with entry to be returned
      * @return entry if found, otherwise null returned
      */
-    public DBData getSpecificCSData(String userID, String timeString) {
+    public DBData getSpecificCSData(String userID, String timeString, String processID) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String whereSelection = "_userID=\"" + userID + "\" AND timeString=\"" + timeString + "\"";
+        String whereSelection = "_userID=\"" + userID + "\" AND timeString=\"" + timeString
+                + "\" AND processID =\"" + processID + "\"";
 
         Cursor cursor = db.query(ConstVar.CS_DB, new String[]{KEY_USER_ID,
                         KEY_SENSOR_ID, KEY_TIME_STRING, KEY_PROCESS_ID, KEY_DATA_CONTENTS},

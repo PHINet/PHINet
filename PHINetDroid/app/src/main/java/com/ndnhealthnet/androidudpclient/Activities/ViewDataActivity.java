@@ -185,61 +185,66 @@ public class ViewDataActivity extends Activity {
             public void onClick(DialogInterface dialog, int which) {
 
                 final String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
-                final String currentTime = Utils.createAnalyticTimeInterval(dataStatusText.getText().toString());
+                final String chosenTime = Utils.createTimeStringInterval(dataStatusText.getText().toString());
                 final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
-                // query server for analytic task
-                Name packetName = JNDNUtils.createName(myUserID, currentSensorSelected,
-                        currentTime, processID);
-                Interest interest = JNDNUtils.createInterestPacket(packetName);
+                DBData queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(myUserID, chosenTime, processID);
 
-                // add entry into PIT
-                DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
-                        currentTime, myUserID, ConstVar.SERVER_IP);
+                // first check to see if Analytic request isn't already in ContentStore
+                if (queryResult != null) {
+                    analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataFloat());
+                } else {
+                    // query server for analytic task
+                    Name packetName = JNDNUtils.createName(myUserID, currentSensorSelected,
+                            chosenTime, processID);
+                    Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
+                    // add entry into PIT
+                    DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
+                            chosenTime, myUserID, ConstVar.SERVER_IP);
 
-                // TODO - include real server IP
-                new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
-                        .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                    DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-                // store received packet in database for further review
-                Utils.storeInterestPacket(getApplicationContext(), interest);
+                    new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
+                            .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
-                analyticsWait.setVisibility(View.VISIBLE); // request sent; display progress bar
-                analyticsBtn.setVisibility(View.GONE); // prevent user from resending request
+                    // store received packet in database for further review
+                    Utils.storeInterestPacket(getApplicationContext(), interest);
 
-                // wait 15 seconds (arbitrary) after sending request before checking for result
-                new Handler().postDelayed(new Runnable() {
-                    public void run() {
+                    analyticsWait.setVisibility(View.VISIBLE); // request sent; display progress bar
+                    analyticsBtn.setVisibility(View.GONE); // prevent user from resending request
 
-                        analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
-                        analyticsWait.setVisibility(View.GONE); // hide; result checked now
+                    // wait 15 seconds (arbitrary) after sending request before checking for result
+                    new Handler().postDelayed(new Runnable() {
+                        public void run() {
 
-                        ArrayList<DBData> candidateData = DBSingleton
-                                .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
+                            analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
+                            analyticsWait.setVisibility(View.GONE); // hide; result checked now
 
-                        DBData analyticsResult = null;
+                            ArrayList<DBData> candidateData = DBSingleton
+                                    .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
 
-                        for (int i = 0; i < candidateData.size(); i++) {
+                            DBData analyticsResult = null;
 
-                            if (candidateData.get(i).getProcessID().equals(processID)
-                                    && candidateData.get(i).getTimeString().equals(currentTime)) {
+                            for (int i = 0; i < candidateData.size(); i++) {
 
-                                analyticsResult = candidateData.get(i);
-                                break; // result found; break from
+                                if (candidateData.get(i).getProcessID().equals(processID)
+                                        && candidateData.get(i).getTimeString().equals(chosenTime)) {
+
+                                    analyticsResult = candidateData.get(i);
+                                    break; // result found; break from
+                                }
+                            }
+
+                            if (analyticsResult != null) {
+                                analyticsResultText.setText(mostRecentlySelectedTask + " is " + analyticsResult.getDataFloat());
+                            } else {
+                                // nothing found; display error
+                                analyticsResultText.setText("Error processing request.");
                             }
                         }
-
-                        if (analyticsResult != null) {
-                            analyticsResultText.setText(mostRecentlySelectedTask + " is " + analyticsResult.getDataFloat());
-                        } else {
-                            // nothing found; display error
-                            analyticsResultText.setText("Error processing request.");
-                        }
-                    }
-                }, 15000);
-
+                    }, 15000);
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -276,7 +281,7 @@ public class ViewDataActivity extends Activity {
 
                 if (startYear == 0) {
                     // startYear == 0 means this is the first input (nothing has been set)
-                            // store now and request again
+                    // store now and request again
 
                     startYear = year;
                     startMonth = month;
@@ -286,8 +291,6 @@ public class ViewDataActivity extends Activity {
                     final DatePicker intervalSelector = new DatePicker(ViewDataActivity.this);
                     AlertDialog.Builder secondInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_END);
                     secondInterval.setView(intervalSelector);
-
-                    // TODO - rework this sloppy nesting
 
                     secondInterval.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                         @Override
@@ -369,48 +372,24 @@ public class ViewDataActivity extends Activity {
         // holds data after conversion
         ArrayList<Float> myFloatData;
 
-        // TODO - more robust verification
-
-        // attempts to determine whether an interval has been selected
-        if (startYear == 0 || endYear == 0) {
-            // startYear and endYear are invalid (interval hasn't been selected), provide default
-
-            Calendar now = Calendar.getInstance();
-
-            startYear = now.get(Calendar.YEAR) - 1;
-            endYear = now.get(Calendar.YEAR) + 1;
-
-            startMonth = now.get(Calendar.MONTH) + 1; // offset required (months are 0-indexed)
-            endMonth = startMonth;
-
-            startDay = now.get(Calendar.DAY_OF_MONTH);
-            endDay = startDay;
-        }
+        // the final boolean parameter denotes whether timeString is endDate
+        String startDate = Utils.generateTimeStringFromInts(startYear, startMonth, startDay, false);
+        String endDate = Utils.generateTimeStringFromInts(endYear, endMonth, endDay, true);
 
         // db query unsuccessful: no user data found in cache
         if (myData == null) {
 
             myFloatData = new ArrayList<>(); // create empty ArrayList; no data exists for it
-
         }
         // db query was successful; populate ArrayList that will be used to generate the graph
         else {
-
-            // date syntax: yyyy-MM-ddTHH.mm.ss.SSS
-            String startDate = Integer.toString(startYear) + "-" + Integer.toString(startMonth);
-                startDate += "-" + Integer.toString(startDay) + "T00.00.00.000"; // append zeros at end
-
-            String endDate = Integer.toString(endYear) + "-" + Integer.toString(endMonth);
-              endDate += "-" + Integer.toString(endDay) + "T00.00.00.000"; // append zeros at end
 
             // convert valid data to a format that can be displayed
             myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);
         }
 
         // generate interval text to display to user
-        String intervalText = Integer.toString(startMonth) + "/" + Integer.toString(startDay) + "/"
-                + Integer.toString(startYear) + " - " + Integer.toString(endMonth) + "/"
-                + Integer.toString(endDay) + "/" + Integer.toString(endYear);
+        String intervalText = Utils.createAnalyticTimeInterval(startDate + "||" + endDate);
 
         // database query returned valid data, display it now
         if (myFloatData.size() > 0) {
