@@ -26,7 +26,6 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.util.Blob;
 
 import java.util.ArrayList;
 
@@ -90,10 +89,8 @@ public class LoginActivity extends Activity {
                                 Utils.getCurrentTime(), ConstVar.LOGIN_REQUEST);
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                        Blob blob = interest.wireEncode();
-
                         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -160,10 +157,10 @@ public class LoginActivity extends Activity {
 
             DBData interestFound = null;
             for (int i = 0; i < pitRows.size(); i++) {
-                // TODO - verify that the credential request was for this user (and not another)
 
-                // search for Interest with PID CREDENTIAL_REQUEST
-                if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)) {
+                // search for Interest with PID CREDENTIAL_REQUEST && request for this client
+                if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)
+                        && pitRows.get(i).getUserID().equals(userID)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
                 }
@@ -178,10 +175,9 @@ public class LoginActivity extends Activity {
                 String credentialContent = userID + "," + password;
 
                 Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
-                Blob blob = data.wireEncode();
 
                 new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
-                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                        .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                 // delete Interest requesting login credentials from PIT; it has been satisfied
                 DBSingleton.getInstance(getApplicationContext()).getDB()
@@ -235,10 +231,8 @@ public class LoginActivity extends Activity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-        Blob blob = interest.wireEncode();
-
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);

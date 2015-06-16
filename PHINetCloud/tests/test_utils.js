@@ -55,7 +55,7 @@ describe('Utils', function() {
 
             var password1 = "hunter2";
 
-            utils.encryptPassword(password1, function(err, hash) {
+            utils.hashPassword(password1, function(err, hash) {
 
                 var hashedPW1 = hash;
 
@@ -142,14 +142,102 @@ describe('Utils', function(){
             }
 
             // test good output found in right proportions
-            expect(foundSensorID1 === 2 && foundSensorID2 === 1).to.equal(true);
+            expect(foundSensorID1Count === 3 && foundSensorID2Count === 1).to.equal(true);
 
             // test bad output
-            expect(badParsedOutput1).to.equal([]);
-            expect(badParsedOutput2).to.equal([]);
+            expect(badParsedOutput1.length == 0).to.equal(true);
+            expect(badParsedOutput2.length == 0).to.equal(true);
 
             done(); // the invocation of done() tells testing framework that all tests are complete
         })
     })
 });
+
+/**
+ * Tests Utils.isValidPassword() functionality.
+ */
+describe('Utils', function(){
+    describe('#isValidPassword()', function(){
+        it('returns true if password is syntactically valid', function(done){
+
+            var badPassword1 = "aias;;;asd_"; // bad characters
+            var badPassword2 = "ds"; // too short
+            var badPassword3 = "ajsdpfioajsdpifjasdpifjasdifj"; // too long
+
+            var goodPassword1 = "hunter2";
+            var goodPassword2 = "hunter_2";
+
+            // test bad input
+            expect(utils.isValidPassword(badPassword1)).to.equal(false);
+            expect(utils.isValidPassword(badPassword2)).to.equal(false);
+            expect(utils.isValidPassword(badPassword3)).to.equal(false);
+            expect(utils.isValidPassword(null)).to.equal(false);
+
+            // test good input
+            expect(utils.isValidPassword(goodPassword1)).to.equal(true);
+            expect(utils.isValidPassword(goodPassword2)).to.equal(true);
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
+        })
+    })
+});
+
+/**
+ * Tests Utils.isValidUserName() functionality.
+ */
+describe('Utils', function(){
+    describe('#isValidUserName()', function(){
+        it('returns true if username is syntactically valid', function(done){
+
+            var badUserName1 = "aias;;;asd_"; // bad characters
+            var badUserName2 = "ds"; // too short
+            var badUserName3 = "ajsdpfioajsdpifjasdpifjasdifj"; // too long
+
+            var goodUserName1 = "hunter2";
+            var goodUserName2 = "hunter_2";
+
+            // test bad input
+            expect(utils.isValidUserName(badUserName1)).to.equal(false);
+            expect(utils.isValidUserName(badUserName2)).to.equal(false);
+            expect(utils.isValidUserName(badUserName3)).to.equal(false);
+            expect(utils.isValidUserName(null)).to.equal(false);
+
+            // test good input
+            expect(utils.isValidUserName(goodUserName1)).to.equal(true);
+            expect(utils.isValidUserName(goodUserName2)).to.equal(true);
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
+        })
+    })
+});
+
+/**
+ * Tests Utils.isValidEmail() functionality.
+ */
+describe('Utils', function(){
+    describe('#isValidEmail()', function(){
+        it('returns true if email is syntactically valid', function(done){
+
+            var badEmail1 = "hunter2";
+            var badEmail2 = "hunter2@.gmail.com";
+            var badEmail3 = "hunter2@gmail";
+
+            var goodEmail1 = "hunter2@gmail.com";
+            var goodEmail2 = "hunter2@hunter2.abc.edu";
+
+            // test bad input
+            expect(utils.isValidEmail(badEmail1)).to.equal(false);
+            expect(utils.isValidEmail(badEmail2)).to.equal(false);
+            expect(utils.isValidEmail(badEmail3)).to.equal(false);
+            expect(utils.isValidEmail(null)).to.equal(false);
+
+            // test good input
+            expect(utils.isValidEmail(goodEmail1)).to.equal(true);
+            expect(utils.isValidEmail(goodEmail2)).to.equal(true);
+
+            done(); // the invocation of done() tells testing framework that all tests are complete
+        })
+    })
+});
+
 

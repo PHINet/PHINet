@@ -26,27 +26,83 @@ exports.Utils = {
             for (var i = 0; i < splitBySensor.length; i++) {
                 var sensor = splitBySensor[i].split("--"); // '--' separates sensor's name from its data
 
-                var sensorName = sensor[0];
-                var sensorData = sensor[1].split(";;"); // ';;' separates sensor data pieces
+                if (sensor.length > 1) {
+                    var sensorName = sensor[0];
+                    var sensorData = sensor[1].split(";;"); // ';;' separates sensor data pieces
 
-                for (var j = 0; j < sensorData.length; j++) {
+                    for (var j = 0; j < sensorData.length; j++) {
 
-                    var dataPiece = sensorData[j].split(","); // ',' separates (data,time) tuple
+                        var dataPiece = sensorData[j].split(","); // ',' separates (data,time) tuple
 
-                    var sensorEntry = DBData.DATA();
-                    sensorEntry.setDataFloat(dataPiece[0]);
-                    sensorEntry.setSensorID(sensorName);
-                    sensorEntry.setTimeString(dataPiece[1]);
-                    sensorEntry.setUserID(userID);
-                    sensorEntry.setProcessID(StringConst.NULL_FIELD);
+                        var sensorEntry = DBData.DATA();
+                        sensorEntry.setDataFloat(dataPiece[0]);
+                        sensorEntry.setSensorID(sensorName);
+                        sensorEntry.setTimeString(dataPiece[1]);
+                        sensorEntry.setUserID(userID);
+                        sensorEntry.setProcessID(StringConst.NULL_FIELD);
 
-                    parsedData.push(sensorEntry);
+                        parsedData.push(sensorEntry);
+                    }
+                } else {
+                    // input was bad; do nothing
                 }
             }
 
             return parsedData;
         } else {
             return [];
+        }
+    },
+
+    /**
+     * Returns true if password (3-15 alphanumerics plus underscore) valid.
+     *
+     * @param password input by user
+     * @returns {boolean} determining validity of password
+     */
+    isValidPassword: function(password) {
+
+        if (password) {
+            var regex = /^[a-zA-Z0-9_]{3,15}$/;
+            return regex.test(password);
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * Returns true if username (3-15 alphanumerics plus underscore) valid.
+     *
+     * @param username input by user
+     * @returns {boolean} determining validity of username
+     */
+    isValidUserName: function(username) {
+
+        // NOTE: keep username/password functions separate because syntax may change
+
+        if (username) {
+            var regex = /^[a-zA-Z0-9_]{3,15}$/;
+            return regex.test(username);
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * Returns true if email valid.
+     *
+     * Code via http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+     *
+     * @param email input by user
+     * @returns {boolean} determining validity of email
+     */
+    isValidEmail: function(email) {
+
+        if (email) {
+            var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+            return re.test(email);
+        } else {
+            return false;
         }
     },
 

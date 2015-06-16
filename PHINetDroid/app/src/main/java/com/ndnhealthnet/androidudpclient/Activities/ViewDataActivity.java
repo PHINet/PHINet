@@ -13,6 +13,7 @@ import android.widget.DatePicker;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -27,10 +28,8 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.util.Blob;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 
 /**
@@ -194,8 +193,6 @@ public class ViewDataActivity extends Activity {
                         currentTime, processID);
                 Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                Blob blob = interest.wireEncode();
-
                 // add entry into PIT
                 DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
                         currentTime, myUserID, ConstVar.SERVER_IP);
@@ -204,7 +201,7 @@ public class ViewDataActivity extends Activity {
 
                 // TODO - include real server IP
                 new UDPSocket(ConstVar.PHINET_PORT, "10.0.0.3", ConstVar.INTEREST_TYPE)
-                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                        .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                 // store received packet in database for further review
                 Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -297,13 +294,19 @@ public class ViewDataActivity extends Activity {
                         public void onClick(DialogInterface dialog, int which) {
 
                             // start input already set, now store end input
-                            endYear = intervalSelector.getDayOfMonth();
+                            endYear = intervalSelector.getYear();
                             endMonth = intervalSelector.getMonth() + 1; // offset required
-                            endDay = intervalSelector.getYear();
+                            endDay = intervalSelector.getDayOfMonth();
 
-                            // now that interval has been entered, update the graph
-                            updateGraph();
+                            if (Utils.isValidInterval(startYear, startMonth, startDay, endYear, endMonth, endDay)) {
+                                // now that interval has been entered, update the graph
+                                updateGraph();
+                            } else {
+                                Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval: start must be before end.", Toast.LENGTH_LONG);
+                                toast.show();
 
+                                resetIntervalParams(); // clear so that future updates may occur
+                            }
                         }
                     });
                     secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -332,12 +335,13 @@ public class ViewDataActivity extends Activity {
     /**
      * Method takes an analyticTask and maps it to the appropriate process id.
      *
-     * TODO - expand available analytic tasks
-     *
      * @param analyticTask used to determine process id
      * @return process id mapped to analyticTask
      */
     public String selectAnalyticProcessID(String analyticTask) {
+
+        // TODO - expand available analytic tasks
+
         if (analyticTask.equals("Mode")) {
             return ConstVar.MODE_ANALYTIC;
         } else if (analyticTask.equals("Median")) {
@@ -376,7 +380,7 @@ public class ViewDataActivity extends Activity {
             startYear = now.get(Calendar.YEAR) - 1;
             endYear = now.get(Calendar.YEAR) + 1;
 
-            startMonth = now.get(Calendar.MONTH);
+            startMonth = now.get(Calendar.MONTH) + 1; // offset required (months are 0-indexed)
             endMonth = startMonth;
 
             startDay = now.get(Calendar.DAY_OF_MONTH);

@@ -40,6 +40,7 @@ public class UtilsTest extends TestCase {
         testFormatSynchData();
         testIsValidUserName();
         testIsValidPassword();
+        testIsValidInterval();
 
         // reset user credentials after test
         assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, ""));
@@ -272,5 +273,22 @@ public class UtilsTest extends TestCase {
         // test invalid passwords
         assertFalse(Utils.isValidPassword(invalidPassword1));
         assertFalse(Utils.isValidPassword(invalidPassword2));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidInterval() throws Exception {
+
+        // test valid intervals
+        assertTrue(Utils.isValidInterval(2000, 4, 2, 2000, 4, 3));
+        assertTrue(Utils.isValidInterval(1999, 4, 2, 2000, 4, 3));
+        assertTrue(Utils.isValidInterval(2000, 3, 2, 2000, 4, 3));
+        assertTrue(Utils.isValidInterval(2000, 4, 2, 2000, 4, 2)); // same day should pass
+
+        // test invalid intervals
+        assertFalse(Utils.isValidInterval(2000, 4, 3, 2000, 4, 2));
+        assertFalse(Utils.isValidInterval(2000, 4, 2, 1999, 4, 2));
+        assertFalse(Utils.isValidInterval(2000, 5, 2, 2000, 4, 2));
     }
 }

@@ -521,7 +521,7 @@ function handleSynchRequestData(userID, timeString, dataContents) {
         console.log("storing synch data");
 
         for (var i = 0; i < parsedSynchData.length; i++) {
-            CS.insertCSData(parsedSynchData[i], function(){});
+            console.log(i + " : " + CS.insertCSData(parsedSynchData[i], function(){}));
         }
     } else {
         console.log("parse synch data returned null: FAILURE")
@@ -866,12 +866,10 @@ function handleResultRequest(packetUserID, hostIP, hostPort, requestType) {
  */
 function handleModeAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) {
 
-    console.log("within mode analytic task");
-
     getRequestedData(userID, sensorID, timeString, function(requestedData) {
 
         // data exists, perform mean
-        if (requestedData) {
+        if (requestedData && requestedData.length > 0) {
 
             var packetName = ndnjs_utils.createName(userID, sensorID,
             timeString, StringConst.MODE_ANALYTIC);
@@ -900,7 +898,7 @@ function handleMedianAnalyticTask(userID, sensorID, timeString, hostIP, hostPort
     getRequestedData(userID, sensorID, timeString, function(requestedData) {
 
         // data exists, perform mean
-        if (requestedData) {
+        if (requestedData && requestedData.length > 0) {
 
             var packetName = ndnjs_utils.createName(userID, sensorID,
             timeString, StringConst.MEDIAN_ANALYTIC);
@@ -929,13 +927,11 @@ function handleMeanAnalyticTask(userID, sensorID, timeString, hostIP, hostPort) 
     getRequestedData(userID, sensorID, timeString, function(requestedData) {
 
         // data exists, perform mean
-        if (requestedData) {
+        if (requestedData && requestedData.length > 0) {
             var packetName = ndnjs_utils.createName(userID, sensorID,
                 timeString, StringConst.MEAN_ANALYTIC);
 
             var meanValue = analytics.mean(requestedData).toString();
-
-            console.log("mean value: " + meanValue);
 
             var data = ndnjs_utils.createDataPacket(meanValue, packetName);
             var encodedPacket = data.wireEncode();
@@ -961,6 +957,7 @@ function getRequestedData(userID, sensorID, timeString, callback) {
             // TODO - improve upon this naive data-matching
             var matchingData = [];
 
+            console.log("looping for requested data");
             for (var i = 0; i < queryResults.length; i++) {
 
                 if (queryResults[i].getSensorID() === sensorID
@@ -968,6 +965,8 @@ function getRequestedData(userID, sensorID, timeString, callback) {
 
                     // match found, place in array to be returned to caller function
                     matchingData.push(parseInt(queryResults[i].getDataFloat()));
+
+                    console.log("adding data");
                 }
             }
 

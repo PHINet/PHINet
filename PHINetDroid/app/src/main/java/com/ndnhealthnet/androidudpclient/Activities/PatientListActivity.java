@@ -95,13 +95,17 @@ public class PatientListActivity extends ListActivity {
 
                         boolean isValidInput = true; // we'll later check if false
                         boolean ipEntered = false;
+                        boolean patientAlreadyExists = false;
                         try { // try/catch attempts input validation
+
+                            String userID; // stores userID entered to check if user already exists
 
                             if (!patientInput.getText().toString().contains(",")) {
                                 // this means there was no comma; user likely didn't enter IP
                                 ipEntered = false;
 
                                 isValidInput &= Utils.isValidUserName(patientInput.getText().toString());
+                                userID = patientInput.getText().toString();
                             } else {
                                 ipEntered = true;
 
@@ -111,17 +115,22 @@ public class PatientListActivity extends ListActivity {
                                 patientInputString[0] = patientInputString[0].trim(); // ip input
                                 patientInputString[1] = patientInputString[1].trim(); // name input
 
+                                userID = patientInputString[1];
+
                                 // perform input validation
                                 isValidInput = Utils.isValidIP(patientInputString[0]);
                                 isValidInput &= Utils.isValidUserName(patientInputString[1]);
                             }
+
+                            DBData queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(userID);
+                            patientAlreadyExists = queryResult != null; // check that user doesn't already exist
 
                         } catch (Exception e) {
                             // input didn't pass checks, mark input as invalid and notify user
                             isValidInput = false;
                         }
 
-                        if (isValidInput) { // add user to fib
+                        if (isValidInput && !patientAlreadyExists) { // add user to fib
 
                             DBData data = new DBData();
                             if (!ipEntered) {
@@ -138,7 +147,7 @@ public class PatientListActivity extends ListActivity {
 
                                 // determine if username already exists in FIB
                                 if (DBSingleton.getInstance(getApplicationContext())
-                                                    .getDB().getFIBData(data.getUserID()) == null) {
+                                        .getDB().getFIBData(data.getUserID()) == null) {
                                     // user entered valid patient, now add to fib
 
                                     DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
@@ -155,6 +164,10 @@ public class PatientListActivity extends ListActivity {
                             adapter.add(data);
                             adapter.notifyDataSetChanged();
                             emptyListTextView.setVisibility(View.GONE); // hide "no patients" text
+                        } else if (patientAlreadyExists) {
+                            Toast toast = Toast.makeText(PatientListActivity.this,
+                                    "Patient already exists.", Toast.LENGTH_LONG);
+                            toast.show();
                         } else {
                             Toast toast = Toast.makeText(PatientListActivity.this,
                                     "Invalid IP, or invalid name length.", Toast.LENGTH_LONG);

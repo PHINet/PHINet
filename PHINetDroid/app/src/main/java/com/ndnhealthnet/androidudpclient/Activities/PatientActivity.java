@@ -25,7 +25,6 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.util.Blob;
 
 import java.util.ArrayList;
 
@@ -34,7 +33,7 @@ import java.util.ArrayList;
  */
 public class PatientActivity extends Activity {
 
-    Button backBtn, requestBtn, submitBtn, deleteBtn, viewDataBtn;
+    Button backBtn, requestBtn, saveBtn, deleteBtn, viewDataBtn;
     EditText ipEditText;
     TextView nameText, loggedInText;
     String patientIP, patientUserID;
@@ -87,40 +86,18 @@ public class PatientActivity extends Activity {
         });
 
         /** saves updated user information **/
-        submitBtn = (Button) findViewById(R.id.patientDataSubmitBtn);
-        submitBtn.setOnClickListener(new View.OnClickListener(){
+        saveBtn = (Button) findViewById(R.id.patientDataSubmitBtn);
+        saveBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
-                // check before save AND notify user if invalid ip
-                if (!Utils.isValidIP(ipEditText.getText().toString())) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
-
-                    builder.setTitle("Invalid IP entered. Submit anyways?");
-
-                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            updatePatientData();
-                        }
-                    });
-                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-
-                    builder.show();
-                } else {
-                    updatePatientData();
-                }
+                saveChanges();
             }
         });
 
         backBtn = (Button) findViewById(R.id.patientDataBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                finish();
+
+               finish();
             }
         });
 
@@ -140,16 +117,45 @@ public class PatientActivity extends Activity {
     }
 
     /**
+     * Invoked when user elects to save patient changes.
+     */
+    private void saveChanges() {
+        // check before save AND notify user if invalid ip
+        if (!Utils.isValidIP(ipEditText.getText().toString())) {
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
+
+            builder.setTitle("Invalid IP entered. Submit anyways?");
+
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    updatePatientData();
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.show();
+        } else {
+            updatePatientData();
+        }
+    }
+
+    /**
      * Handles logic associated with requesting patient data
      */
     private void requestHelper() {
 
-        // performs a network-capabilities AND IP check before attempting to send
+        // performs a network-capabilities
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        boolean isValidIP = Utils.isValidIP(patientIP);
 
-        if (mWifi.isConnected() && isValidIP) {
+        if (mWifi.isConnected()) {
 
             ArrayList<DBData> pitEntries = DBSingleton.getInstance(getApplicationContext())
                     .getDB().getGeneralPITData(patientUserID);
@@ -199,9 +205,8 @@ public class PatientActivity extends Activity {
                             ConstVar.INTEREST_CACHE_DATA);
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                    Blob blob = interest.wireEncode();
                     new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                            .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                            .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                     // store received packet in database for further review
                     Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -216,11 +221,6 @@ public class PatientActivity extends Activity {
                 toast.show();
             }
 
-        } else if (!isValidIP) {
-            // invalid ip
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    "The IP address is invalid. Enter valid then save.", Toast.LENGTH_LONG);
-            toast.show();
         } else {
             // not connected to wifi
             Toast toast = Toast.makeText(getApplicationContext(),
@@ -274,8 +274,15 @@ public class PatientActivity extends Activity {
                             endMonth = intervalSelector.getMonth() + 1; // offset required
                             endDay = intervalSelector.getDayOfMonth();
 
-                            // now that interval has been entered, request data from patient via NDN/UDP
-                            requestHelper();
+                            if (Utils.isValidInterval(startYear, startMonth, startDay, endYear, endMonth, endDay)) {
+                                // now that interval has been entered, request data from patient via NDN/UDP
+                                requestHelper();
+                            } else {
+                                Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval: start must be before end.", Toast.LENGTH_LONG);
+                                toast.show();
+
+                                resetIntervalParams(); // clear so that future updates may occur
+                            }
                         }
                     }); secondInterval.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override

@@ -76,20 +76,16 @@ public class MainActivity extends Activity {
     {
         setContentView(R.layout.activity_main);
 
-       final  String myUserID = Utils.getFromPrefs(getApplicationContext(),
+        final  String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
         final String myPassword = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
-
 
         if (!myUserID.equals("")) {
             // place userID on screen if user has logged in
             loggedInText = (TextView) findViewById(R.id.loggedInTextView);
             loggedInText.setText(myUserID);
         }
-
-        System.out.println("my pw, main: " + myPassword);
-        System.out.println("my uid, main: " + myUserID);
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
         doctorText = (TextView) findViewById(R.id.doctorTextView);

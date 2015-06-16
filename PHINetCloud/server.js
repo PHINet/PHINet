@@ -385,12 +385,10 @@ app.post('/registerAction', function(req, res) {
         });
     } else {
 
-        // TODO - perform more sophisticated password requirements
-
-        // check that passwords match and enforce five character PW
-        if (req.body.user_password[0] === req.body.user_password[1] && req.body.user_password[0].length > 5) {
-
-            // TODO - perform input validation on email, password, name, and entity
+        // check that passwords match, enforce PW/Username syntax, and verify validity of email address
+        if (req.body.user_password[0] === req.body.user_password[1]
+            && utils.isValidPassword(req.body.user_password[0]) && utils.isValidUserName(req.body.user_name)
+            && (!req.body.user_email || utils.isValidEmail(req.body.user_email))) {
 
             var userType = "";
             if (req.body.user_type === 'p') {
@@ -404,7 +402,7 @@ app.post('/registerAction', function(req, res) {
             }
 
             if (!req.body.user_email) {
-                req.body.user_email = "null"; // email not provided; list as null
+                req.body.user_email = StringConst.NULL_FIELD; // email not provided; list as null
             }
 
             // hash user's password then insert user in database
@@ -457,10 +455,22 @@ app.post('/registerAction', function(req, res) {
                 if (err) {
                     console.log("Error serving signup.html: " + err);
                 } else if (req.body.user_password[0] !== req.body.user_password[1]) {
+
                     renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
                     res.send(renderedHtml);
-                } else {
-                    renderedHtml = ejs.render(content, {user: "", error: "Minimum password length is 5 characters."});
+                }
+                // since email is optional, validity only applies if it was entered
+                else if (!utils.isValidEmail(req.body.user_email) && req.body.user_email) {
+
+                    renderedHtml = ejs.render(content, {user: "", error: "Invalid email."});
+                    res.send(renderedHtml);
+                } else if (!utils.isValidPassword(req.body.user_password[0])) {
+
+                    renderedHtml = ejs.render(content, {user: "", error: "Invalid password. Must use 3-15 alpha-numerics."});
+                    res.send(renderedHtml);
+                } else if (!utils.isValidUserName(req.body.user_name)) {
+
+                    renderedHtml = ejs.render(content, {user: "", error: "Invalid username. Must use 3-15 alpha-numerics."});
                     res.send(renderedHtml);
                 }
             })

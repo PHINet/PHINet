@@ -12,7 +12,6 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.util.Blob;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -44,7 +43,7 @@ public class UDPListener extends Thread {
 
             byte[] receiveData = new byte[1024];
 
-            while (MainActivity.continueReceiverExecution) { // loop for packets
+            while (MainActivity.continueReceiverExecution) { // loop for packets while true
 
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
@@ -136,7 +135,7 @@ public class UDPListener extends Thread {
 
             handleInterestFIBRequest(userID, sensorID, ipAddr, port);
         } else if (processID.equals(ConstVar.INTEREST_CACHE_DATA)) {
-            System.out.println("interest for cache");
+
             handleInterestCacheRequest(userID, sensorID, timeString,
                     processID, ipAddr, port);
         } else if (processID.equals(ConstVar.CREDENTIAL_REQUEST)) {
@@ -175,10 +174,8 @@ public class UDPListener extends Thread {
                 Name packetName = JNDNUtils.createName(userID, sensorID, ConstVar.CURRENT_TIME, ConstVar.DATA_FIB);
                 Data data = JNDNUtils.createDataPacket(MainActivity.deviceIP, packetName);
 
-                Blob blob = data.wireEncode();
-
                 // reply to interest with DATA from cache
-                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(blob.getImmutableArray());
+                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
 
                 // store sent packet in database for further review
                 Utils.storeDataPacket(context, data);
@@ -199,10 +196,8 @@ public class UDPListener extends Thread {
                     Name packetName = JNDNUtils.createName(userID, sensorID, ConstVar.CURRENT_TIME, ConstVar.DATA_FIB);
                     Data data = JNDNUtils.createDataPacket(fibContent, packetName);
 
-                    Blob blob = data.wireEncode();
-
                     // reply to interest with DATA from cache
-                    new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(blob.getImmutableArray()); 
+                    new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
 
                     // store sent packet in database for further review
                     Utils.storeDataPacket(context, data);
@@ -254,10 +249,8 @@ public class UDPListener extends Thread {
                         csDATA.get(0).getTimeString(), csDATA.get(0).getProcessID());
                 Data data = JNDNUtils.createDataPacket(dataPayload, packetName);
 
-                Blob blob = data.wireEncode();
-                
                 // reply to interest with DATA from cache
-                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(blob.getImmutableArray()); 
+                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
 
                 // add packet content to database for future review
                 Utils.storeDataPacket(context, data);
@@ -291,9 +284,8 @@ public class UDPListener extends Thread {
                                     timeString, processID);
                             Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                            Blob blob = interest.wireEncode();
                             new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                                    .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                                    .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                             // store sent packet in database for further review
                             Utils.storeInterestPacket(context, interest);
@@ -333,16 +325,12 @@ public class UDPListener extends Thread {
         // Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
         String formattedData = Utils.formatSynchData(validData);
 
-        System.out.println("formatted sensor data: " + formattedData);
-
         Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                 timeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
 
-        Blob blob = data.wireEncode();
-
         // reply to interest with DATA from cache
-        new UDPSocket(port, ConstVar.SERVER_IP, ConstVar.DATA_TYPE) .execute(blob.getImmutableArray());
+        new UDPSocket(port, ConstVar.SERVER_IP, ConstVar.DATA_TYPE) .execute(data.wireEncode().getImmutableArray());
 
         // add packet content to database for future review
         Utils.storeDataPacket(context, data);
@@ -490,9 +478,8 @@ public class UDPListener extends Thread {
                         processID);
                 Data dataPacket = JNDNUtils.createDataPacket(dataPayload, packetName);
 
-                Blob blob = dataPacket.wireEncode();
                 new UDPSocket(ConstVar.PHINET_PORT, allValidPITEntries.get(i).getIpAddr(), ConstVar.DATA_TYPE)
-                        .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                        .execute(dataPacket.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                 // store sent packet in database for further review
                 Utils.storeDataPacket(context, dataPacket);

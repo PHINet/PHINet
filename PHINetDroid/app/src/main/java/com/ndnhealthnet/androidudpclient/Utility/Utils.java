@@ -99,7 +99,7 @@ public class Utils {
     public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData, String sensor,
                     String startDate, String endDate) {
 
-        ArrayList<Float> myFloatData = new ArrayList<Float>();
+        ArrayList<Float> myFloatData = new ArrayList<>();
 
         // syntax for interval: startDate,||endDate
         String requestInterval = startDate + "||" + endDate;
@@ -113,7 +113,13 @@ public class Utils {
                 String [] floatArray = myData.get(i).getDataFloat().trim().split(",");
                 for (int j = 0; j < floatArray.length; j++) {
 
-                    myFloatData.add(Float.parseFloat(floatArray[j].trim()));
+                    try {
+                        myFloatData.add(Float.parseFloat(floatArray[j].trim()));
+                    } catch (NumberFormatException e) {
+                        // disregard this for now
+
+                        // TODO - handle the error
+                    }
                 }
             }
         }
@@ -125,7 +131,7 @@ public class Utils {
      * Converts the date format displayed to the user to one that better
      * captures the correct time and is used elsewhere in the program.
      *
-     * Input Syntax: "DD/MM/YYYY - DD/MM/YYYY"
+     * Input Syntax: "MM/DD/YYYY - MM/DD/YYYY"
      * Output Syntax: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
      *
      * @param chosenInterval to be converted to alternative syntax
@@ -144,9 +150,9 @@ public class Utils {
             String [] endInterval = intervals[1].split("/");
 
             // set hours,minutes,seconds,millis all to 0 as default
-            convertedAnalyticInterval += startInterval[2] + "-" + startInterval[1] + "-" +
-                    startInterval[0] + "T00.00.00.000||" + endInterval[2] + "-" + endInterval[1] +
-                    "-" + endInterval[0] + "T00.00.00.000";
+            convertedAnalyticInterval += startInterval[2] + "-" + startInterval[0] + "-" +
+                    startInterval[1] + "T00.00.00.000||" + endInterval[2] + "-" + endInterval[0] +
+                    "-" + endInterval[1] + "T00.00.00.000";
 
             return convertedAnalyticInterval;
 
@@ -332,32 +338,27 @@ public class Utils {
     /**
      * Attempts to determine whether userID input is valid
      *
-     * TODO - define proper syntax
+     * Usernames may be between 3-15 characters and contain alpha-numeric characters and underscore.
      *
      * @param userID input to have validity assessed
      * @return boolean regarding validity of input
      */
     public static boolean isValidUserName(String userID) {
 
-        // TODO - perform sophisticated input validation
-
-        return userID.length() >= 3 && userID.length() <= 15 && !userID.contains(":") &&
-                !userID.contains(";") && !userID.contains("-") && !userID.contains(",");
-    }
+        return userID.matches("^[a-zA-Z0-9._]{3,15}$");
+      }
 
     /**
      * Attempts to determine whether password is valid
      *
-     * TODO - define proper syntax
+     * Passwords may be between 3-15 characters and contain alpha-numeric characters and underscore.
      *
      * @param password input to have validity assessed
      * @return boolean regarding validity of input
      */
     public static boolean isValidPassword(String password) {
 
-        // TODO - perform sophisticated input validation
-
-        return password.length() >= 3 && password.length() <= 15;
+        return password.matches("^[a-zA-Z0-9._]{3,15}$");
     }
 
     /**
@@ -375,6 +376,35 @@ public class Utils {
             result = false;
         }
         return result;
+    }
+
+    /**
+     * Verifies that start interval selection is before (or is) end interval.
+     *
+     * @param startYear input by user
+     * @param startMonth input by user
+     * @param startDay input by user
+     * @param endYear input by user
+     * @param endMonth input by user
+     * @param endDay input by user
+     * @return boolean determining whether start interval is prior to end interval
+     */
+    public static boolean isValidInterval(int startYear, int startMonth, int startDay, int endYear,
+                                          int endMonth, int endDay) {
+
+        if (startYear < endYear) {
+            return true;
+        } else if (startYear == endYear) {
+            if (startMonth < endMonth) {
+                return true;
+            } else if (startMonth == endMonth) {
+                if (startDay <= endDay) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

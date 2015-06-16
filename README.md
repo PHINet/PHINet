@@ -23,14 +23,12 @@ CLIENT
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
 - DESIRED: improve layout
+- DESIRED: allow interval-selection in PacketListActvity
 
 WEB
-- REQUIRED: view patient data (if applicable)
-- DESIRED: edit profile data
 - DESIRED: basic testing page (to test with device)
 - DESIRED: modify/use all NDN packet components
 - DESIRED: perform more complex analytics
-- DESIRED: improve layout
 - DESIRED: make mobile friendly
 
 # Tests
