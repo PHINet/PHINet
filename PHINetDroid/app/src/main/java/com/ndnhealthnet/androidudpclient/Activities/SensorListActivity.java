@@ -3,8 +3,11 @@ package com.ndnhealthnet.androidudpclient.Activities;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +40,24 @@ public class SensorListActivity extends ListActivity {
     protected void onResume() {
         super.onResume();
         this.onCreate(null); // force activity to reload
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // TODO - how to better synch data?
+
+        // synch as the user leaves activity; assumption is user may have collected more data
+        // through activity and it should now be synched because analytics may be requested shortly
+        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        // only attempt synch of wifi is connected
+        if (mWifi.isConnected()) {
+
+            MainActivity.requestSynch(getApplicationContext());
+        }
     }
 
     @Override

@@ -27,6 +27,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_PROCESS_ID = "processID";
     private static final String KEY_IP_ADDRESS = "ipAddress";
     private static final String KEY_DATA_CONTENTS = "dataContents";
+    private static final String KEY_DATA_FRESHNESS_PERIOD = "dataFreshnessPeriod";
     private static final String KEY_COLLECTION_INTERVAL = "collectionInterval";
     private static final String KEY_PACKET_NAME = "_packetName";
     private static final String KEY_PACKET_CONTENT = "packetContent";
@@ -41,7 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // keys are USER_ID and TIME_STRING - only one piece of data per user per time instant
         String CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.CS_DB + "("
-                + KEY_USER_ID + " TEXT ," +  KEY_SENSOR_ID + " TEXT," +
+                + KEY_USER_ID + " TEXT ," + KEY_DATA_FRESHNESS_PERIOD + " INTEGER ," + KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
                 " TEXT, " + "PRIMARY KEY(" + KEY_USER_ID + ", " + KEY_TIME_STRING + ","
                 + KEY_PROCESS_ID +"))";

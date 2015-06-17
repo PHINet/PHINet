@@ -28,7 +28,7 @@ CLIENT
 - REQUIRED: specify which sensor when requesting patient data
 - REQUIRED: handle case of if user already sent interest and its still in pit (not satisfied)
 - REQUIRED: make sure all pit entries are being deleted appropriately
-- REQUIRED: if data arrives, don't just assume its for yourself, send it to everyone who requested it
+- REQUIRED: if data arrives, verify that it's sent to everyone who requested it
 - DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes

@@ -17,21 +17,45 @@ public class DBData {
     private String packetName;
     private String packetContent;
     private int sensorCollectionInterval;
+    private int freshnessPeriod;
 
     public DBData() {}
 
     /**
-     * constructor for either pit/cs
+     * Constructor for CS
      *
-     * @param type used in check to decide if constructor used for PIT or CS data
-     * @param sensorID associated with PIT/CS data
-     * @param processID associated with PIT/CS data
-     * @param timeString associated with PIT/CS data
-     * @param userID associated with PIT/CS data
-     * @param fifthField associated with PIT/CS data, either IP or DATA_CONTENTS - for PIT,CS respectively
+     * @param sensorID associated with CS Data
+     * @param processID associated with CS Data
+     * @param timeString associated with CS Data
+     * @param userID associated with CS Data
+     * @param dataPayload associated with CS Data
+     * @param freshnessPeriod associated with CS Data
      */
-    public DBData(String type, String sensorID, String processID, String timeString,
-                  String userID, String fifthField) {
+    public DBData(String sensorID, String processID, String timeString,
+                  String userID, String dataPayload, int freshnessPeriod) {
+        if (timeString.equals(ConstVar.CURRENT_TIME)) {
+            timeString = Utils.getCurrentTime();
+        }
+
+        this.sensorID = sensorID;
+        this.processID = processID;
+        this.timeString = timeString;
+        this.userID = userID;
+        this.dataFloat = dataPayload;
+        this.freshnessPeriod = freshnessPeriod;
+    }
+
+    /**
+     * Constructor for PIT
+     *
+     * @param sensorID associated with PIT data
+     * @param processID associated with PIT data
+     * @param timeString associated with PIT data
+     * @param userID associated with PIT data
+     * @param ipAddr associated with PITS data
+     */
+    public DBData(String sensorID, String processID, String timeString,
+                  String userID, String ipAddr) {
 
         if (timeString.equals(ConstVar.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
@@ -41,15 +65,7 @@ public class DBData {
         this.processID = processID;
         this.timeString = timeString;
         this.userID = userID;
-
-        // assigns fifth field based upon type of db data
-        if (type.equals(ConstVar.PIT_DB)) {
-            this.ipAddr = fifthField; // PIT, by nature, gets IP
-        } else if (type.equals(ConstVar.CS_DB)) {
-            this.dataFloat = fifthField; // ContentStore, by nature, gets data float
-        } else {
-            throw new NullPointerException("Error creating DBData object: unknown type.");
-        }
+        this.ipAddr = ipAddr;
     }
 
     /**
@@ -171,5 +187,13 @@ public class DBData {
 
     public void setPacketContent(String packetContent) {
         this.packetContent = packetContent;
+    }
+
+    public int getFreshnessPeriod() {
+        return freshnessPeriod;
+    }
+
+    public void setFreshnessPeriod(int freshnessPeriod) {
+        this.freshnessPeriod = freshnessPeriod;
     }
 }

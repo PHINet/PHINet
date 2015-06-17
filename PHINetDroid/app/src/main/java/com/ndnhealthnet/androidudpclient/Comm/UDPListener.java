@@ -20,6 +20,7 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Class handles incoming UDP packets.
@@ -141,7 +142,7 @@ public class UDPListener extends Thread {
         } else if (processID.equals(ConstVar.CREDENTIAL_REQUEST)) {
 
             // store the request in the PIT; it will be checked within Login or Signup Activity shortly
-            DBData pitEntry = new DBData(ConstVar.PIT_DB, sensorID, processID, timeString, userID, ipAddr);
+            DBData pitEntry = new DBData(sensorID, processID, timeString, userID, ipAddr);
             DBSingleton.getInstance(context).getDB().addPITData(pitEntry);
 
         } else if (processID.equals(ConstVar.SYNCH_DATA_REQUEST)) {
@@ -262,7 +263,7 @@ public class UDPListener extends Thread {
             if (DBSingleton.getInstance(context).getDB().getGeneralPITData(userID) == null) {
 
                 // add new request to PIT, then look into FIB before sending request
-                DBData newPITEntry = new DBData(ConstVar.PIT_DB, sensorID, processID, timeString, userID, packetIP);
+                DBData newPITEntry = new DBData(sensorID, processID, timeString, userID, packetIP);
 
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
 
@@ -295,7 +296,7 @@ public class UDPListener extends Thread {
             } else {
 
                 // add new request to PIT and wait, request has already been sent
-                DBData newPITEntry = new DBData(ConstVar.PIT_DB, sensorID, processID, timeString, userID, packetIP);
+                DBData newPITEntry = new DBData(sensorID, processID, timeString, userID, packetIP);
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
             }
         }
@@ -317,7 +318,9 @@ public class UDPListener extends Thread {
         ArrayList<DBData> validData = new ArrayList<>();
 
         for (int i = 0; i < candidateData.size(); i++) {
-            if (Utils.isValidForTimeInterval(timeString, candidateData.get(i).getTimeString())) {
+            // verify that data came from valid sensor and is within proper interval
+            if (!candidateData.get(i).getSensorID().equals(ConstVar.NULL_FIELD)
+                   &&  Utils.isValidForTimeInterval(timeString, candidateData.get(i).getTimeString())) {
                 validData.add(candidateData.get(i));
             }
         }
@@ -420,8 +423,8 @@ public class UDPListener extends Thread {
                         || Utils.isAnalyticProcessID(processID)) {
 
                     // these ProcessIDs all result in storing data into the ContentStore
-                    DBData dataPacket = new DBData(ConstVar.CS_DB, sensorID, processID,
-                            timeString, userID, dataContents);
+                    DBData dataPacket = new DBData(sensorID, processID,
+                            timeString, userID, dataContents, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                     DBSingleton.getInstance(context).getDB().addCSData(dataPacket);
 
@@ -449,7 +452,8 @@ public class UDPListener extends Thread {
                          ArrayList<DBData> allValidPITEntries) {
 
         // data was requested; second, update cache with new packet
-        DBData data = new DBData(ConstVar.CS_DB, sensorID, processID, timeString, userID, dataPayload);
+        DBData data = new DBData(sensorID, processID, timeString, userID, dataPayload,
+                ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
         // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
 

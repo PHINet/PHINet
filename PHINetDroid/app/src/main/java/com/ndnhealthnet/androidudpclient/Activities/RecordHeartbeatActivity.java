@@ -114,6 +114,7 @@ public class RecordHeartbeatActivity extends Activity {
                     data.setTimeString(ConstVar.CURRENT_TIME);
                     data.setProcessID(ConstVar.DATA_CACHE); // no valid process id, set to null
                     data.setDataFloat(Integer.toString(currentBeatInt));
+                    data.setFreshnessPeriod(ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);
 

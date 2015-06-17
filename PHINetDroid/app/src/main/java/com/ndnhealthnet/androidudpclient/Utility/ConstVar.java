@@ -96,6 +96,9 @@ public class ConstVar {
     // synchronization requests are initiated every hour (arbitrarily chosen)
     public static final int SYNCH_INTERVAL_MILLIS = 1000 * 60 * 60;
 
+    // for now, the default freshness period is set to SYNCH_INTERVAL_MILLIS
+    public static final int DEFAULT_FRESHNESS_PERIOD = SYNCH_INTERVAL_MILLIS;
+
     // title of dialog that allows user to select interval
     public static final String INTERVAL_TITLE_START = "Choose the start interval.";
     public static final String INTERVAL_TITLE_END = "Choose the end interval.";

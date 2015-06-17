@@ -190,8 +190,10 @@ public class ViewDataActivity extends Activity {
 
                 DBData queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(myUserID, chosenTime, processID);
 
-                // first check to see if Analytic request isn't already in ContentStore
-                if (queryResult != null) {
+                // first check to see if Analytic request isn't already in ContentStore and that it's still valid
+                if (queryResult != null
+                        && Utils.isValidFreshnessPeriod(queryResult.getFreshnessPeriod(), queryResult.getTimeString())) {
+
                     analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataFloat());
                 } else {
                     // query server for analytic task
@@ -200,7 +202,7 @@ public class ViewDataActivity extends Activity {
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                     // add entry into PIT
-                    DBData data = new DBData(ConstVar.PIT_DB, currentSensorSelected, processID,
+                    DBData data = new DBData(currentSensorSelected, processID,
                             chosenTime, myUserID, ConstVar.SERVER_IP);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
@@ -214,7 +216,7 @@ public class ViewDataActivity extends Activity {
                     analyticsWait.setVisibility(View.VISIBLE); // request sent; display progress bar
                     analyticsBtn.setVisibility(View.GONE); // prevent user from resending request
 
-                    // wait 15 seconds (arbitrary) after sending request before checking for result
+                    // wait 5 seconds (arbitrary) after sending request before checking for result
                     new Handler().postDelayed(new Runnable() {
                         public void run() {
 
@@ -229,7 +231,9 @@ public class ViewDataActivity extends Activity {
                             for (int i = 0; i < candidateData.size(); i++) {
 
                                 if (candidateData.get(i).getProcessID().equals(processID)
-                                        && candidateData.get(i).getTimeString().equals(chosenTime)) {
+                                        && candidateData.get(i).getTimeString().equals(chosenTime)
+                                        && Utils.isValidFreshnessPeriod(candidateData.get(i).getFreshnessPeriod(),
+                                        candidateData.get(i).getTimeString())) {
 
                                     analyticsResult = candidateData.get(i);
                                     break; // result found; break from
@@ -243,7 +247,7 @@ public class ViewDataActivity extends Activity {
                                 analyticsResultText.setText("Error processing request.");
                             }
                         }
-                    }, 15000);
+                    }, 5000);
                 }
             }
         });
@@ -377,7 +381,7 @@ public class ViewDataActivity extends Activity {
         String endDate = Utils.generateTimeStringFromInts(endYear, endMonth, endDay, true);
 
         // db query unsuccessful: no user data found in cache
-        if (myData == null) {
+        if (myData.size() == 0) {
 
             myFloatData = new ArrayList<>(); // create empty ArrayList; no data exists for it
         }
@@ -385,7 +389,7 @@ public class ViewDataActivity extends Activity {
         else {
 
             // convert valid data to a format that can be displayed
-            myFloatData = Utils.convertDBRowTFloats(myData, currentSensorSelected, startDate, endDate);
+            myFloatData = Utils.convertDBRowToFloats(myData, currentSensorSelected, startDate, endDate);
         }
 
         // generate interval text to display to user

@@ -45,6 +45,7 @@ public class UtilsTest extends TestCase {
         testIsValidInterval();
         testIsValidSensorName();
         testGenerateTimeStringFromInts();
+        testIsValidFreshnessPeriod();
 
         // reset user credentials after test
         assertTrue(Utils.saveToPrefs(context, ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, ""));
@@ -227,14 +228,14 @@ public class UtilsTest extends TestCase {
      * @throws Exception
      */
     public void testFormatSynchData() throws Exception {
-        DBData goodData1 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
-                "1990-11-06T00.00.00.000", "userID", "10");
-        DBData goodData2 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
-                "1990-11-07T00.00.00.000", "userID", "15");
-        DBData goodData3 = new DBData(ConstVar.CS_DB, "sensorID1", ConstVar.NULL_FIELD,
-                "1990-11-08T00.00.00.000", "userID", "99");
-        DBData goodData4 = new DBData(ConstVar.CS_DB, "sensorID2", ConstVar.NULL_FIELD,
-                "1990-11-09T00.00.00.000", "userID", "100");
+        DBData goodData1 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-06T00.00.00.000", "userID", "10", ConstVar.DEFAULT_FRESHNESS_PERIOD);
+        DBData goodData2 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-07T00.00.00.000", "userID", "15", ConstVar.DEFAULT_FRESHNESS_PERIOD);
+        DBData goodData3 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+                "1990-11-08T00.00.00.000", "userID", "99", ConstVar.DEFAULT_FRESHNESS_PERIOD);
+        DBData goodData4 = new DBData("sensorID2", ConstVar.NULL_FIELD,
+                "1990-11-09T00.00.00.000", "userID", "100", ConstVar.DEFAULT_FRESHNESS_PERIOD);
         DBData badData1 = null;
 
         ArrayList<DBData> goodDataList = new ArrayList<>();
@@ -377,5 +378,21 @@ public class UtilsTest extends TestCase {
         assertEquals(correctTimeString, timeString);
         assertEquals(correctStartTimeString, startTimeString);
         assertEquals(correctEndTimeString, endTimeString);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testIsValidFreshnessPeriod() throws Exception {
+        String timeString1 = Utils.getPreviousSynchTime();
+        String timeString2 = Utils.getCurrentTime();
+
+        String interval1 = timeString1 + "||" + timeString2;
+
+        int oneMinuteFreshnessPeriod = 1000 * 60;
+
+        assertTrue(Utils.isValidFreshnessPeriod(oneMinuteFreshnessPeriod, timeString1));
+        assertTrue(Utils.isValidFreshnessPeriod(oneMinuteFreshnessPeriod, interval1));
+        assertFalse(Utils.isValidFreshnessPeriod(oneMinuteFreshnessPeriod, timeString2));
     }
 }

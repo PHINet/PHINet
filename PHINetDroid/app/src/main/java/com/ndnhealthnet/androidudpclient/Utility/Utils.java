@@ -88,6 +88,58 @@ public class Utils {
     }
 
     /**
+     * Determines whether packet is valid given timeString and freshnessPeriod.
+     *
+     * NOTE: this method is still speculative.
+     * TODO - How to better determine validity?
+     *
+     * @param freshnessPeriod of packet in question in milliseconds
+     * @param timeString of packet in question
+     * @return boolean denoting whether packet is still valid given params
+     */
+    public static boolean isValidFreshnessPeriod(int freshnessPeriod, String timeString) {
+
+        try {
+            String suspectInterval = timeString;
+
+            if (timeString.contains("||")) {
+                // assumed Interval (it has the interval parsing characters '||')
+                // application-convention: we'll check freshnessPeriod against start interval
+
+                suspectInterval = timeString.split("\\|\\|")[0]; // set to start interval
+            }
+
+            Calendar currentTime = Calendar.getInstance();
+            Calendar timeStringPlusFreshnessTime = Calendar.getInstance();
+
+            // suspect Interval syntax: "yyyy-MM-ddTHH.mm.ss.SSS"
+            String[] suspectIntervalComponents = suspectInterval.split("T");
+            String[] suspectIntervalShortComponents = suspectIntervalComponents[1].split("\\.");
+            String[] suspectIntervalLongComponents = suspectIntervalComponents[0].split("-");
+
+            // indexes chosen based on syntax "yyyy-MM-ddTHH.mm.ss.SSS"
+            int packetYear = Integer.parseInt(suspectIntervalLongComponents[0]);
+            int packetMonth = Integer.parseInt(suspectIntervalLongComponents[1]) - 1; // reverse offset
+            int packetDay = Integer.parseInt(suspectIntervalLongComponents[2]);
+            int packetHour = Integer.parseInt(suspectIntervalShortComponents[0]);
+            int packetMinute = Integer.parseInt(suspectIntervalShortComponents[1]);
+            int packetSecond = Integer.parseInt(suspectIntervalShortComponents[2]);
+            int packetMillisecond = Integer.parseInt(suspectIntervalShortComponents[3]);
+
+            // update second given millisecond from timeString and freshnessPeriod
+            packetSecond += Math.round((packetMillisecond + freshnessPeriod)/1000);
+
+            timeStringPlusFreshnessTime.set(packetYear, packetMonth, packetDay,
+                    packetHour, packetMinute, packetSecond);
+
+            // if the (freshnessPeriod + timeString) isn't before currentTime, then packet is valid
+            return timeStringPlusFreshnessTime.before(currentTime);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("!!Error in utils.isValidFreshnessPeriod(): " + e);
+        }
+    }
+
+    /**
      * Method takes integer date inputs and returns the application-specific time string. The last
      * parameter is disregarded unless input is invalid; then it's used to generate default.
      *
@@ -139,7 +191,7 @@ public class Utils {
      * @param endDate of requested interval
      * @return data from input in graphable format
      */
-    public static ArrayList<Float> convertDBRowTFloats(ArrayList<DBData> myData, String sensor,
+    public static ArrayList<Float> convertDBRowToFloats(ArrayList<DBData> myData, String sensor,
                     String startDate, String endDate) {
 
         ArrayList<Float> myFloatData = new ArrayList<>();
@@ -230,11 +282,11 @@ public class Utils {
      * @return UTC-compliant current time
      */
     public static String getCurrentTime() {
-        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
-        formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+        formatUTC.setTimeZone(TimeZone.getDefault());
 
         // replace space with T; change makes parsing easier
-        return formatUTC.format(new Date()).replace(" ", "T");
+        return formatUTC.format(new Date()).replace(" ", "T").replace(":", ".");
     }
 
     /**
@@ -243,14 +295,14 @@ public class Utils {
      * @return timeString for previous hour
      */
     public static String getPreviousSynchTime() {
-        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
-        formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+        SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+        formatUTC.setTimeZone(TimeZone.getDefault());
 
         Date date = new Date();
         date.setTime(System.currentTimeMillis() - ConstVar.SYNCH_INTERVAL_MILLIS); // previous hour
 
         // replace space with T; change makes parsing easier
-        return formatUTC.format(date).replace(" ", "T");
+        return formatUTC.format(date).replace(" ", "T").replace(":", ".");
     }
 
     /**
@@ -322,6 +374,7 @@ public class Utils {
             dataTimeString = dataTimeString.replace("T", " ");
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS");
+            df.setTimeZone(TimeZone.getDefault());
 
             startDate = df.parse(requestIntervals[0]);
             endDate = df.parse(requestIntervals[1]);

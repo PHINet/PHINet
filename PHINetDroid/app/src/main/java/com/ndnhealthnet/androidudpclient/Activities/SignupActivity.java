@@ -237,7 +237,7 @@ public class SignupActivity extends Activity {
         Interest interest = JNDNUtils.createInterestPacket(packetNameInner);
 
         // add entry into PIT
-        DBData data = new DBData(ConstVar.PIT_DB, userID, ConstVar.REGISTER_RESULT,
+        DBData data = new DBData(userID, ConstVar.REGISTER_RESULT,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);

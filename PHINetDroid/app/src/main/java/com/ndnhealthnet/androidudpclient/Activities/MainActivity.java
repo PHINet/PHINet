@@ -214,41 +214,49 @@ public class MainActivity extends Activity {
                     // only attempt synch of wifi is connected
                     if (mWifi.isConnected()) {
 
-                        // interval syntax: start||end
-                        String currentTime = Utils.getPreviousSynchTime() + "||" + Utils.getCurrentTime();
-
-                        String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
-
-                        /**
-                         * adding userID as sensorID entry here is a "hack"; the sensorID is null
-                         * (because no sensorID is used when we send a synch) and we need to include
-                         * the userID - so we place the userID as a sensorID
-                         */
-
-                        // query server for initialization of synch request
-                        Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, myUserID,
-                                currentTime, ConstVar.INITIATE_SYNCH_REQUEST);
-                        Interest interest = JNDNUtils.createInterestPacket(packetName);
-
-                        Blob blob = interest.wireEncode();
-
-                        // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
-                        DBData data = new DBData(ConstVar.PIT_DB, myUserID, ConstVar.SYNCH_DATA_REQUEST,
-                                currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
-
-                        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
-
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
-
-                        // store received packet in database for further review
-                        Utils.storeInterestPacket(getApplicationContext(), interest);
-
-                        SystemClock.sleep(ConstVar.SYNCH_INTERVAL_MILLIS); // sleep until next synch
+                        requestSynch(getApplicationContext());
                     }
+
+                    SystemClock.sleep(ConstVar.SYNCH_INTERVAL_MILLIS); // sleep until next synch
                 }
             }
         });
+    }
+
+    /**
+     * Invoked to request Synch from server.
+     */
+    static void requestSynch(Context context) {
+
+        // interval syntax: start||end
+        String currentTime = Utils.getPreviousSynchTime() + "||" + Utils.getCurrentTime();
+
+        String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
+        /**
+         * adding userID as sensorID entry here is a "hack"; the sensorID is null
+         * (because no sensorID is used when we send a synch) and we need to include
+         * the userID - so we place the userID as a sensorID
+         */
+
+        // query server for initialization of synch request
+        Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, myUserID,
+                currentTime, ConstVar.INITIATE_SYNCH_REQUEST);
+        Interest interest = JNDNUtils.createInterestPacket(packetName);
+
+        Blob blob = interest.wireEncode();
+
+        // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
+        DBData data = new DBData(myUserID, ConstVar.SYNCH_DATA_REQUEST,
+                currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
+
+        DBSingleton.getInstance(context).getDB().addPITData(data);
+
+        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
+                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+
+        // store received packet in database for further review
+        Utils.storeInterestPacket(context, interest);
     }
 
     @Override
