@@ -73,8 +73,8 @@ public class LoginActivity extends Activity {
                      * the client has logged in; otherwise, login failed.
                      */
 
-                    final String userID = userNameEdit.getText().toString();
-                    final String password = pwEdit.getText().toString();
+                    final String userID = userNameEdit.getText().toString().trim();
+                    final String password = pwEdit.getText().toString().trim();
 
                     // both inputs are valid, now query server for login
                     if (Utils.isValidUserName(userID) && Utils.isValidPassword(password)) {
@@ -159,7 +159,7 @@ public class LoginActivity extends Activity {
             for (int i = 0; i < pitRows.size(); i++) {
 
                 // search for Interest with PID CREDENTIAL_REQUEST && request for this client
-                if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)
+                if (pitRows.get(i).getProcessID().equals(ConstVar.LOGIN_CREDENTIAL_DATA)
                         && pitRows.get(i).getUserID().equals(userID)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
@@ -169,7 +169,7 @@ public class LoginActivity extends Activity {
             // server has replied with Interest requesting credentials
             if (interestFound != null) {
                 Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                        Utils.getCurrentTime(), ConstVar.LOGIN_CREDENTIAL_DATA);
+                        interestFound.getTimeString(), ConstVar.LOGIN_CREDENTIAL_DATA);
 
                 // reply with credentials to satisfy the interest
                 String credentialContent = userID + "," + password;

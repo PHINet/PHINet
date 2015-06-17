@@ -12,7 +12,7 @@ Named Data Networking, a future networking paradigm, allows for features such as
 
 Our client application will soon be available for download on android devices.
 
-[Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/)
+[Visit our website for additional information/functionality.](http://phinet1.elasticbeanstalk.com/)
 
 # Contributing
 
@@ -25,10 +25,6 @@ GENERAL
 CLIENT
 - REQUIRED: assess memory usage
 - REQUIRED: rework patient/doctor relationship -- (query server before adding)
-- REQUIRED: specify which sensor when requesting patient data
-- REQUIRED: handle case of if user already sent interest and its still in pit (not satisfied)
-- REQUIRED: make sure all pit entries are being deleted appropriately
-- REQUIRED: if data arrives, verify that it's sent to everyone who requested it
 - DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes

@@ -23,9 +23,6 @@ exports.StringConst = {
     // notify the recipient (in this case a client) of the sender requesting credentials
     CREDENTIAL_REQUEST : "CREDENTIAL_REQUEST",
 
-    // notify neighbor that fib is desired (sent in interest packet)
-    INTEREST_FIB : "INTEREST_FIB",
-
     // notify recipient (in this case the server) that content in data packet is user login credentials
     LOGIN_CREDENTIAL_DATA : "LOGIN_CREDENTIAL_DATA",
 
@@ -37,9 +34,6 @@ exports.StringConst = {
 
     // used by client to request and server to respond to register result request
     REGISTER_RESULT : "REGISTER_RESULT",
-
-    // notify recipient that content in data packet is FIBData
-    DATA_FIB : "DATA_FIB",
 
     // notify recipient that content in data packet is CacheData
     DATA_CACHE : "DATA_CACHE",

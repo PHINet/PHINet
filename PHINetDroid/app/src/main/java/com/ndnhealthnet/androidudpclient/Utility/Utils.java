@@ -714,8 +714,13 @@ public class Utils {
      * @param interest packet to store in DB
      */
     public static void storeInterestPacket(Context context, Interest interest) {
+
+        // NOTE: we append INTEREST to the front so that both the Interest and the Data reply
+                    // can be stored; otherwise only one would be possible
+        String packetName = "INTEREST " + interest.getName().toUri().replace("%7C%7C", "||");
+
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(interest.getName().toUri(), convertInterestToString(interest)));
+                .addPacketData(new DBData(packetName, convertInterestToString(interest)));
     }
 
     /**
@@ -725,7 +730,12 @@ public class Utils {
      * @param data packet to store in DB
      */
     public static void storeDataPacket(Context context, Data data) {
+
+        // NOTE: we append DATA to the front so that both the Interest and the Data reply
+                 // can be stored; otherwise only one would be possible
+        String packetName = "DATA " + data.getName().toUri().replace("%7C%7C", "||");
+
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(data.getName().toUri(), convertDataToString(data)));
+                .addPacketData(new DBData(packetName, convertDataToString(data)));
     }
 }

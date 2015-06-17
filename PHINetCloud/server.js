@@ -18,6 +18,7 @@ var http = require('http'); // used to create the server
 var ejs = require('ejs'); // enables use of embedded javascript
 var fs = require('fs'); // enables easy file reading
 
+var favicon = require('serve-favicon'); // allows use of a custom favicon
 var bodyParser = require('body-parser'); // allows easy form submissions
 
 udp_comm.initializeListener(); // begin listening for udp packets
@@ -31,6 +32,7 @@ app.use(bodyParser.urlencoded({
 
 app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
+app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
 // --- TEST DATA ---
 var DBData = require('./data'); // used to create objects used by the database

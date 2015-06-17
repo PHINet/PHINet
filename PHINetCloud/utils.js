@@ -131,7 +131,7 @@ exports.Utils = {
  			month = "0" + (month).toString()
  		}
 
-       	return year + "-" + month + "-" + day + "T" + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+       	return year + "-" + month + "-" + day + "T" + hours + "." + minutes + "." + seconds + "." + milliseconds;
 	},
 
 	/**

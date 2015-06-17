@@ -97,10 +97,10 @@ public class SignupActivity extends Activity {
                      * the client has signed up; otherwise, signup failed.
                      */
 
-                    final String userID = userNameEdit.getText().toString();
-                    final String password = pwEdit.getText().toString();
+                    final String userID = userNameEdit.getText().toString().trim();
+                    final String password = pwEdit.getText().toString().trim();
                     final String email = emailEdit.getText().toString().equals("")
-                            ? ConstVar.NULL_FIELD : emailEdit.getText().toString();
+                            ? ConstVar.NULL_FIELD : emailEdit.getText().toString().trim();
                     final boolean pwMatch = password.equals(verifyPWEdit.getText().toString());
 
                     // both inputs are valid, now query server for signup
@@ -167,7 +167,7 @@ public class SignupActivity extends Activity {
             for (int i = 0; i < pitRows.size(); i++) {
 
                 // search for Interest with PID CREDENTIAL_REQUEST && request for this user
-                if (pitRows.get(i).getProcessID().equals(ConstVar.CREDENTIAL_REQUEST)
+                if (pitRows.get(i).getProcessID().equals(ConstVar.REGISTER_CREDENTIAL_DATA)
                         && pitRows.get(i).getUserID().equals(userID)) {
                     interestFound = pitRows.get(i);
                     break; // valid interest found; break from loop
@@ -177,7 +177,7 @@ public class SignupActivity extends Activity {
             // server has replied with Interest requesting credentials
             if (interestFound != null) {
                 Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                        Utils.getCurrentTime(), ConstVar.REGISTER_CREDENTIAL_DATA);
+                        interestFound.getTimeString(), ConstVar.REGISTER_CREDENTIAL_DATA);
 
                 // reply with credentials to satisfy the interest
                 String credentialContent = userID + "," + password + "," + email;
@@ -204,14 +204,14 @@ public class SignupActivity extends Activity {
             }
             // the server has not replied with an Interest; error
             else {
-                errorText.setText("Signup failed.\nCould not reach server123.");
+                errorText.setText("Signup failed.\nCould not reach server.");
                 progressBar.setVisibility(View.GONE); // hide progress; signup failed
             }
 
         }
         // the server has not replied with an Interest; error
         else {
-            errorText.setText("Signup failed.\nCould not reach server456.");
+            errorText.setText("Signup failed.\nCould not reach server.");
             progressBar.setVisibility(View.GONE); // hide progress; signup failed
         }
     }

@@ -14,12 +14,6 @@ public class ConstVar {
     // send from server to request synchronization data
     static public final String SYNCH_DATA_REQUEST = "SYNCH_DATA_REQUEST";
 
-    // notify neighbor that fib is desired (sent in interest packet)
-    static public final String INTEREST_FIB = "INTEREST_FIB";
-
-    // notify recipient that content in data packet is FIBData
-    static public final String DATA_FIB = "DATA_FIB";
-
     // notify recipient that content in data packet is CacheData
     static public final String DATA_CACHE = "DATA_CACHE";
 
@@ -87,7 +81,7 @@ public class ConstVar {
     public static final String ENTITY_NAME = "ENTITY_NAME";
 
     // information used to contact the server
-    public static final String SERVER_IP = "10.0.0.3"; // TODO - update with server's real IP
+    public static final String SERVER_IP = "54.174.155.119";
     public static final String SERVER_ID = "CLOUD-SERVER";
 
     // port used by all PHINet applications

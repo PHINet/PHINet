@@ -381,7 +381,7 @@ public class ViewDataActivity extends Activity {
         String endDate = Utils.generateTimeStringFromInts(endYear, endMonth, endDay, true);
 
         // db query unsuccessful: no user data found in cache
-        if (myData.size() == 0) {
+        if (myData == null || myData.size() == 0) {
 
             myFloatData = new ArrayList<>(); // create empty ArrayList; no data exists for it
         }

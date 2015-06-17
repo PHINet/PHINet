@@ -34,8 +34,8 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1; // used to identify the result of Login/Signup Activities
 
-	Button clearDatabaseBtn, logoutBtn, myDataBtn, cliBeatBtn,
-            loginBtn, signupBtn, sensorBtn, viewPacketsBtn;
+	Button logoutBtn, myDataBtn, cliBeatBtn, loginBtn,
+            signupBtn, sensorBtn, viewPacketsBtn;//, clearDatabaseBtn;
 	TextView credentialWarningText, doctorText, patientText, loggedInText;
 	UDPListener receiverThread;
     BTSensorComm btSensorComm;
@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        // NOTE: temporary debugging method that allows user to clear the database
+        /*// NOTE: temporary debugging method that allows user to clear the database
         clearDatabaseBtn = (Button) findViewById(R.id.deleteDataBtn);
         clearDatabaseBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -158,7 +158,7 @@ public class MainActivity extends Activity {
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireCS();
                 DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePacketDB();
             }
-        });
+        });*/
 
         if (myPassword == null || myUserID == null
                 || myPassword.equals("") || myUserID.equals("")) {
@@ -168,7 +168,7 @@ public class MainActivity extends Activity {
             myDataBtn.setVisibility(View.GONE);
             patientText.setVisibility(View.GONE);
             doctorText.setVisibility(View.GONE);
-            clearDatabaseBtn.setVisibility(View.GONE);
+         //   clearDatabaseBtn.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
             sensorBtn.setVisibility(View.GONE);
             viewPacketsBtn.setVisibility(View.GONE);

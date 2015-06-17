@@ -40,7 +40,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        // keys are USER_ID and TIME_STRING - only one piece of data per user per time instant
+        // keys are USER_ID, TIME_STRING, PROCESS_ID - only one piece of data per user per process per time instant
         String CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.CS_DB + "("
                 + KEY_USER_ID + " TEXT ," + KEY_DATA_FRESHNESS_PERIOD + " INTEGER ," + KEY_SENSOR_ID + " TEXT," +
                 KEY_TIME_STRING + " TEXT ," + KEY_PROCESS_ID + " TEXT," +KEY_DATA_CONTENTS +
@@ -49,13 +49,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         db.execSQL(CREATE_DATABASE_TABLE); // create CS
 
-        // keys are USER_ID, TIME_STRING, and IP_ADDRESS
+        // keys are USER_ID, TIME_STRING, PROCESS_ID, and IP_ADDRESS
                     // - only one piece of requested data per user per time instant
         CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.PIT_DB + "("
-                +KEY_USER_ID + " TEXT ," + KEY_SENSOR_ID + " TEXT," +
+                + KEY_USER_ID + " TEXT ," + KEY_SENSOR_ID + " TEXT," +
                KEY_TIME_STRING + " TEXT," +KEY_PROCESS_ID + " TEXT," +KEY_IP_ADDRESS + " TEXT,"
                 + "PRIMARY KEY(" + KEY_USER_ID + "," + KEY_TIME_STRING + ", "
-                + KEY_IP_ADDRESS+ "))";
+                + KEY_IP_ADDRESS + "," + KEY_PROCESS_ID + "))";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create PIT
 
@@ -167,6 +167,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return true if insertion was successful, false otherwise
      */
     public boolean addPacketData(DBData data) {
+
         return addData(data, ConstVar.PACKET_DB);
     }
 
@@ -369,6 +370,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 data.setPacketName(cursor.getString(0));
                 data.setPacketContent(cursor.getString(1));
+
+                // Syntax used so that both Interests and Data can be stored: PACKET_TYPE packet_name
+                    // we only care about the packet_name, PACKET_TYPE only is used in storage
+                data.setPacketName(data.getPacketName().split(" ")[1]);
+
                 allPacketData.add(data);
             }
             cursor.close();
