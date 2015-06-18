@@ -34,14 +34,6 @@ app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
-// --- TEST DATA ---
-var DBData = require('./data'); // used to create objects used by the database
-var newEntry = DBData.DATA();
-newEntry.csData("local", "sensor1", "p1", "2015-05-03T18.17.56.985", "99,100,41,98,58,200,111")
-
-CS.insertCSData(newEntry, function(a,b){});
-// --- TEST DATA ---
-
 /**
  * Handles main web page
  */

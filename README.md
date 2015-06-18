@@ -10,7 +10,7 @@ Named Data Networking, a future networking paradigm, allows for features such as
 
 # Install
 
-Our client application will soon be available for download on android devices.
+Our client application is available for android devices. [Link here].(https://play.google.com/store/apps/details?id=com.ndnhealthnet.androidudpclient)
 
 [Visit our website for additional information/functionality.](http://phinet1.elasticbeanstalk.com/)
 
