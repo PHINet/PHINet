@@ -229,6 +229,34 @@ exports.FIB =  function (tableName) {
                 console.log("!!Error in ForwardingInformationBase.insertFIBData(): " + err);
                 return false;
             }
-		}
+		},
+
+        /**
+         * Used to get the number of FIB entries
+         *
+         * @param rowCountCallback - callback used to pass rowCount back to caller
+         * @returns {boolean} - true if method successful queried the database
+         */
+        getRowCount: function(rowCountCallback) {
+
+            try {
+                if (!rowCountCallback) {
+                    return false;
+                } else {
+                    client.query("SELECT COUNT(*) FROM " + dbName, function(err, result) {
+
+                        if (err) {
+                            rowCountCallback(0); // error occurred, just return 0
+                        } else {
+                            rowCountCallback(result.rowCount);
+                        }
+                    });
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in ForwardingInformationBase.getRowCount: " + err);
+                return false;
+            }
+        }
 	}
 };

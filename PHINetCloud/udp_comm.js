@@ -140,12 +140,22 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             // a client application requests login; initiate process now
             else if (processID === StringConst.LOGIN_REQUEST) {
 
-                handleInterestLoginRequest(userID, timeString, packetIP, packetPort);
+                /**
+                 * Here client userID is stored in sensorID position. We needed to send userID 
+                 * but had no place to do so and sensorID would have otherwise been null. 
+                 */
+
+                handleInterestLoginRequest(sensorID, timeString, packetIP, packetPort);
             }
             // a client application requests register; initiate process now
             else if (processID === StringConst.REGISTER_REQUEST) {
 
-                handleInterestRegisterRequest(userID, timeString, packetIP, packetPort);
+                /**
+                 * Here client userID is stored in sensorID position. We needed to send userID 
+                 * but had no place to do so and sensorID would have otherwise been null. 
+                 */
+
+                handleInterestRegisterRequest(sensorID, timeString, packetIP, packetPort);
             }
             // a client requests result of login
             else if (processID === StringConst.LOGIN_RESULT) {
@@ -696,28 +706,46 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
 
         FIB.getAllFIBData(function(rowsTouched, queryResult) {
 
-            // TODO - perform appropriate processing here (choose only certain results)
-            // TODO - add this user (themselves) to the FIB
-            var fibCAP = 10; // TODO - set to appropriate cap
-            var packetContent = "  "; // TODO - revise
+            var packetContent = "";
 
             if (rowsTouched > 0 && queryResult) {
-                for (var i = 0; i < queryResult.length; i++) {
 
-                    if (i > fibCAP) {
-                        break;
+                // TODO - send randomization and localized IPs in proper proportions
+
+                // send count / sqrt(count); as described in PHINET paper
+                var fibEntriesToBeSent = Math.ceil(rowsTouched / Math.sqrt(rowsTouched));
+
+                for (var i = 0; i < fibEntriesToBeSent; i++) {
+
+                    // don't send a user their own information
+                    if (queryResult[i].getUserID() !== userID) {
+
+                        // syntax is "userid,ipaddr" and "||" separates each entry
+                        packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
                     }
-
-                    // syntax is "userid,ipaddr" and "||" separates each entry
-                    packetContent += queryResult[i].getUserID() + "," + queryResult[i].getIpAddr() + "||";
                 }
+
+                packetContent = packetContent.substring(0, packetContent.length -2); // remove last 2 parsing characters
+
             } else {
-                // TODO - handle this case
+                // Server-side FIB contains no entries; nothing to send here
             }
 
             var data = ndnjs_utils.createDataPacket(packetContent, packetName);
-
             sendMessage(data.wireEncode(), hostIP, hostPort);
+
+            FIB.getSpecificFIBData(userID, function(rowsTouched, queryResult) {
+
+                // now, place newly registered/logged-in user into server-side FIB
+                var fibEntry = DBData.DATA();
+                fibEntry.fibData(userID, timeString, hostIP);
+
+                if (rowsTouched === 0 || !queryResult) {
+                    FIB.insertFIBData(fibEntry, function(){}); // user wasn't in FIB; insert now
+                } else {
+                    FIB.updateFIBData(fibEntry, function(){}); // user was in FIB; update now
+                }
+            });
         });
     }
     // client's login/register has not been validated; reply with an empty data packet

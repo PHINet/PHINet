@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -30,7 +30,6 @@ import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 /**
  * Activity deals specifically with interacting with user's own data.
@@ -46,6 +45,8 @@ public class ViewDataActivity extends Activity {
     GraphView graph;
     String entityName, currentSensorSelected, mostRecentlySelectedTask;
     ProgressBar analyticsWait;
+
+    final int SLEEP_TIME = 250;
 
     // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -85,16 +86,21 @@ public class ViewDataActivity extends Activity {
         if (myData != null) {
             // get all sensors in order to allow user to choose
             for (int i = 0; i < myData.size(); i++) {
-                if (!sensors.contains(myData.get(i).getSensorID())) {
+                // check for un-added sensor and verify that it isn't NULL_FIELD
+                if (!sensors.contains(myData.get(i).getSensorID())
+                        && !myData.get(i).getSensorID().equals(ConstVar.NULL_FIELD)) {
                     sensors.add(myData.get(i).getSensorID()); // new sensor detected; store now
                 }
             }
-        } else {
+        }
+
+        if (sensors.size() == 0) {
             sensors.add("No data available");
         }
 
         sensorSelectionSpinner = (Spinner) findViewById(R.id.sensorSelectorSpinner);
         final ArrayAdapter<String> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, sensors);
+
         sensorSelectionSpinner.setAdapter(adapter);
 
         currentSensorSelected = sensorSelectionSpinner.getSelectedItem().toString();
@@ -202,7 +208,7 @@ public class ViewDataActivity extends Activity {
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                     // add entry into PIT
-                    DBData data = new DBData(currentSensorSelected, processID,
+                    final DBData data = new DBData(currentSensorSelected, processID,
                             chosenTime, myUserID, ConstVar.SERVER_IP);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
@@ -216,38 +222,65 @@ public class ViewDataActivity extends Activity {
                     analyticsWait.setVisibility(View.VISIBLE); // request sent; display progress bar
                     analyticsBtn.setVisibility(View.GONE); // prevent user from resending request
 
-                    // wait 5 seconds (arbitrary) after sending request before checking for result
-                    new Handler().postDelayed(new Runnable() {
+                    // create thread to check for result
+                    new Thread(new Runnable() {
                         public void run() {
 
-                            analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
-                            analyticsWait.setVisibility(View.GONE); // hide; result checked now
-
-                            ArrayList<DBData> candidateData = DBSingleton
-                                    .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
+                            int maxLoopCount = 8; // check for SLEEP_TIME*8 = 2 second (somewhat arbitrary)
+                            int loopCount = 0;
 
                             DBData analyticsResult = null;
 
-                            for (int i = 0; i < candidateData.size(); i++) {
+                            while (loopCount++ < maxLoopCount) {
 
-                                if (candidateData.get(i).getProcessID().equals(processID)
-                                        && candidateData.get(i).getTimeString().equals(chosenTime)
-                                        && Utils.isValidFreshnessPeriod(candidateData.get(i).getFreshnessPeriod(),
-                                        candidateData.get(i).getTimeString())) {
+                                ArrayList<DBData> candidateData = DBSingleton
+                                        .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
 
-                                    analyticsResult = candidateData.get(i);
-                                    break; // result found; break from
+                                for (int i = 0; i < candidateData.size(); i++) {
+
+                                    if (candidateData.get(i).getProcessID().equals(processID)
+                                            && candidateData.get(i).getTimeString().equals(chosenTime)
+                                            && Utils.isValidFreshnessPeriod(candidateData.get(i).getFreshnessPeriod(),
+                                            candidateData.get(i).getTimeString())) {
+
+                                        analyticsResult = candidateData.get(i);
+                                        break; // result found; break from
+                                    }
                                 }
+
+                                if (analyticsResult != null) {
+                                    break; // the expected result was found; break from loop now
+                                }
+
+                                SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
                             }
 
-                            if (analyticsResult != null) {
-                                analyticsResultText.setText(mostRecentlySelectedTask + " is " + analyticsResult.getDataFloat());
-                            } else {
-                                // nothing found; display error
-                                analyticsResultText.setText("Error processing request.");
-                            }
+                            final DBData analyticsResultFinal = analyticsResult;
+
+                            ViewDataActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    // delete analytic request Interest from PIT
+                                    DBSingleton.getInstance(getApplicationContext()).getDB()
+                                            .deletePITEntry(data.getUserID(), data.getTimeString(), data.getIpAddr());
+
+                                    analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
+                                    analyticsWait.setVisibility(View.GONE); // hide; result checked now
+
+                                    if (analyticsResultFinal != null) {
+
+                                        analyticsResultText.setText(mostRecentlySelectedTask + " is " +analyticsResultFinal.getDataFloat());
+                                    } else {
+                                        // nothing found; display error
+
+                                        analyticsResultText.setText("Error processing request.");
+                                    }
+                                }
+                            });
+
                         }
-                    }, 5000);
+                    }).start();
                 }
             }
         });

@@ -8,9 +8,7 @@ import net.named_data.jndn.KeyLocator;
 import net.named_data.jndn.KeyLocatorType;
 import net.named_data.jndn.MetaInfo;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.security.*;
 import net.named_data.jndn.encoding.EncodingException;
-import net.named_data.jndn.security.SecurityException;
 import net.named_data.jndn.util.Blob;
 
 import java.nio.ByteBuffer;

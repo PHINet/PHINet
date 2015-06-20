@@ -164,18 +164,8 @@ public class PatientActivity extends Activity {
             // received for same data we request, we won't send another, identical Interest
             if (pitEntries == null) {
 
-                DBData selfPITEntry = new DBData();
-                selfPITEntry.setUserID(patientUserID);
-
-                // sensor id is currently irrelevant
-                // TODO - rework sensorID with server
-                selfPITEntry.setSensorID(ConstVar.NULL_FIELD);
-
-                selfPITEntry.setTimeString(generateTimeString());
-                selfPITEntry.setProcessID(ConstVar.INTEREST_CACHE_DATA);
-
-                // deviceIP, because this device is the requester
-                selfPITEntry.setIpAddr(MainActivity.deviceIP);
+                DBData selfPITEntry = new DBData(ConstVar.NULL_FIELD, ConstVar.INTEREST_CACHE_DATA,
+                        patientUserID, generateTimeString(), MainActivity.deviceIP);
 
                 DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
 
@@ -195,32 +185,33 @@ public class PatientActivity extends Activity {
             ArrayList<DBData> allFIBEntries = DBSingleton
                     .getInstance(getApplicationContext()).getDB().getAllFIBData();
 
-            int fibRequestsSent = 0;
+            if (allFIBEntries != null) {
+                int fibRequestsSent = 0;
 
-            for (int i = 0; i < allFIBEntries.size(); i++) {
-                // send request to everyone in FIB; only send to users with actual ip
-                if (Utils.isValidIP(allFIBEntries.get(i).getIpAddr())) {
+                for (int i = 0; i < allFIBEntries.size(); i++) {
+                    // send request to everyone in FIB; only send to users with actual ip
+                    if (Utils.isValidIP(allFIBEntries.get(i).getIpAddr())) {
 
-                    Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, generateTimeString(),
-                            ConstVar.INTEREST_CACHE_DATA);
-                    Interest interest = JNDNUtils.createInterestPacket(packetName);
+                        Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, generateTimeString(),
+                                ConstVar.INTEREST_CACHE_DATA);
+                        Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                    new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                            .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                        new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
+                                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
-                    // store received packet in database for further review
-                    Utils.storeInterestPacket(getApplicationContext(), interest);
+                        // store received packet in database for further review
+                        Utils.storeInterestPacket(getApplicationContext(), interest);
 
-                    fibRequestsSent++;
+                        fibRequestsSent++;
+                    }
+                }
+
+                if (fibRequestsSent == 0) {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
+                    toast.show();
                 }
             }
-
-            if (fibRequestsSent == 0) {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
-                toast.show();
-            }
-
         } else {
             // not connected to wifi
             Toast toast = Toast.makeText(getApplicationContext(),
@@ -343,7 +334,7 @@ public class PatientActivity extends Activity {
 
         // updates patient data
         DBData updatedFIBEntry = new DBData(patientUserID, ConstVar.CURRENT_TIME,
-                ipEditText.getText().toString());
+                ipEditText.getText().toString(), true);
 
         DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(updatedFIBEntry);
 

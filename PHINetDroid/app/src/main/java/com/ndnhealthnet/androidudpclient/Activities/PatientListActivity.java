@@ -21,6 +21,7 @@ import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Activity displays list of current patients and allows the following
@@ -56,11 +57,7 @@ public class PatientListActivity extends ListActivity {
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place username on screen
 
-        ArrayList<DBData> patientList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
-        if (patientList == null) {
-            // array list is null; pass empty data structure rather than null
-            patientList = new ArrayList<>();
-        }
+        ArrayList<DBData> patientList = getPatients();
 
         final PatientAdapter adapter = new PatientAdapter(this, patientList);
         setListAdapter(adapter);
@@ -138,12 +135,14 @@ public class PatientListActivity extends ListActivity {
                                 data.setUserID(patientInput.getText().toString());
                                 data.setTimeString(ConstVar.CURRENT_TIME);
                                 data.setIpAddr(ConstVar.NULL_IP);
+                                data.setIsMyPatient(true);
 
                                 DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
                             } else {
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);
                                 data.setTimeString(ConstVar.CURRENT_TIME);
+                                data.setIsMyPatient(true);
 
                                 // determine if username already exists in FIB
                                 if (DBSingleton.getInstance(getApplicationContext())
@@ -185,6 +184,37 @@ public class PatientListActivity extends ListActivity {
                 builder.show();
             }
         });
+    }
+
+    /**
+     *
+     * @return
+     */
+    private ArrayList<DBData> getPatients() {
+
+        ArrayList<DBData> fibList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
+
+        if (fibList == null) {
+            // array list is null; pass empty data structure rather than null
+            return new ArrayList<>();
+        } else {
+
+            // entries found; now remove all who aren't the client's patients
+
+            Iterator<DBData> i = fibList.iterator();
+
+            while (i.hasNext()) {
+                DBData fibEntry = i.next();
+
+                System.out.println("patient name: " + fibEntry.getUserID());
+
+                if (!fibEntry.getIsMyPatient()) {
+                    i.remove(); // remove all non-patients before returning
+                }
+            }
+
+            return fibList;
+        }
     }
 
     /**

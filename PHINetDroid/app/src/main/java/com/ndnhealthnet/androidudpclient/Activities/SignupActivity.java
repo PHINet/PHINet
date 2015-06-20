@@ -7,12 +7,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBData;
@@ -38,6 +38,8 @@ public class SignupActivity extends Activity {
     EditText userNameEdit, pwEdit, verifyPWEdit, emailEdit;
     TextView errorText;
     ProgressBar progressBar;
+
+    final int SLEEP_TIME = 250; // 250 milliseconds = 1/4 second (chosen somewhat arbitrarily)
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,12 +111,17 @@ public class SignupActivity extends Activity {
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
-                        Toast toast = Toast.makeText(getApplicationContext(), "This takes about 10 seconds", Toast.LENGTH_LONG);
-                        toast.show();
+                        String currentTime = Utils.getCurrentTime();
+
+                        /**
+                         * Here client userID is stored in sensorID position. We needed to send userID 
+                         * but had no place to do so and sensorID would have otherwise been null. 
+                         */
 
                         // send Interest to initiate signup
-                        Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                                Utils.getCurrentTime(), ConstVar.REGISTER_REQUEST);
+                        Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, userID,
+                                currentTime, ConstVar.REGISTER_REQUEST);
+
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
@@ -123,13 +130,8 @@ public class SignupActivity extends Activity {
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
 
-                        // after sent, wait 1 second (chosen arbitrarily) for server reply
-                        new Handler().postDelayed(new Runnable() {
-                            public void run() {
-                                initialServerReplyHandler(userID, password, email);
-                            }
-                        }, 1000);
-
+                        // invoke method that handles the server's reply
+                        initialServerReplyHandler(userID, password, email, currentTime);
                     }
                     // passwords don't match; only notify is PW was valid in first place
                     else if (Utils.isValidPassword(password) && !pwMatch) {
@@ -149,71 +151,117 @@ public class SignupActivity extends Activity {
     }
 
     /**
-     * Method invoked via handler, after initial signup request, and checks
+     * Method creates thread, after initial signup request, and checks
      * for a reply from the server before responding appropriately.
      *
      * @param userID entered to signup
      * @param password entered to signup
+     * @param email entered to signup
+     * @param packetTime of initial Interest packet (used to delete from PIT if result not found)
      */
-    private void initialServerReplyHandler(final String userID, final String password, final String email) {
-        // check to see if server has sent an Interest asking for client's credentials
-        ArrayList<DBData> pitRows = DBSingleton.getInstance(getApplicationContext())
-                .getDB().getGeneralPITData(userID);
+    private void initialServerReplyHandler(final String userID, final String password,
+                                           final String email, final String packetTime) {
 
-        // valid Interest potentially found
-        if (pitRows != null) {
+        new Thread(new Runnable() {
+            public void run() {
 
-            DBData interestFound = null;
-            for (int i = 0; i < pitRows.size(); i++) {
+                int maxLoopCount = 4; // check for SLEEP_TIME*4 = 1 second (somewhat arbitrary)
+                int loopCount = 0;
+                boolean serverResponseFound = false;
 
-                // search for Interest with PID CREDENTIAL_REQUEST && request for this user
-                if (pitRows.get(i).getProcessID().equals(ConstVar.REGISTER_CREDENTIAL_DATA)
-                        && pitRows.get(i).getUserID().equals(userID)) {
-                    interestFound = pitRows.get(i);
-                    break; // valid interest found; break from loop
-                }
-            }
+                while (loopCount++ < maxLoopCount) {
 
-            // server has replied with Interest requesting credentials
-            if (interestFound != null) {
-                Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                        interestFound.getTimeString(), ConstVar.REGISTER_CREDENTIAL_DATA);
+                    // check to see if server has sent an Interest asking for client's credentials
+                    ArrayList<DBData> pitRows = DBSingleton.getInstance(getApplicationContext())
+                            .getDB().getGeneralPITData(userID);
 
-                // reply with credentials to satisfy the interest
-                String credentialContent = userID + "," + password + "," + email;
+                    // valid Interest potentially found
+                    if (pitRows != null) {
 
-                Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
+                        DBData interestFound = null;
+                        for (int i = 0; i < pitRows.size(); i++) {
 
-                new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
-                        .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                            // search for Interest with PID CREDENTIAL_REQUEST && request for this user
+                            if (pitRows.get(i).getProcessID().equals(ConstVar.REGISTER_CREDENTIAL_DATA)
+                                    && pitRows.get(i).getUserID().equals(userID)) {
+                                interestFound = pitRows.get(i);
+                                break; // valid interest found; break from loop
+                            }
+                        }
 
-                // delete Interest requesting signup credentials from PIT; it has been satisfied
-                DBSingleton.getInstance(getApplicationContext()).getDB()
-                        .deletePITEntry(interestFound.getUserID(),
-                                interestFound.getTimeString(), interestFound.getIpAddr());
+                        // server has replied with Interest requesting credentials
+                        if (interestFound != null) {
 
-                // store packet in database for further review
-                Utils.storeDataPacket(getApplicationContext(), data);
+                            // reply with credentials to satisfy the interest
+                            String credentialContent = userID + "," + password + "," + email;
 
-                // wait 4 seconds (arbitrary) after sending credentials before querying for result
-                new Handler().postDelayed(new Runnable() {
-                    public void run() {
-                        credentialQueryHandler(userID, password);
+                            DBData credentialData = new DBData(ConstVar.NULL_FIELD,
+                                    ConstVar.REGISTER_CREDENTIAL_DATA, interestFound.getTimeString(),
+                                    userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
+
+                            Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
+                                    interestFound.getTimeString(), ConstVar.REGISTER_CREDENTIAL_DATA);
+
+                            Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
+
+                            new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
+                                    .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+
+                            // delete Interest requesting signup credentials from PIT; it has been satisfied
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .deletePITEntry(interestFound.getUserID(),
+                                            interestFound.getTimeString(), interestFound.getIpAddr());
+
+                            // place packet into CACHE
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .addCSData(credentialData);
+
+                            // delete initial Interest placed in PIT to initiate signup
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
+
+                            // store packet in database for further review
+                            Utils.storeDataPacket(getApplicationContext(), data);
+
+                            SignupActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    new Handler().postDelayed(new Runnable() {
+                                        public void run() {
+                                            // wait 1 second for server to process results before checking result
+                                            credentialQueryHandler(userID, password);
+                                        }
+                                    }, 1000); // chosen somewhat arbitrarily
+                                }
+                            });
+
+                            serverResponseFound = true;
+                            break; // result was found, break from loop
+                        }
                     }
-                }, 4000);
-            }
-            // the server has not replied with an Interest; error
-            else {
-                errorText.setText("Signup failed.\nCould not reach server.");
-                progressBar.setVisibility(View.GONE); // hide progress; signup failed
+
+                    SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
+                }
+
+                final boolean serverResponseFoundFinal = serverResponseFound;
+
+                SignupActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!serverResponseFoundFinal) {
+                            errorText.setText("Signup failed.\nCould not reach server.");
+                            progressBar.setVisibility(View.GONE); // hide progress; signup failed
+
+                            // delete initial Interest placed in PIT to initiate login
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
+                        }
+                    }
+                });
+
             }
 
-        }
-        // the server has not replied with an Interest; error
-        else {
-            errorText.setText("Signup failed.\nCould not reach server.");
-            progressBar.setVisibility(View.GONE); // hide progress; signup failed
-        }
+        }).start();
     }
 
     /**
@@ -224,6 +272,7 @@ public class SignupActivity extends Activity {
      * @param password entered to signup
      */
     private void credentialQueryHandler(final String userID, final String password) {
+
         String currentTime = Utils.getCurrentTime();
 
         /**
@@ -248,71 +297,123 @@ public class SignupActivity extends Activity {
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
 
-        // wait 4 seconds (arbitrary) after sending credentials before checking result
-        new Handler().postDelayed(new Runnable() {
-            public void run() {
-                credentialQueryResultHandler(userID, password);
-            }
-        }, 4000);
+        // after sending query result, now handle its response
+        credentialQueryResultHandler(userID, password, currentTime);
     }
 
     /**
-     * Method invoked via handler, after query for result of register send,
+     * Method creates thread, after query for result of register send,
      * and checks the content store for the result before deleting it.
      *
      * @param userID entered to signup
      * @param password entered to signup
+     * @param packetTime of Interest packet sent to query result (used to delete from PIT if result not found)
      */
-    private void credentialQueryResultHandler(String userID, String password) {
-        // query the ContentStore for the signup result
+    private void credentialQueryResultHandler(final String userID, final String password,
+                                              final String packetTime) {
 
-        progressBar.setVisibility(View.GONE); // results have come back; remove progress bar
+        new Thread(new Runnable() {
+            public void run() {
 
-        ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
-                .getGeneralCSData(ConstVar.SERVER_ID);
+                int maxLoopCount = 8; // check for SLEEP_TIME*8 = 2 seconds (somewhat arbitrary)
+                int loopCount = 0;
+                boolean serverResponseFound = false;
+                boolean accountMayExist = false;
 
-        if (potentiallyValidRows == null) {
-            errorText.setText("Signup failed.\nCould not reach server.");
-            progressBar.setVisibility(View.GONE); // hide progress; signup failed
+                while (loopCount++ < maxLoopCount) {
 
-        } else {
-            DBData signupResult = null;
+                    // query the ContentStore for the signup result
 
-            /**
-             * Here userID is stored in sensorID position. We needed to send userID
-             * but had no place to do so and sensorID would have otherwise been null.
-             */
+                    ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
+                            .getGeneralCSData(ConstVar.SERVER_ID);
 
-            for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.REGISTER_RESULT)
-                        && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
+                    if (potentiallyValidRows != null) {
 
-                    signupResult = potentiallyValidRows.get(i);
+                        DBData signupResult = null;
+
+                        /**
+                         * Here userID is stored in sensorID position. We needed to send userID
+                         * but had no place to do so and sensorID would have otherwise been null.
+                         */
+
+                        for (int i = 0; i < potentiallyValidRows.size(); i++) {
+                            if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.REGISTER_RESULT)
+                                    && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
+
+                                signupResult = potentiallyValidRows.get(i);
+                            }
+                        }
+
+                        // signup response yields success
+                        if (signupResult != null && !signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
+
+                            // on signup, server replies with FIB entries - place into FIB now
+                            Utils.insertServerFIBEntries(signupResult.getDataFloat(),
+                                    signupResult.getTimeString(), getApplicationContext());
+
+                            // after reading entry, delete it (it's been satisfied)
+                            DBSingleton.getInstance(getApplicationContext())
+                                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
+
+                            // signup was successful; store values now
+                            String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
+
+                            serverResponseFound = true; // response found
+                            accountMayExist = false; // result success; account doesn't exist
+
+                            break; // break from loop, response found
+
+                        } else if (signupResult != null && signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
+
+                            // after reading entry, delete it (it's been satisfied)
+                            DBSingleton.getInstance(getApplicationContext())
+                                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
+
+                            serverResponseFound = true; // response found
+                            accountMayExist = true; // result failure; account does exist
+
+                            break; // break from loop, response found
+                        }
+                    }
+
+                    SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
                 }
+
+                final boolean accountMayExistFinal = accountMayExist;
+                final boolean serverResponseFoundFinal = serverResponseFound;
+
+                SignupActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        progressBar.setVisibility(View.GONE); // hide progress; signup process over
+
+                        if (!serverResponseFoundFinal) {
+
+                            // delete initial Interest placed in PIT to initiate login
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
+
+
+                            errorText.setText("Signup failed.\nCould not reach server.");
+
+                        } else if (serverResponseFoundFinal && accountMayExistFinal) {
+
+                            errorText.setText("Signup failed.\nAccount may already exist.");
+
+                        } else if (serverResponseFoundFinal && !accountMayExistFinal) {
+
+                            // go to main page; signup was successful
+                            setResult(RESULT_OK, new Intent());
+                            finish();
+                        }
+                    }
+                });
+
             }
-
-            // after reading entry, delete it so that others can't get it
-            DBSingleton.getInstance(getApplicationContext())
-                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
-
-
-            if (signupResult == null || signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
-                // failure
-                errorText.setText("Register failed.\nAccount may already exist.");
-                progressBar.setVisibility(View.GONE); // hide progress; signup failed
-
-            } else {
-
-                // signup was successful; store values now
-                String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
-                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
-                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
-
-                // go to main page; signup was successful
-                setResult(RESULT_OK, new Intent());
-                finish();
-            }
-        }
+        }).start();
     }
 }
 

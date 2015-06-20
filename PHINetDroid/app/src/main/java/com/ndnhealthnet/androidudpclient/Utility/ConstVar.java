@@ -81,7 +81,7 @@ public class ConstVar {
     public static final String ENTITY_NAME = "ENTITY_NAME";
 
     // information used to contact the server
-    public static final String SERVER_IP = "54.174.155.119";
+    public static final String SERVER_IP = "52.26.209.179";
     public static final String SERVER_ID = "CLOUD-SERVER";
 
     // port used by all PHINet applications

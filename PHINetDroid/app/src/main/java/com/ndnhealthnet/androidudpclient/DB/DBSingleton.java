@@ -29,6 +29,7 @@ public class DBSingleton {
             DBData dbData = new DBData();
             dbData.setIpAddr(ConstVar.SERVER_IP);
             dbData.setUserID(ConstVar.SERVER_ID);
+            dbData.setIsMyPatient(false);
             datasource.addFIBData(dbData);
         }
         return instance;

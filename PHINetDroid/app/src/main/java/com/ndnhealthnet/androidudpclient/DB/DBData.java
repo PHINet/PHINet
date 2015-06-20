@@ -18,6 +18,7 @@ public class DBData {
     private String packetContent;
     private int sensorCollectionInterval;
     private int freshnessPeriod;
+    boolean isMyPatient;
 
     public DBData() {}
 
@@ -52,7 +53,7 @@ public class DBData {
      * @param processID associated with PIT data
      * @param timeString associated with PIT data
      * @param userID associated with PIT data
-     * @param ipAddr associated with PITS data
+     * @param ipAddr associated with PIT data
      */
     public DBData(String sensorID, String processID, String timeString,
                   String userID, String ipAddr) {
@@ -75,7 +76,7 @@ public class DBData {
      * @param timeString associated with FIB data
      * @param ipAddr associated with FIB data
      */
-    public DBData(String userID, String timeString, String ipAddr) {
+    public DBData(String userID, String timeString, String ipAddr, boolean isMyPatient) {
 
         if (timeString.equals(ConstVar.CURRENT_TIME)) {
             timeString = Utils.getCurrentTime();
@@ -84,6 +85,7 @@ public class DBData {
         this.userID = userID;
         this.timeString = timeString;
         this.ipAddr = ipAddr;
+        this.isMyPatient = isMyPatient;
     }
 
     /**
@@ -195,5 +197,13 @@ public class DBData {
 
     public void setFreshnessPeriod(int freshnessPeriod) {
         this.freshnessPeriod = freshnessPeriod;
+    }
+
+    public boolean getIsMyPatient() {
+        return isMyPatient;
+    }
+
+    public void setIsMyPatient(boolean isMyPatient) {
+        this.isMyPatient = isMyPatient;
     }
 }

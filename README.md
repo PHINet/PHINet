@@ -12,7 +12,7 @@ Named Data Networking, a future networking paradigm, allows for features such as
 
 Our client application is available for android devices. [Link here.](https://play.google.com/store/apps/details?id=com.ndnhealthnet.androidudpclient)
 
-[Visit our website for additional information/functionality.](http://phinet1.elasticbeanstalk.com/)
+[Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/)
 
 # Contributing
 
@@ -24,7 +24,6 @@ GENERAL
 
 CLIENT
 - REQUIRED: assess memory usage
-- REQUIRED: rework patient/doctor relationship -- (query server before adding)
 - DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes

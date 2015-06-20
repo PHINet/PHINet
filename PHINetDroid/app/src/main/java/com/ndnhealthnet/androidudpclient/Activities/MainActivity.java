@@ -244,8 +244,6 @@ public class MainActivity extends Activity {
                 currentTime, ConstVar.INITIATE_SYNCH_REQUEST);
         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-        Blob blob = interest.wireEncode();
-
         // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
         DBData data = new DBData(myUserID, ConstVar.SYNCH_DATA_REQUEST,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
@@ -253,7 +251,7 @@ public class MainActivity extends Activity {
         DBSingleton.getInstance(context).getDB().addPITData(data);
 
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(blob.getImmutableArray()); // reply to interest with DATA from cache
+                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
         // store received packet in database for further review
         Utils.storeInterestPacket(context, interest);

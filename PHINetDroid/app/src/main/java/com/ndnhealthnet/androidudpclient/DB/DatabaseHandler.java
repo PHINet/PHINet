@@ -18,8 +18,8 @@ import java.util.ArrayList;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "NDNHealthNet8";
-    private static final int DATABASE_VERSION = 8;
+    private static final String DATABASE_NAME = "NDNHealthNet10";
+    private static final int DATABASE_VERSION = 10;
 
     private static final String KEY_USER_ID = "_userID";
     private static final String KEY_SENSOR_ID = "sensorID";
@@ -31,6 +31,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_COLLECTION_INTERVAL = "collectionInterval";
     private static final String KEY_PACKET_NAME = "_packetName";
     private static final String KEY_PACKET_CONTENT = "packetContent";
+
+    // used to denote if entry in FIB is patient of client
+    private static final String KEY_IS_MY_PATIENT = "isMyPatient";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -62,7 +65,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // keys are USER_ID - only location per user
         CREATE_DATABASE_TABLE = "CREATE TABLE " + ConstVar.FIB_DB + "("
                 +KEY_USER_ID + " TEXT PRIMARY KEY," + KEY_TIME_STRING +
-                " TEXT, " +KEY_IP_ADDRESS + " TEXT)";
+                " TEXT, " +KEY_IP_ADDRESS + " TEXT, " + KEY_IS_MY_PATIENT +" BOOLEAN)";
 
         db.execSQL(CREATE_DATABASE_TABLE); // create FIB
 
@@ -125,6 +128,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
+            values.put(KEY_IS_MY_PATIENT, data.getIsMyPatient());
         } else if (tableName.equals(ConstVar.SENSOR_DB)) {
 
             values.put(KEY_SENSOR_ID, data.getSensorID());
@@ -141,7 +145,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
             // Inserting Row
             db.insertWithOnConflict(tableName, null, values, SQLiteDatabase.CONFLICT_FAIL);
-            db.close(); // Closing database connection
+             // Closing database connection
 
             return true;
         } catch (SQLiteConstraintException e) {
@@ -235,8 +239,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             allValidPITEntries = null; // query found nothing, set return object to null
         }
-
-        db.close();
+        
         return allValidPITEntries;
     }
 
@@ -270,7 +273,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         if (cursor != null && cursor.getCount() > 1) {
-            db.close();
+            
             throw new IllegalStateException("!!Error querying PIT data: redundant entries found.");
         } else {
             DBData data = new DBData();
@@ -289,7 +292,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 data = null; // query found nothing, set return object to null
             }
 
-            db.close();
             return data;
         }
     }
@@ -398,7 +400,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String whereSelection = "_userID=\"" + userID + "\"";
         Cursor cursor = db.query(ConstVar.FIB_DB, new String[]{KEY_USER_ID,
-                        KEY_TIME_STRING, KEY_IP_ADDRESS},
+                        KEY_TIME_STRING, KEY_IP_ADDRESS, KEY_IS_MY_PATIENT},
                 whereSelection, null, null, null, null);
 
         DBData data = new DBData();
@@ -411,13 +413,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             data.setUserID(cursor.getString(0));
             data.setSensorID(cursor.getString(1));
             data.setIpAddr(cursor.getString(2));
+            data.setIsMyPatient(cursor.getInt(3)>0);
 
             cursor.close();
         } else {
             data = null; // query found nothing, set return object to null
         }
 
-        db.close();
         return data;
     }
 
@@ -459,8 +461,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             allValidCSEntries = null; // query found nothing, set return object to null
         }
-
-        db.close();
+        
         return allValidCSEntries;
     }
 
@@ -484,6 +485,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 data.setUserID(cursor.getString(0));
                 data.setSensorID(cursor.getString(1));
                 data.setIpAddr(cursor.getString(2));
+                data.setIsMyPatient(cursor.getInt(3)>0);
                 allFIBData.add(data);
             }
             cursor.close();
@@ -525,8 +527,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             data = null; // query found nothing, set return object to null
         }
-
-        db.close();
+        
         return data;
     }
 
@@ -566,6 +567,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_USER_ID, data.getUserID());
             values.put(KEY_IP_ADDRESS, data.getIpAddr());
             values.put(KEY_TIME_STRING, data.getTimeString());
+            values.put(KEY_IS_MY_PATIENT, data.getIsMyPatient());
 
             // updating row
             db.update(tableName, values, KEY_USER_ID + " = ?",

@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 
 import com.ndnhealthnet.androidudpclient.DB.DBData;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
+import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
 import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 
 import net.named_data.jndn.Data;
@@ -550,6 +551,52 @@ public class Utils {
         }
 
         return false;
+    }
+
+    /**
+     * On signup/login, server replies with FIB entries
+     * so to provide client with inter-network connections.
+     *
+     * Syntax: "userId,ipAddr" and "||" separates entries
+     *
+     * @param serverFIBEntries that are to be placed into FIB
+     * @param timeString denoting when FIBEntries were sent to the client
+     * @param context used to access the client's database
+     */
+    public static void insertServerFIBEntries(String serverFIBEntries, String timeString,
+                                              Context context) {
+
+        String[] individualFIBEntries = serverFIBEntries.split("\\|\\|");
+
+        for (int i = 0; i < individualFIBEntries.length; i++) {
+            //Syntax: "userId,ipAddr"
+            String [] individualEntry = individualFIBEntries[i].split(",");
+
+            String userID = individualEntry[0].trim();
+            String userIP = individualEntry[1].trim();
+
+            // assume false until (if and when) user exists in FIB; then look to FIB for result
+            boolean isMyPatient = false;
+
+            DBData fibEntry = new DBData(userID, timeString, userIP, isMyPatient);
+
+            DatabaseHandler dbHandler = DBSingleton.getInstance(context).getDB();
+
+            DBData fibQueryResult = dbHandler.getFIBData(fibEntry.getUserID());
+
+            if (fibQueryResult == null) {
+                // entry does not exist; add now
+
+                dbHandler.addFIBData(fibEntry);
+            } else {
+
+                // set isMyPatient to previously known value
+                fibEntry.setIsMyPatient(fibQueryResult.getIsMyPatient());
+
+                // entry already existed; update now
+                dbHandler.updateFIBData(fibEntry);
+            }
+        }
     }
 
     /**

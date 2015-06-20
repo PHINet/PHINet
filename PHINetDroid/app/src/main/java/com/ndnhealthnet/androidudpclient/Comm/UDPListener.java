@@ -176,6 +176,13 @@ public class UDPListener extends Thread {
                 Name packetName = JNDNUtils.createName(userID, sensorID, timeString, processID);
                 Data data = JNDNUtils.createDataPacket(dataPayload, packetName);
 
+                DBData cacheEntry = new DBData(sensorID, processID, timeString,
+                        userID, dataPayload, ConstVar.DEFAULT_FRESHNESS_PERIOD);
+
+                // place data into Cache that is used to Satisfy the Interest
+                DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
+
+
                 // reply to interest with DATA from cache
                 new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
 
@@ -211,6 +218,7 @@ public class UDPListener extends Thread {
                             Name packetName = JNDNUtils.createName(userID, sensorID,
                                     timeString, processID);
                             Interest interest = JNDNUtils.createInterestPacket(packetName);
+
 
                             new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
                                     .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
@@ -258,6 +266,12 @@ public class UDPListener extends Thread {
         Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                 timeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
+
+        DBData cacheEntry = new DBData(ConstVar.NULL_FIELD, ConstVar.SYNCH_DATA_REQUEST, timeString,
+                userID, formattedData, ConstVar.DEFAULT_FRESHNESS_PERIOD);
+
+        // place Synch Data Packet into CS
+        DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
 
         // reply to interest with DATA from cache
         new UDPSocket(port, ConstVar.SERVER_IP, ConstVar.DATA_TYPE) .execute(data.wireEncode().getImmutableArray());
