@@ -16,7 +16,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Sensor.ImageProcessing;
@@ -108,12 +108,12 @@ public class RecordHeartbeatActivity extends Activity {
                             ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
                     // store data in cache
-                    DBData data = new DBData();
+                    CSEntry data = new CSEntry();
                     data.setUserID(myUserID);
                     data.setSensorID(ConstVar.HEARTBEAT_SENSOR);
                     data.setTimeString(ConstVar.CURRENT_TIME);
                     data.setProcessID(ConstVar.DATA_CACHE); // no valid process id, set to null
-                    data.setDataFloat(Integer.toString(currentBeatInt));
+                    data.setDataPayload(Integer.toString(currentBeatInt));
                     data.setFreshnessPeriod(ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);

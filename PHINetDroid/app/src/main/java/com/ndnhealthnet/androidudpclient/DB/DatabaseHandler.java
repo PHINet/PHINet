@@ -8,6 +8,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PacketDBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.SensorDBEntry;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
 import java.util.ArrayList;
@@ -96,12 +101,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * @param data data object to be entered
-     * @param tableName name of table where data should be entered
-     * @return true if data was successfully entered into DB, false otherwise
+     * Performs insertion into Sensor database
+     *
+     * @param data of sensor to be inserted
+     * @return true if insertion was successful, false otherwise
      */
-    private boolean addData(DBData data, String tableName) {
-
+    public boolean addSensorData(SensorDBEntry data) {
         if (data == null) {
             return false;
         }
@@ -109,43 +114,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (tableName.equals(ConstVar.PIT_DB)) {
-
-            values.put(KEY_USER_ID, data.getUserID());
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_PROCESS_ID, data.getProcessID());
-            values.put(KEY_IP_ADDRESS, data.getIpAddr());
-        } else if (tableName.equals(ConstVar.CS_DB)) {
-
-            values.put(KEY_USER_ID, data.getUserID());
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_PROCESS_ID, data.getProcessID());
-            values.put(KEY_DATA_CONTENTS, data.getDataFloat());
-        } else if (tableName.equals(ConstVar.FIB_DB)) {
-
-            values.put(KEY_USER_ID, data.getUserID());
-            values.put(KEY_IP_ADDRESS, data.getIpAddr());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_IS_MY_PATIENT, data.getIsMyPatient());
-        } else if (tableName.equals(ConstVar.SENSOR_DB)) {
-
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
-        } else if (tableName.equals(ConstVar.PACKET_DB)) {
-
-            values.put(KEY_PACKET_NAME, data.getPacketName());
-            values.put(KEY_PACKET_CONTENT, data.getPacketContent());
-        } else {
-           throw new NullPointerException("Cannot add data to DB: param was bad");
-        }
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
 
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(tableName, null, values, SQLiteDatabase.CONFLICT_FAIL);
-             // Closing database connection
+            db.insertWithOnConflict(ConstVar.SENSOR_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
 
             return true;
         } catch (SQLiteConstraintException e) {
@@ -155,48 +130,123 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * Performs insertion into Sensor database
-     *
-     * @param data of sensor to be inserted
-     * @return true if insertion was successful, false otherwise
-     */
-    public boolean addSensorData(DBData data) {
-        return addData(data, ConstVar.SENSOR_DB);
-    }
-
-    /**
      * Performs insertion into Packet database
      *
      * @param data of Packet to be inserted
      * @return true if insertion was successful, false otherwise
      */
-    public boolean addPacketData(DBData data) {
+    public boolean addPacketData(PacketDBEntry data) {
 
-        return addData(data, ConstVar.PACKET_DB);
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_PACKET_NAME, data.getPacketName());
+        values.put(KEY_PACKET_CONTENT, data.getPacketContent());
+
+        try {
+
+            // Inserting Row
+            db.insertWithOnConflict(ConstVar.PACKET_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
+
+            return true;
+        } catch (SQLiteConstraintException e) {
+
+            return false;
+        }
     }
 
     /**
      * @param data data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
-    public boolean addPITData(DBData data) {
-        return addData(data, ConstVar.PIT_DB);
+    public boolean addPITData(PITEntry data) {
+
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_USER_ID, data.getUserID());
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_PROCESS_ID, data.getProcessID());
+        values.put(KEY_IP_ADDRESS, data.getIpAddr());
+
+        try {
+
+            // Inserting Row
+            db.insertWithOnConflict(ConstVar.PIT_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
+
+            return true;
+        } catch (SQLiteConstraintException e) {
+
+            return false;
+        }
     }
 
     /**
      * @param data data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
-    public boolean addCSData(DBData data) {
-        return addData(data, ConstVar.CS_DB);
+    public boolean addCSData(CSEntry data) {
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_USER_ID, data.getUserID());
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_PROCESS_ID, data.getProcessID());
+        values.put(KEY_DATA_CONTENTS, data.getDataPayload());
+
+        try {
+
+            // Inserting Row
+            db.insertWithOnConflict(ConstVar.CS_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
+
+            return true;
+        } catch (SQLiteConstraintException e) {
+
+            return false;
+        }
     }
 
     /**
      * @param data data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
-    public boolean addFIBData(DBData data) {
-        return addData(data, ConstVar.FIB_DB);
+    public boolean addFIBData(FIBEntry data) {
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_USER_ID, data.getUserID());
+        values.put(KEY_IP_ADDRESS, data.getIpAddr());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_IS_MY_PATIENT, data.isMyPatient());
+
+        try {
+
+            // Inserting Row
+            db.insertWithOnConflict(ConstVar.FIB_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
+
+            return true;
+        } catch (SQLiteConstraintException e) {
+
+            return false;
+        }
     }
 
     /**
@@ -205,7 +255,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param userID specifies which PIT entries should be returned
      * @return ArrayList of data for userID param
      */
-    public ArrayList<DBData> getGeneralPITData(String userID) {
+    public ArrayList<PITEntry> getGeneralPITData(String userID) {
 
         if (userID == null) {
             return null; // return empty array list
@@ -219,12 +269,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         KEY_SENSOR_ID,KEY_TIME_STRING,KEY_PROCESS_ID,KEY_IP_ADDRESS},
                 whereSelection, null, null, null, null);
 
-        ArrayList<DBData> allValidPITEntries = new ArrayList<DBData>();
+        ArrayList<PITEntry> allValidPITEntries = new ArrayList<>();
 
         // ensure query was successful
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                DBData data = new DBData();
+                PITEntry data = new PITEntry();
 
                 data.setUserID(cursor.getString(0));
                 data.setSensorID(cursor.getString(1));
@@ -252,7 +302,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param ipAddr specifies which PIT entries should be returned
      * @return single db entry associated with ip/id combination
      */
-    public DBData getSpecificPITData(String userID, String ipAddr) {
+    public PITEntry getSpecificPITData(String userID, String ipAddr) {
 
         if (userID == null || ipAddr == null) {
             return null;
@@ -276,7 +326,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             
             throw new IllegalStateException("!!Error querying PIT data: redundant entries found.");
         } else {
-            DBData data = new DBData();
+            PITEntry data = new PITEntry();
 
             // ensure query was successful
             if (cursor != null && cursor.getCount() > 0) {
@@ -301,9 +351,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @return an ArrayList of type DBData containing entire Sensor database; null if db empty
      */
-    public ArrayList<DBData> getAllSensorData() {
+    public ArrayList<SensorDBEntry> getAllSensorData() {
 
-        ArrayList<DBData> allSensorData = new ArrayList<>();
+        ArrayList<SensorDBEntry> allSensorData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.SENSOR_DB, null);
 
@@ -312,7 +362,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             // return each row
             while (cursor.moveToNext()) {
-                DBData data = new DBData();
+                SensorDBEntry data = new SensorDBEntry();
 
                 data.setSensorID(cursor.getString(0));
                 data.setSensorCollectionInterval(cursor.getInt(1));
@@ -329,14 +379,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @return sensor entry if found; otherwise, null
      */
-    public DBData getSpecificSensorData(String sensorID) {
+    public SensorDBEntry getSpecificSensorData(String sensorID) {
 
-        DBData sensorData = new DBData();
+        SensorDBEntry sensorData = new SensorDBEntry();
         SQLiteDatabase db = this.getReadableDatabase();
 
         String whereSelection = KEY_SENSOR_ID + " = \"" + sensorID + "\"";
         Cursor cursor = db.query(ConstVar.SENSOR_DB, new String[]{KEY_SENSOR_ID,
-                        KEY_COLLECTION_INTERVAL}, whereSelection, null, null, null, null);
+                KEY_COLLECTION_INTERVAL}, whereSelection, null, null, null, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             return null;
@@ -357,9 +407,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @return an ArrayList of type DBData containing entire Packet database; null if db empty
      */
-    public ArrayList<DBData> getAllPacketData() {
+    public ArrayList<PacketDBEntry> getAllPacketData() {
 
-        ArrayList<DBData> allPacketData = new ArrayList<>();
+        ArrayList<PacketDBEntry> allPacketData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.PACKET_DB, null);
 
@@ -368,7 +418,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             // return each row
             while (cursor.moveToNext()) {
-                DBData data = new DBData();
+                PacketDBEntry data = new PacketDBEntry();
 
                 data.setPacketName(cursor.getString(0));
                 data.setPacketContent(cursor.getString(1));
@@ -391,7 +441,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param userID associated with entry to be returned
      * @return entry if found, otherwise null returned
      */
-    public DBData getFIBData(String userID) {
+    public FIBEntry getFIBData(String userID) {
 
         if (userID == null) {
             return null;
@@ -403,7 +453,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         KEY_TIME_STRING, KEY_IP_ADDRESS, KEY_IS_MY_PATIENT},
                 whereSelection, null, null, null, null);
 
-        DBData data = new DBData();
+        FIBEntry data = new FIBEntry();
 
         // ensure query was successful
         if (cursor != null && cursor.getCount() > 0) {
@@ -411,7 +461,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
 
             data.setUserID(cursor.getString(0));
-            data.setSensorID(cursor.getString(1));
+            data.setTimeString(cursor.getString(1));
             data.setIpAddr(cursor.getString(2));
             data.setIsMyPatient(cursor.getInt(3)>0);
 
@@ -429,7 +479,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param userID associated with entries to be returned
      * @return entries if found, otherwise null returned
      */
-    public ArrayList<DBData> getGeneralCSData(String userID) {
+    public ArrayList<CSEntry> getGeneralCSData(String userID) {
         SQLiteDatabase db = this.getReadableDatabase();
         String whereSelection = "_userID=\"" + userID + "\"";
         Cursor cursor;
@@ -442,18 +492,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor = null; // presumably bad request
         }
 
-        ArrayList<DBData> allValidCSEntries = new ArrayList<DBData>();
+        ArrayList<CSEntry> allValidCSEntries = new ArrayList<>();
 
         // ensure query was successful
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                DBData data = new DBData();
+                CSEntry data = new CSEntry();
 
                 data.setUserID(cursor.getString(0));
                 data.setSensorID(cursor.getString(1));
                 data.setTimeString(cursor.getString(2));
                 data.setProcessID(cursor.getString(3));
-                data.setDataFloat(cursor.getString(4));
+                data.setDataPayload(cursor.getString(4));
                 allValidCSEntries.add(data);
             }
 
@@ -470,8 +520,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @return entries if any exist, otherwise null returned
      */
-    public ArrayList<DBData> getAllFIBData() {
-        ArrayList<DBData> allFIBData = new ArrayList<DBData>();
+    public ArrayList<FIBEntry> getAllFIBData() {
+        ArrayList<FIBEntry> allFIBData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * from " + ConstVar.FIB_DB, null);
 
@@ -480,10 +530,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             // return each row
             while (cursor.moveToNext()) {
-                DBData data = new DBData();
+                FIBEntry data = new FIBEntry();
 
                 data.setUserID(cursor.getString(0));
-                data.setSensorID(cursor.getString(1));
+                data.setTimeString(cursor.getString(1));
                 data.setIpAddr(cursor.getString(2));
                 data.setIsMyPatient(cursor.getInt(3)>0);
                 allFIBData.add(data);
@@ -501,7 +551,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param timeString associated with entry to be returned
      * @return entry if found, otherwise null returned
      */
-    public DBData getSpecificCSData(String userID, String timeString, String processID) {
+    public CSEntry getSpecificCSData(String userID, String timeString, String processID) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String whereSelection = "_userID=\"" + userID + "\" AND timeString=\"" + timeString
@@ -511,7 +561,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         KEY_SENSOR_ID, KEY_TIME_STRING, KEY_PROCESS_ID, KEY_DATA_CONTENTS},
                 whereSelection, null, null, null, null);
 
-        DBData data = new DBData();
+        CSEntry data = new CSEntry();
 
         // ensure query was successful
         if (cursor != null && cursor.getCount() > 0) {
@@ -521,7 +571,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             data.setSensorID(cursor.getString(1));
             data.setTimeString(cursor.getString(2));
             data.setProcessID(cursor.getString(3));
-            data.setDataFloat(cursor.getString(4));
+            data.setDataPayload(cursor.getString(4));
 
             cursor.close();
         } else {
@@ -532,72 +582,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * Method updates a single, specific entry from specified table.
-     *
-     * @param data object containing updated row contents
-     * @param tableName specified name of table to be updated
-     * @return true if entry successfully updated, false otherwise
-     */
-    private boolean updateData(DBData data, String tableName) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-
-        if (tableName.equals(ConstVar.PIT_DB)) {
-
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_PROCESS_ID, data.getProcessID());
-            values.put(KEY_IP_ADDRESS, data.getIpAddr());
-
-            // updating row
-            db.update(tableName, values, KEY_USER_ID + " = ?",
-                    new String[]{data.getUserID()});
-        } else if (tableName.equals(ConstVar.CS_DB)) {
-
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_PROCESS_ID, data.getProcessID());
-            values.put(KEY_DATA_CONTENTS, data.getDataFloat());
-
-            // updating row
-            db.update(tableName, values, KEY_USER_ID + " = ?",
-                    new String[]{data.getUserID()});
-        } else if (tableName.equals(ConstVar.FIB_DB)) {
-
-            values.put(KEY_USER_ID, data.getUserID());
-            values.put(KEY_IP_ADDRESS, data.getIpAddr());
-            values.put(KEY_TIME_STRING, data.getTimeString());
-            values.put(KEY_IS_MY_PATIENT, data.getIsMyPatient());
-
-            // updating row
-            db.update(tableName, values, KEY_USER_ID + " = ?",
-                    new String[]{data.getUserID()});
-
-        } else if (tableName.equals(ConstVar.SENSOR_DB)) {
-
-            values.put(KEY_SENSOR_ID, data.getSensorID());
-            values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
-
-            // updating row
-            db.update(tableName, values, KEY_SENSOR_ID + " = ?",
-                    new String[]{data.getSensorID()});
-
-        } else {
-            throw new NullPointerException("Cannot update data in DB; param was bad");
-        }
-
-        return true;
-    }
-
-    /**
      * Method updates a single Sensor database row
      *
      * @param data allows for identification of row and update
      * @return true of update was successful, false otherwise
      */
-    public boolean updateSensorData(DBData data) {
+    public boolean updateSensorData(SensorDBEntry data) {
 
-        return data != null && updateData(data, ConstVar.SENSOR_DB);
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_COLLECTION_INTERVAL, data.getSensorCollectionInterval());
+
+        // updating row
+        return db.update(ConstVar.SENSOR_DB, values, KEY_SENSOR_ID + " = ?",
+                new String[]{data.getSensorID()}) > 0;
     }
 
     /**
@@ -606,9 +611,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param data object containing updated row contents
      * @return true if entry successfully updated, false otherwise
      */
-    public boolean updateFIBData(DBData data) {
+    public boolean updateFIBData(FIBEntry data) {
 
-        return data != null && updateData(data, ConstVar.FIB_DB);
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_USER_ID, data.getUserID());
+        values.put(KEY_IP_ADDRESS, data.getIpAddr());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_IS_MY_PATIENT, data.isMyPatient());
+
+        // updating row
+        return db.update(ConstVar.FIB_DB, values, KEY_USER_ID + " = ?",
+                new String[]{data.getUserID()}) > 0;
     }
 
     /**
@@ -617,9 +636,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param data object containing updated row contents
      * @return true if entry successfully updated, false otherwise
      */
-    public boolean updatePITData(DBData data) {
+    public boolean updatePITData(PITEntry data) {
+        if (data == null) {
+            return false;
+        }
 
-        return data != null && updateData(data, ConstVar.PIT_DB);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_PROCESS_ID, data.getProcessID());
+        values.put(KEY_IP_ADDRESS, data.getIpAddr());
+
+        // updating row
+        return db.update(ConstVar.PIT_DB, values, KEY_USER_ID + " = ?",
+                new String[]{data.getUserID()}) > 0;
     }
 
     /**
@@ -628,9 +660,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param data object containing updated row contents
      * @return true if entry successfully updated, false otherwise
      */
-    public boolean updateCSData(DBData data) {
+    public boolean updateCSData(CSEntry data) {
 
-        return data != null && updateData(data, ConstVar.CS_DB);
+        if (data == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_SENSOR_ID, data.getSensorID());
+        values.put(KEY_TIME_STRING, data.getTimeString());
+        values.put(KEY_PROCESS_ID, data.getProcessID());
+        values.put(KEY_DATA_CONTENTS, data.getDataPayload());
+
+        // updating row
+        return db.update(ConstVar.CS_DB, values, KEY_USER_ID + " = ?",
+                new String[]{data.getUserID()}) > 0;
     }
 
     /**
@@ -742,11 +788,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * Method deletes all entires in the Packet DB.
+     * Method deletes all entries in the Packet DB.
      */
     public void deleteEntirePacketDB() {
         SQLiteDatabase db = this.getWritableDatabase();
 
         db.delete(ConstVar.PACKET_DB, null, null);
+    }
+
+    /**
+     * Method deletes all entries in the Sensor DB
+     */
+    public void deleteEntireSensorDB() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(ConstVar.SENSOR_DB, null, null);
     }
 }

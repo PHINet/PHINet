@@ -2,7 +2,7 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.DBData;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 

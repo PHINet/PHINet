@@ -11,7 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PacketDBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -33,7 +33,7 @@ public class PacketListActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_packetlist);
 
-        ArrayList<DBData> packetList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllPacketData();
+        ArrayList<PacketDBEntry> packetList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllPacketData();
 
         if (packetList == null) {
             packetList = new ArrayList<>();
@@ -45,7 +45,7 @@ public class PacketListActivity extends ListActivity {
         setListAdapter(adapter);
 
         if (adapter.getCount() > 0) {
-            // hide "empty patient list" text when patients actually do exist
+            // hide "empty packet list" text when packets actually do exist
             emptyListTextView.setVisibility(View.GONE);
         }
 
@@ -58,7 +58,6 @@ public class PacketListActivity extends ListActivity {
         backBtn = (Button) findViewById(R.id.backBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
                 finish();
             }
         });
@@ -67,12 +66,12 @@ public class PacketListActivity extends ListActivity {
     /**
      * Used by packet list view.
      */
-    private class PacketAdapter extends ArrayAdapter<DBData> {
+    private class PacketAdapter extends ArrayAdapter<PacketDBEntry> {
 
         Activity activity = null;
-        ArrayList<DBData> listData;
+        ArrayList<PacketDBEntry> listData;
 
-        public PacketAdapter(ListActivity li, ArrayList<DBData> allPackets)
+        public PacketAdapter(ListActivity li, ArrayList<PacketDBEntry> allPackets)
         {
             super(li, 0, allPackets);
             listData = allPackets;

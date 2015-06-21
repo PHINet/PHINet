@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PacketDBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.DB.DatabaseHandler;
 import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
@@ -192,7 +194,7 @@ public class Utils {
      * @param endDate of requested interval
      * @return data from input in graphable format
      */
-    public static ArrayList<Float> convertDBRowToFloats(ArrayList<DBData> myData, String sensor,
+    public static ArrayList<Float> convertDBRowToFloats(ArrayList<CSEntry> myData, String sensor,
                     String startDate, String endDate) {
 
         ArrayList<Float> myFloatData = new ArrayList<>();
@@ -206,7 +208,7 @@ public class Utils {
             if (myData.get(i).getSensorID().equals(sensor)
                     && isValidForTimeInterval(requestInterval, myData.get(i).getTimeString())) {
 
-                String [] floatArray = myData.get(i).getDataFloat().trim().split(",");
+                String [] floatArray = myData.get(i).getDataPayload().trim().split(",");
                 for (int j = 0; j < floatArray.length; j++) {
 
                     try {
@@ -404,10 +406,10 @@ public class Utils {
      * @param data to be converted
      * @return converted data
      */
-    public static String formatSynchData(ArrayList<DBData> data) {
+    public static String formatSynchData(ArrayList<CSEntry> data) {
 
         try {
-            Hashtable<String, ArrayList<DBData>> hashedBySensors = new Hashtable<>();
+            Hashtable<String, ArrayList<CSEntry>> hashedBySensors = new Hashtable<>();
             String formattedSyncData = "";
 
             // first separate data based upon sensor
@@ -415,7 +417,7 @@ public class Utils {
                 // sensor hasn't been stored yet, create ArrayList for its data and store now
                 if (!hashedBySensors.containsKey(data.get(i).getSensorID())) {
 
-                    ArrayList<DBData> dataForSensor = new ArrayList<>();
+                    ArrayList<CSEntry> dataForSensor = new ArrayList<>();
                     dataForSensor.add(data.get(i));
 
                     hashedBySensors.put(data.get(i).getSensorID(), dataForSensor);
@@ -433,9 +435,9 @@ public class Utils {
                 formattedSyncData += key + "--"; // '--' separates sensor's name from its data
 
                 for (int i = 0; i < hashedBySensors.get(key).size(); i++) {
-                    DBData sensorData = hashedBySensors.get(key).get(i);
+                    CSEntry sensorData = hashedBySensors.get(key).get(i);
 
-                    formattedSyncData += sensorData.getDataFloat() + "," + sensorData.getTimeString();
+                    formattedSyncData += sensorData.getDataPayload() + "," + sensorData.getTimeString();
                     formattedSyncData += ";;"; // ';;' separates each data piece for sensor
                 }
 
@@ -578,11 +580,11 @@ public class Utils {
             // assume false until (if and when) user exists in FIB; then look to FIB for result
             boolean isMyPatient = false;
 
-            DBData fibEntry = new DBData(userID, timeString, userIP, isMyPatient);
+            FIBEntry fibEntry = new FIBEntry(userID, timeString, userIP, isMyPatient);
 
             DatabaseHandler dbHandler = DBSingleton.getInstance(context).getDB();
 
-            DBData fibQueryResult = dbHandler.getFIBData(fibEntry.getUserID());
+            FIBEntry fibQueryResult = dbHandler.getFIBData(fibEntry.getUserID());
 
             if (fibQueryResult == null) {
                 // entry does not exist; add now
@@ -591,7 +593,7 @@ public class Utils {
             } else {
 
                 // set isMyPatient to previously known value
-                fibEntry.setIsMyPatient(fibQueryResult.getIsMyPatient());
+                fibEntry.setIsMyPatient(fibQueryResult.isMyPatient());
 
                 // entry already existed; update now
                 dbHandler.updateFIBData(fibEntry);
@@ -767,7 +769,7 @@ public class Utils {
         String packetName = "INTEREST " + interest.getName().toUri().replace("%7C%7C", "||");
 
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(packetName, convertInterestToString(interest)));
+                .addPacketData(new PacketDBEntry(packetName, convertInterestToString(interest)));
     }
 
     /**
@@ -783,6 +785,6 @@ public class Utils {
         String packetName = "DATA " + data.getName().toUri().replace("%7C%7C", "||");
 
         DBSingleton.getInstance(context).getDB()
-                .addPacketData(new DBData(packetName, convertDataToString(data)));
+                .addPacketData(new PacketDBEntry(packetName, convertDataToString(data)));
     }
 }

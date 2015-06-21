@@ -12,10 +12,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
@@ -36,7 +37,6 @@ public class LoginActivity extends Activity {
 
     Button backBtn, loginBtn;
     EditText userNameEdit, pwEdit;
-    TextView errorText;
     ProgressBar progressBar;
 
     final int SLEEP_TIME = 250; // 250 milliseconds = 1/4 second (chosen somewhat arbitrarily)
@@ -48,7 +48,6 @@ public class LoginActivity extends Activity {
 
         userNameEdit = (EditText) findViewById(R.id.usernameEditText);
         pwEdit = (EditText) findViewById(R.id.passwordEditText);
-        errorText = (TextView) findViewById(R.id.inputErrorTextView);
         progressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
 
         progressBar.setVisibility(View.GONE); // hide progress bar until login pressed
@@ -56,8 +55,6 @@ public class LoginActivity extends Activity {
         loginBtn = (Button) findViewById(R.id.loginSubmitBtn);
         loginBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-
-                errorText.setText(""); // remove any error text; user is attempting login again
 
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -68,9 +65,9 @@ public class LoginActivity extends Activity {
                     /**
                      * Due to the nature of NDN, the client must first send login Interest to
                      * server (because the server is the only one who can validate such requests). The
-                     * server will then reply with a blank Data and, shortly, an Interest requesting
-                     * login credentials, and the client will then reply with a Data packet containing
-                     * them. The client then sends an Interest to the server querying for the result,
+                     * server will then reply with  an Interest requesting login credentials,
+                     * and the client will then reply with a Data packet containing them. The client
+                     * then sends an Interest to the server querying for the result,
                      * to which the server replies with a Data packet. If the results are positive,
                      * the client has logged in; otherwise, login failed.
                      */
@@ -95,25 +92,31 @@ public class LoginActivity extends Activity {
                                 currentTime, ConstVar.LOGIN_REQUEST);
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                        // NOTE: we don't store this Interest because it is never satisfied
+                        // it merely initiates the login process
 
-                        // store received packet in database for further review
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
+                                .execute(interest.wireEncode().getImmutableArray());
+
+                        // store sent packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
 
                         // invoke method that handles the server's reply
                         initialServerReplyHandler(userID, password, currentTime);
-
                     }
                     // one input (or both) were invalid, notify user
                     else {
 
-                        errorText.setText("Error: input syntactically incorrect.");
+                        Toast toast = Toast.makeText(LoginActivity.this,
+                                "Error: input syntactically incorrect.", Toast.LENGTH_LONG);
+                        toast.show();
                     }
                 }
                 // wifi connection invalid; notify user
                 else {
-                    errorText.setText("Error: WiFi connection required.");
+                    Toast toast = Toast.makeText(LoginActivity.this,
+                            "Error: WiFi connection required.", Toast.LENGTH_LONG);
+                    toast.show();
                 }
             }
         });
@@ -121,6 +124,8 @@ public class LoginActivity extends Activity {
         backBtn = (Button) findViewById(R.id.loginBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+
+                // NOTE: credentials were only stored if the login was valid
 
                 // get current user credentials and determine whether valid
                 String currentPassword = Utils.getFromPrefs(getApplicationContext(),
@@ -159,21 +164,23 @@ public class LoginActivity extends Activity {
                 int loopCount = 0;
                 boolean serverResponseFound = false;
 
+                // each loop, check for reply for server
                 while (loopCount++ < maxLoopCount) {
 
                     // check to see if server has sent an Interest asking for client's credentials
-                    ArrayList<DBData> pitRows = DBSingleton.getInstance(getApplicationContext())
+                    ArrayList<PITEntry> pitRows = DBSingleton.getInstance(getApplicationContext())
                             .getDB().getGeneralPITData(userID);
 
                     // valid Interest potentially found
                     if (pitRows != null) {
 
-                        DBData interestFound = null;
+                        PITEntry interestFound = null;
                         for (int i = 0; i < pitRows.size(); i++) {
 
-                            // search for Interest with PID CREDENTIAL_REQUEST && request for this client
+                            // search for Interest with PID of  CREDENTIAL_REQUEST && request for this client
                             if (pitRows.get(i).getProcessID().equals(ConstVar.LOGIN_CREDENTIAL_DATA)
                                     && pitRows.get(i).getUserID().equals(userID)) {
+
                                 interestFound = pitRows.get(i);
                                 break; // valid interest found; break from loop
                             }
@@ -183,9 +190,10 @@ public class LoginActivity extends Activity {
                         if (interestFound != null) {
 
                             // reply with credentials to satisfy the interest
+                                  // syntax: "userID,password"
                             String credentialContent = userID + "," + password;
 
-                            DBData credentialData = new DBData(ConstVar.NULL_FIELD,
+                            CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
                                     ConstVar.REGISTER_CREDENTIAL_DATA, interestFound.getTimeString(),
                                     userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
@@ -195,20 +203,20 @@ public class LoginActivity extends Activity {
                             Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
 
                             new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
-                                    .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                                    .execute(data.wireEncode().getImmutableArray()); // send credentials now
+
+                            // delete initial Interest placed in PIT to initiate login
+                            DBSingleton.getInstance(getApplicationContext()).getDB()
+                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
 
                             // delete Interest requesting login credentials from PIT; it has been satisfied
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .deletePITEntry(interestFound.getUserID(),
                                             interestFound.getTimeString(), interestFound.getIpAddr());
 
-                            // place packet into CACHE
+                            // place credential-packet into CACHE
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .addCSData(credentialData);
-
-                            // delete initial Interest placed in PIT to initiate login
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
 
                             // store packet in database for further review
                             Utils.storeDataPacket(getApplicationContext(), data);
@@ -239,7 +247,10 @@ public class LoginActivity extends Activity {
                     @Override
                     public void run() {
                         if (!serverResponseFoundFinal) {
-                            errorText.setText("Login failed.\nCould not reach server.");
+                            Toast toast = Toast.makeText(LoginActivity.this,
+                                    "Login failed.\nCould not reach server.", Toast.LENGTH_LONG);
+                            toast.show();
+
                             progressBar.setVisibility(View.GONE); // hide progress; login failed
 
                             // delete initial Interest placed in PIT to initiate login
@@ -273,13 +284,13 @@ public class LoginActivity extends Activity {
         Interest interest = JNDNUtils.createInterestPacket(packetNameInner);
 
         // add entry into PIT
-        DBData data = new DBData(userID, ConstVar.LOGIN_RESULT,
+        PITEntry pitEntry = new PITEntry(userID, ConstVar.LOGIN_RESULT,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
 
-        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
+        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(pitEntry);
 
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                .execute(interest.wireEncode().getImmutableArray()); // send now
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -307,15 +318,16 @@ public class LoginActivity extends Activity {
                 boolean serverResponseFound = false;
                 boolean accountMayExist = false;
 
+                // each loop, check for reply for server
                 while (loopCount++ < maxLoopCount) {
 
                     // query the ContentStore for the login result
-                    ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
+                    ArrayList<CSEntry> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
                             .getGeneralCSData(ConstVar.SERVER_ID);
 
                     if (potentiallyValidRows != null) {
 
-                        DBData loginResult = null;
+                        CSEntry loginResult = null;
 
                         /**
                          * Here userID is stored in sensorID position. We needed to send userID
@@ -323,6 +335,7 @@ public class LoginActivity extends Activity {
                          */
 
                         for (int i = 0; i < potentiallyValidRows.size(); i++) {
+                            // check that ProcessID is LOGIN_RESULT and packet is for this userID
                             if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.LOGIN_RESULT)
                                     && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
 
@@ -330,15 +343,16 @@ public class LoginActivity extends Activity {
                             }
                         }
 
-                        if (loginResult != null && !loginResult.getDataFloat().equals(ConstVar.LOGIN_FAILED)) {
+                        if (loginResult != null && !loginResult.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
                             // on login, server replies with FIB entries - place into FIB now
-                            Utils.insertServerFIBEntries(loginResult.getDataFloat(),
+                            Utils.insertServerFIBEntries(loginResult.getDataPayload(),
                                     loginResult.getTimeString(), getApplicationContext());
 
-                            // after reading entry, delete it (it's been satisfied)
+                            // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
-                                    .getDB().deleteCSEntry(loginResult.getUserID(), loginResult.getTimeString());
+                                    .getDB().deletePITEntry(ConstVar.SERVER_ID,
+                                    loginResult.getTimeString(), ConstVar.SERVER_IP);
 
                             // login was successful; store values now
                             String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -350,11 +364,12 @@ public class LoginActivity extends Activity {
 
                             break; // break from loop, response found
 
-                        } else if (loginResult != null && loginResult.getDataFloat().equals(ConstVar.LOGIN_FAILED)) {
+                        } else if (loginResult != null && loginResult.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
-                            // after reading entry, delete it (it's been satisfied)
+                            // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
-                                    .getDB().deleteCSEntry(loginResult.getUserID(), loginResult.getTimeString());
+                                    .getDB().deletePITEntry(ConstVar.SERVER_ID,
+                                    loginResult.getTimeString(), ConstVar.SERVER_IP);
 
                             serverResponseFound = true; // response found
                             accountMayExist = true; // result failure; account does exist
@@ -381,10 +396,14 @@ public class LoginActivity extends Activity {
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
 
-                            errorText.setText("Login failed.\nCould not reach server.");
+                            Toast toast = Toast.makeText(LoginActivity.this,
+                                    "Login failed.\nCould not reach server.", Toast.LENGTH_LONG);
+                            toast.show();
 
                         } else if (serverResponseFoundFinal && accountMayExistFinal) {
-                            errorText.setText("Login failed.\nInput combination does not seem to exist.");
+                            Toast toast = Toast.makeText(LoginActivity.this,
+                                    "Login failed.\nInput combination does not seem to exist.", Toast.LENGTH_LONG);
+                            toast.show();
 
                         } else if (serverResponseFoundFinal && !accountMayExistFinal) {
                             // go to main page; signup was successful

@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.ndnhealthnet.androidudpclient.Comm.BTSensorComm;
 import com.ndnhealthnet.androidudpclient.Comm.UDPListener;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -25,7 +25,6 @@ import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
-import net.named_data.jndn.util.Blob;
 
 /**
  *  The "main loop" of the application; Activity should always be on stack.
@@ -35,7 +34,7 @@ public class MainActivity extends Activity {
     final int CREDENTIAL_RESULT_CODE = 1; // used to identify the result of Login/Signup Activities
 
 	Button logoutBtn, myDataBtn, cliBeatBtn, loginBtn,
-            signupBtn, sensorBtn, viewPacketsBtn;//, clearDatabaseBtn;
+            signupBtn, sensorBtn, viewPacketsBtn;
 	TextView credentialWarningText, doctorText, patientText, loggedInText;
 	UDPListener receiverThread;
     BTSensorComm btSensorComm;
@@ -50,15 +49,15 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // get the device's ip
+        // get this device's ip
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         deviceIP = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         receiverThread = new UDPListener(getApplicationContext());
-        receiverThread.start(); // begin listening for interest packets
+        receiverThread.start(); // begin listening for packets
 
         serverSynchWorker = createServerSynchRequestWorker();
-        serverSynchWorker.start();
+        serverSynchWorker.start(); // begin worker who initiates Synch requests ever given interval
 
         /*
         TODO - initiate bluetooth comm. component
@@ -76,10 +75,8 @@ public class MainActivity extends Activity {
     {
         setContentView(R.layout.activity_main);
 
-        final  String myUserID = Utils.getFromPrefs(getApplicationContext(),
+        final String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
-        final String myPassword = Utils.getFromPrefs(getApplicationContext(),
-                ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
 
         if (!myUserID.equals("")) {
             // place userID on screen if user has logged in
@@ -150,25 +147,14 @@ public class MainActivity extends Activity {
             }
         });
 
-        /*// NOTE: temporary debugging method that allows user to clear the database
-        clearDatabaseBtn = (Button) findViewById(R.id.deleteDataBtn);
-        clearDatabaseBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePIT();
-                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntireCS();
-                DBSingleton.getInstance(getApplicationContext()).getDB().deleteEntirePacketDB();
-            }
-        });*/
-
-        if (myPassword == null || myUserID == null
-                || myPassword.equals("") || myUserID.equals("")) {
+        // check to see if userID has been entered (denotes Logged-in user)
+        if (myUserID.equals("")) {
 
             //destroy all buttons until user enters credentials
             cliBeatBtn.setVisibility(View.GONE);
             myDataBtn.setVisibility(View.GONE);
             patientText.setVisibility(View.GONE);
             doctorText.setVisibility(View.GONE);
-         //   clearDatabaseBtn.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
             sensorBtn.setVisibility(View.GONE);
             viewPacketsBtn.setVisibility(View.GONE);
@@ -234,9 +220,8 @@ public class MainActivity extends Activity {
         String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         /**
-         * adding userID as sensorID entry here is a "hack"; the sensorID is null
-         * (because no sensorID is used when we send a synch) and we need to include
-         * the userID - so we place the userID as a sensorID
+         * Here userID is stored in sensorID position. We needed to send userID
+         * but had no place to do so and sensorID would have otherwise been null.
          */
 
         // query server for initialization of synch request
@@ -245,15 +230,15 @@ public class MainActivity extends Activity {
         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
         // add entry into PIT (we expect a SYNCH_DATA_REQUEST packet back)
-        DBData data = new DBData(myUserID, ConstVar.SYNCH_DATA_REQUEST,
+        PITEntry data = new PITEntry(myUserID, ConstVar.SYNCH_DATA_REQUEST,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
 
         DBSingleton.getInstance(context).getDB().addPITData(data);
 
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                .execute(interest.wireEncode().getImmutableArray()); // send synch request now
 
-        // store received packet in database for further review
+        // store sent packet in database for further review
         Utils.storeInterestPacket(context, interest);
     }
 

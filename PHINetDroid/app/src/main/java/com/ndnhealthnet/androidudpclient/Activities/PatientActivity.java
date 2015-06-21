@@ -16,7 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -52,7 +53,7 @@ public class PatientActivity extends Activity {
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
-        loggedInText.setText(currentUserID);
+        loggedInText.setText(currentUserID); // place userID on screen
 
         // use IP and ID from intent to find patient among all patients
         patientIP = getIntent().getExtras().getString(PatientListActivity.PATIENT_IP);
@@ -157,14 +158,14 @@ public class PatientActivity extends Activity {
 
         if (mWifi.isConnected()) {
 
-            ArrayList<DBData> pitEntries = DBSingleton.getInstance(getApplicationContext())
+            ArrayList<PITEntry> pitEntries = DBSingleton.getInstance(getApplicationContext())
                     .getDB().getGeneralPITData(patientUserID);
 
             // place entry into PIT for self; this is because if a request is
             // received for same data we request, we won't send another, identical Interest
             if (pitEntries == null) {
 
-                DBData selfPITEntry = new DBData(ConstVar.NULL_FIELD, ConstVar.INTEREST_CACHE_DATA,
+                PITEntry selfPITEntry = new PITEntry(ConstVar.NULL_FIELD, ConstVar.INTEREST_CACHE_DATA,
                         patientUserID, generateTimeString(), MainActivity.deviceIP);
 
                 DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
@@ -182,7 +183,7 @@ public class PatientActivity extends Activity {
                 }*/
             }
 
-            ArrayList<DBData> allFIBEntries = DBSingleton
+            ArrayList<FIBEntry> allFIBEntries = DBSingleton
                     .getInstance(getApplicationContext()).getDB().getAllFIBData();
 
             if (allFIBEntries != null) {
@@ -333,7 +334,7 @@ public class PatientActivity extends Activity {
     void updatePatientData() {
 
         // updates patient data
-        DBData updatedFIBEntry = new DBData(patientUserID, ConstVar.CURRENT_TIME,
+        FIBEntry updatedFIBEntry = new FIBEntry(patientUserID, ConstVar.CURRENT_TIME,
                 ipEditText.getText().toString(), true);
 
         DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(updatedFIBEntry);

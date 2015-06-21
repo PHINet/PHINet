@@ -77,6 +77,39 @@
 
     </LinearLayout>
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background"
+        android:baselineAligned="false"
+        android:orientation="vertical"
+        android:weightSum="1"
+        android:layout_margin="20dp">
+
+        <Button
+            android:id="@+id/loginSubmitBtn"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:text="@string/login"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:layout_gravity="center|bottom"
+            android:textSize="20sp"
+            android:layout_marginTop="20dp" />
+
+        <Button
+            android:id="@+id/loginBackBtn"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:text="@string/backBtn"
+            android:background="@drawable/black_button"
+            style="@style/button_text"
+            android:layout_gravity="center|bottom"
+            android:textSize="20sp"
+            android:layout_marginTop="20dp" />
+
+    </LinearLayout>
+
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -84,39 +117,5 @@
         android:layout_gravity="center_horizontal"
         android:layout_margin="10dp"
         android:id="@+id/loginProgressBar"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text=""
-        android:layout_margin="10dp"
-        android:textStyle="bold"
-        android:textSize="40sp"
-        android:id="@+id/inputErrorTextView"
-        android:textIsSelectable="true"
-        android:textColor="@color/orange" />
-
-    <Button
-        android:id="@+id/loginSubmitBtn"
-        android:layout_width="180dp"
-        android:layout_height="wrap_content"
-        android:text="@string/login"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp" />
-
-    <Button
-        android:id="@+id/loginBackBtn"
-        android:layout_width="180dp"
-        android:layout_height="wrap_content"
-        android:text="@string/backBtn"
-        android:background="@drawable/black_button"
-        style="@style/button_text"
-        android:layout_gravity="center|bottom"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp" />
 
 </LinearLayout>

@@ -14,7 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Activity displays list of current patients and allows the following
+ * Activity displays list of current patients and allows
  * 1. add new patient
  * 2. select patient and move to activity where modification/data-requests are possible
  */
@@ -42,10 +42,9 @@ public class PatientListActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        this.onCreate(null); // force activity to reload
+        this.onCreate(null); // force activity to reload (to display new patients)
     }
 
-    /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +56,7 @@ public class PatientListActivity extends ListActivity {
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place username on screen
 
-        ArrayList<DBData> patientList = getPatients();
+        ArrayList<FIBEntry> patientList = getPatients();
 
         final PatientAdapter adapter = new PatientAdapter(this, patientList);
         setListAdapter(adapter);
@@ -90,7 +89,7 @@ public class PatientListActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        boolean isValidInput = true; // we'll later check if false
+                        boolean isValidInput = false;
                         boolean ipEntered = false;
                         boolean patientAlreadyExists = false;
                         try { // try/catch attempts input validation
@@ -101,7 +100,7 @@ public class PatientListActivity extends ListActivity {
                                 // this means there was no comma; user likely didn't enter IP
                                 ipEntered = false;
 
-                                isValidInput &= Utils.isValidUserName(patientInput.getText().toString());
+                                isValidInput = Utils.isValidUserName(patientInput.getText().toString());
                                 userID = patientInput.getText().toString();
                             } else {
                                 ipEntered = true;
@@ -119,7 +118,7 @@ public class PatientListActivity extends ListActivity {
                                 isValidInput &= Utils.isValidUserName(patientInputString[1]);
                             }
 
-                            DBData queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(userID);
+                            FIBEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getFIBData(userID);
                             patientAlreadyExists = queryResult != null; // check that user doesn't already exist
 
                         } catch (Exception e) {
@@ -129,40 +128,27 @@ public class PatientListActivity extends ListActivity {
 
                         if (isValidInput && !patientAlreadyExists) { // add user to fib
 
-                            DBData data = new DBData();
+                            FIBEntry data = new FIBEntry();
+                            data.setTimeString(ConstVar.CURRENT_TIME);
+                            data.setIsMyPatient(true);
+
                             if (!ipEntered) {
 
-                                data.setUserID(patientInput.getText().toString());
-                                data.setTimeString(ConstVar.CURRENT_TIME);
                                 data.setIpAddr(ConstVar.NULL_IP);
-                                data.setIsMyPatient(true);
-
-                                DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
+                                data.setUserID(patientInput.getText().toString());
                             } else {
+
                                 data.setIpAddr(patientInputString[0]);
                                 data.setUserID(patientInputString[1]);
-                                data.setTimeString(ConstVar.CURRENT_TIME);
-                                data.setIsMyPatient(true);
-
-                                // determine if username already exists in FIB
-                                if (DBSingleton.getInstance(getApplicationContext())
-                                        .getDB().getFIBData(data.getUserID()) == null) {
-                                    // user entered valid patient, now add to fib
-
-                                    DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
-
-                                    // hide "empty patient list" text when patient added
-                                    emptyListTextView.setVisibility(View.GONE);
-                                } else {
-
-                                    // user entered previous-entered patient, just update
-                                    DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(data);
-                                }
                             }
+
+                            // add patient to FIB now
+                            DBSingleton.getInstance(getApplicationContext()).getDB().addFIBData(data);
 
                             adapter.add(data);
                             adapter.notifyDataSetChanged();
                             emptyListTextView.setVisibility(View.GONE); // hide "no patients" text
+
                         } else if (patientAlreadyExists) {
                             Toast toast = Toast.makeText(PatientListActivity.this,
                                     "Patient already exists.", Toast.LENGTH_LONG);
@@ -187,12 +173,13 @@ public class PatientListActivity extends ListActivity {
     }
 
     /**
+     * Return all patients from FIB
      *
-     * @return
+     * @return ArrayList of all patients
      */
-    private ArrayList<DBData> getPatients() {
+    private ArrayList<FIBEntry> getPatients() {
 
-        ArrayList<DBData> fibList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
+        ArrayList<FIBEntry> fibList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllFIBData();
 
         if (fibList == null) {
             // array list is null; pass empty data structure rather than null
@@ -201,14 +188,12 @@ public class PatientListActivity extends ListActivity {
 
             // entries found; now remove all who aren't the client's patients
 
-            Iterator<DBData> i = fibList.iterator();
+            Iterator<FIBEntry> i = fibList.iterator();
 
             while (i.hasNext()) {
-                DBData fibEntry = i.next();
+                FIBEntry fibEntry = i.next();
 
-                System.out.println("patient name: " + fibEntry.getUserID());
-
-                if (!fibEntry.getIsMyPatient()) {
+                if (!fibEntry.isMyPatient()) {
                     i.remove(); // remove all non-patients before returning
                 }
             }
@@ -220,15 +205,13 @@ public class PatientListActivity extends ListActivity {
     /**
      * Used by patient list view.
      */
-    private class PatientAdapter extends ArrayAdapter<DBData> {
+    private class PatientAdapter extends ArrayAdapter<FIBEntry> {
 
         Activity activity = null;
-        ArrayList<DBData> listData;
+        ArrayList<FIBEntry> listData;
 
-        public PatientAdapter(ListActivity li, ArrayList<DBData> allFIBData)
+        public PatientAdapter(ListActivity li, ArrayList<FIBEntry> allFIBData)
         {
-            // TODO - rework (be selective with FIB data that is displayed)
-
             super(li, 0, allFIBData);
             listData = allFIBData;
             activity = li;
@@ -242,7 +225,7 @@ public class PatientListActivity extends ListActivity {
                         .inflate(R.layout.list_item_patient, null);
             }
 
-            final DBData dbData = listData.get(position);
+            final FIBEntry dbData = listData.get(position);
 
             // creates individual button in ListView for each patient
             Button patientButton = (Button)convertView.findViewById(R.id.listPatientButton);

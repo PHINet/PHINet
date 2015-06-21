@@ -2,7 +2,11 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PacketDBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.SensorDBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 
@@ -20,15 +24,15 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test PIT data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData pitData1 = new DBData("SENSOR1", ConstVar.DATA_CACHE,
+    PITEntry pitData1 = new PITEntry("SENSOR1", ConstVar.DATA_CACHE,
             ConstVar.CURRENT_TIME, "USER1", "11.11.11.11");
 
-    DBData pitData2 = new DBData("SENSOR2", ConstVar.DATA_CACHE,
+    PITEntry pitData2 = new PITEntry("SENSOR2", ConstVar.DATA_CACHE,
             ConstVar.CURRENT_TIME, "USER2", "12.12.12.12");
 
-    DBData emptyPIT = new DBData();
+    PITEntry emptyPIT = new PITEntry();
 
-    DBData pitData3 = new DBData("SENSOR3", ConstVar.DATA_CACHE,
+    PITEntry pitData3 = new PITEntry("SENSOR3", ConstVar.DATA_CACHE,
             ConstVar.CURRENT_TIME, "USER1", "13.13.13.13");
 
     // --- test PIT data ---
@@ -36,13 +40,13 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test CS data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData csData1 = new DBData("SENSOR1", ConstVar.DATA_CACHE,
+    CSEntry csData1 = new CSEntry("SENSOR1", ConstVar.DATA_CACHE,
             ConstVar.CURRENT_TIME, "USER1", "11,11,11,11", ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
-    DBData csData2 = new DBData("SENSOR2", ConstVar.DATA_CACHE,
+    CSEntry csData2 = new CSEntry("SENSOR2", ConstVar.DATA_CACHE,
             ConstVar.CURRENT_TIME, "USER2", "12,12,12,12", ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
-    DBData csData3 = new DBData("SENSOR1", ConstVar.DATA_CACHE,
+    CSEntry csData3 = new CSEntry("SENSOR1", ConstVar.DATA_CACHE,
             "2015-04-27T00:00:00.000", "USER1", "12", ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
     // --- test CS data ---
@@ -50,25 +54,25 @@ public class DatabaseHandlerTest extends TestCase {
     // --- test FIB data ---
 
     // NOTE: changing this test-data may break test cases; both must be changed together
-    DBData fibData1 = new DBData("USER1", ConstVar.CURRENT_TIME, "11.11.11.11");
-
-    DBData fibData2 = new DBData("USER2", ConstVar.CURRENT_TIME, "11.11.11.11");
+    FIBEntry fibData1 = new FIBEntry("USER1", ConstVar.CURRENT_TIME, "11.11.11.11", false);
+    
+    FIBEntry fibData2 = new FIBEntry("USER2", ConstVar.CURRENT_TIME, "11.11.11.11", false);
 
     // --- test FIB data ---
 
     // -- test Sensor Data ---
 
-    DBData sensorData1 = new DBData("SENSOR1", 890);
+    SensorDBEntry sensorData1 = new SensorDBEntry("SENSOR1", 890);
 
-    DBData sensorData2 = new DBData("SENSOR2", 4);
+    SensorDBEntry sensorData2 = new SensorDBEntry("SENSOR2", 4);
 
     // -- test Sensor Data ---
 
     // -- test Packet Data ---
 
-    DBData packetData1 = new DBData("packetName1", "ContentContentContentContent");
+    PacketDBEntry packetData1 = new PacketDBEntry("packetName1", "ContentContentContentContent");
 
-    DBData packetData2 = new DBData("packetName2", "packetcontentpacketcontent");
+    PacketDBEntry packetData2 = new PacketDBEntry("packetName2", "packetcontentpacketcontent");
 
     // -- test Packet Data ---
 
@@ -133,6 +137,8 @@ public class DatabaseHandlerTest extends TestCase {
         // test addition of null data
         assertFalse(DBSingleton.getInstance(context).getDB().addPITData(null));
         assertFalse(DBSingleton.getInstance(context).getDB().addPITData(pitData1)); // test addition of duplicate entry
+
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT after testing insertion
     }
 
     /**
@@ -149,6 +155,8 @@ public class DatabaseHandlerTest extends TestCase {
         // test addition of null and/or duplicate data
         assertFalse(DBSingleton.getInstance(context).getDB().addCSData(null));
         assertFalse(DBSingleton.getInstance(context).getDB().addCSData(csData1));
+
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS after testing insertion
     }
 
     /**
@@ -214,7 +222,7 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception for failed tests
      */
     public void testGetGeneralPITData() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing
 
         // check that null is returned for empty PIT
         assertEquals(DBSingleton.getInstance(context).getDB().getGeneralPITData("id1"), null);
@@ -229,7 +237,7 @@ public class DatabaseHandlerTest extends TestCase {
         // check that both have different IP, so that we can verify 2 distinct entries
         assertTrue(!pitData1.getIpAddr().equals(pitData3.getIpAddr()));
 
-        ArrayList<DBData> generalPITData = DBSingleton.getInstance(context).getDB().getGeneralPITData(pitData1.getUserID());
+        ArrayList<PITEntry> generalPITData = DBSingleton.getInstance(context).getDB().getGeneralPITData(pitData1.getUserID());
 
         assertEquals(generalPITData.size(), 2); // check that 2 entries have been added
 
@@ -245,16 +253,18 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(foundCount, 2); // assert that both were found
 
         // test null request
-        ArrayList<DBData> nullPITData = DBSingleton.getInstance(context).getDB().getGeneralPITData(null);
+        ArrayList<PITEntry> nullPITData = DBSingleton.getInstance(context).getDB().getGeneralPITData(null);
 
         assertEquals(nullPITData, null); // verify that no entries were returned
+
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT after testing
     }
 
     /**
      * @throws Exception for failed tests
      */
     public void testGetSpecificPITData() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing
 
         // check null is returned for empty PIT
         assertEquals(DBSingleton.getInstance(context).getDB().getSpecificPITData("id1", "ip1"), null);
@@ -263,8 +273,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData3));
 
-        DBData pitSpecific1 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
-        DBData pitSpecific3 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData3.getUserID(), pitData3.getIpAddr());
+        PITEntry pitSpecific1 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry pitSpecific3 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData3.getUserID(), pitData3.getIpAddr());
 
         // test that pitData1 was returned correctly
         assertEquals(pitSpecific1.getIpAddr(), pitData1.getIpAddr());
@@ -277,6 +287,8 @@ public class DatabaseHandlerTest extends TestCase {
         // test bad input gets a null return
         assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData(null, null, null), null);
         assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("validUSERID", null, null), null);
+
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT after testing
     }
 
     /**
@@ -284,7 +296,7 @@ public class DatabaseHandlerTest extends TestCase {
      */
     public void testGetFIBData() throws Exception {
 
-        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing
 
         // check null returned for empty FIB
         assertEquals(DBSingleton.getInstance(context).getDB().getAllFIBData(), null);
@@ -293,8 +305,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData2));
 
-        DBData fibReturn1 = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
-        DBData fibReturn2 = DBSingleton.getInstance(context).getDB().getFIBData(fibData2.getUserID());
+        FIBEntry fibReturn1 = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
+        FIBEntry fibReturn2 = DBSingleton.getInstance(context).getDB().getFIBData(fibData2.getUserID());
 
         // test valid return
         assertEquals(fibReturn1.getUserID(), fibData1.getUserID());
@@ -302,6 +314,8 @@ public class DatabaseHandlerTest extends TestCase {
 
         // test bad input
         assertEquals(DBSingleton.getInstance(context).getDB().getFIBData(null), null);
+
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing
     }
 
     /**
@@ -309,7 +323,7 @@ public class DatabaseHandlerTest extends TestCase {
      */
     public void testGetGeneralCSData() throws Exception {
 
-        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing
 
         // check null returned for empty CS
         assertEquals(DBSingleton.getInstance(context).getDB().getGeneralCSData("userid"), null);
@@ -319,8 +333,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData2));
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData3));
 
-        ArrayList<DBData> csReturn1 = DBSingleton.getInstance(context).getDB().getGeneralCSData(csData1.getUserID());
-        ArrayList<DBData> csReturn2 = DBSingleton.getInstance(context).getDB().getGeneralCSData(csData2.getUserID());
+        ArrayList<CSEntry> csReturn1 = DBSingleton.getInstance(context).getDB().getGeneralCSData(csData1.getUserID());
+        ArrayList<CSEntry> csReturn2 = DBSingleton.getInstance(context).getDB().getGeneralCSData(csData2.getUserID());
 
         // test valid data
         int foundCount = 0;
@@ -336,10 +350,12 @@ public class DatabaseHandlerTest extends TestCase {
         assertEquals(foundCount, 2);
 
         // should only return one entry (only one test case inserted under this userID)
-        assertEquals(csReturn2.get(0).getDataFloat(), csData2.getDataFloat());
+        assertEquals(csReturn2.get(0).getDataPayload(), csData2.getDataPayload());
 
         // test bad data
         assertEquals(DBSingleton.getInstance(context).getDB().getGeneralCSData(null), null);
+
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing
     }
 
     /**
@@ -347,7 +363,7 @@ public class DatabaseHandlerTest extends TestCase {
      */
     public void testGetAllFIBData() throws Exception {
 
-        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing
 
         assertEquals(DBSingleton.getInstance(context).getDB().getAllFIBData(), null); // check that empty FIB returns null
 
@@ -355,7 +371,7 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData2));
 
-        ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
+        ArrayList<FIBEntry> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
         assertEquals(allFIBData.size(), 2);
 
@@ -369,6 +385,8 @@ public class DatabaseHandlerTest extends TestCase {
         }
 
         assertEquals(foundCount, 2);
+
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing
     }
 
     /**
@@ -380,7 +398,7 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
 
-        ArrayList<DBData> sensorData = DBSingleton.getInstance(context).getDB().getAllSensorData();
+        ArrayList<SensorDBEntry> sensorData = DBSingleton.getInstance(context).getDB().getAllSensorData();
 
         // both entries should have been returned (plus the HeartbeatSensor which is always present)
         assertTrue(sensorData.size() == 2 + 1);
@@ -411,11 +429,13 @@ public class DatabaseHandlerTest extends TestCase {
      */
     public void testGetAllPacketData() throws Exception {
 
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete before testing
+
         // add data before testing
         assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData2));
 
-        ArrayList<DBData> packetData = DBSingleton.getInstance(context).getDB().getAllPacketData();
+        ArrayList<PacketDBEntry> packetData = DBSingleton.getInstance(context).getDB().getAllPacketData();
 
         boolean entry1Found = false;
         boolean entry2Found = false;
@@ -433,14 +453,14 @@ public class DatabaseHandlerTest extends TestCase {
 
         assertTrue(entry1Found && entry2Found); // verify that both were detected
 
-        DBSingleton.getInstance(context).getDB().getAllPacketData(); // delete after testing
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
     }
 
     /**
      * @throws Exception for failed tests
      */
     public void testGetSpecificCSData() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS before testing
 
         // check null returned for empty CS
         assertEquals(DBSingleton.getInstance(context).getDB().getSpecificCSData("userid", "timestring", "processid"), null);
@@ -452,13 +472,15 @@ public class DatabaseHandlerTest extends TestCase {
 
         // test that, although both have same userID, two different entries are returned
                     // due to their respective time stamps
-        DBData csReturn1 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+        CSEntry csReturn1 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
                 csData1.getTimeString(), csData1.getProcessID());
-        DBData csReturn3 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData3.getUserID(),
+        CSEntry csReturn3 = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData3.getUserID(),
                 csData3.getTimeString(), csData3.getProcessID());
 
-        assertEquals(csReturn1.getDataFloat(), csData1.getDataFloat());
-        assertEquals(csReturn3.getDataFloat(), csData3.getDataFloat());
+        assertEquals(csReturn1.getDataPayload(), csData1.getDataPayload());
+        assertEquals(csReturn3.getDataPayload(), csData3.getDataPayload());
+
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete CS after testing
     }
 
     /**
@@ -466,24 +488,28 @@ public class DatabaseHandlerTest extends TestCase {
      */
     public void testGetSpecificSensorData() throws Exception {
 
+        DBSingleton.getInstance(context).getDB().getAllSensorData(); // delete before testing
+
         // add data before testing
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
 
         // test against actual entries
-        DBData sensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
-        DBData sensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getSensorID());
+        SensorDBEntry sensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
+        SensorDBEntry sensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getSensorID());
 
         assertTrue(sensor1.getSensorID().equals(sensorData1.getSensorID()));
         assertTrue(sensor2.getSensorID().equals(sensorData2.getSensorID()));
 
         // test against false entries
-        DBData sensor3 = DBSingleton.getInstance(context).getDB().getSpecificSensorData("asdpfoiamsdf");
+        SensorDBEntry sensor3 = DBSingleton.getInstance(context).getDB().getSpecificSensorData("asdpfoiamsdf");
         assertTrue(sensor3 == null);
 
         // delete after testing
         assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData1.getSensorID()));
         assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
+
+        DBSingleton.getInstance(context).getDB().getAllSensorData(); // delete after testing
     }
 
     /**
@@ -497,7 +523,7 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
+        FIBEntry originalReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
         assertEquals(originalReturn.getIpAddr(), fibData1.getIpAddr());
 
         // now, modify and check return
@@ -506,24 +532,26 @@ public class DatabaseHandlerTest extends TestCase {
         // test validity of update
         assertTrue(DBSingleton.getInstance(context).getDB().updateFIBData(fibData1));
 
-        DBData updatedReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
+        FIBEntry updatedReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
         assertEquals(updatedReturn.getIpAddr(), fibData1.getIpAddr());
 
         // test bad update return
         assertFalse(DBSingleton.getInstance(context).getDB().updateFIBData(null));
+
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB after testing insertion
     }
 
     /**
      * @throws Exception for failed tests
      */
     public void testUpdatePITData() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing insertion
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
         assertEquals(originalReturn.getIpAddr(), pitData1.getIpAddr());
 
         // now, modify and check return
@@ -532,45 +560,50 @@ public class DatabaseHandlerTest extends TestCase {
         // test validity of update
         assertTrue(DBSingleton.getInstance(context).getDB().updatePITData(pitData1));
 
-        DBData updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
         assertEquals(updatedReturn.getIpAddr(), pitData1.getIpAddr());
 
         // test bad update return
         assertFalse(DBSingleton.getInstance(context).getDB().updatePITData(null));
+
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete FIB after testing insertion
     }
 
     /**
      * @throws Exception for failed tests
      */
     public void testUpdateCSData() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete before testing
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+        CSEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
                 csData1.getTimeString(), csData1.getProcessID());
-        assertEquals(originalReturn.getDataFloat(), csData1.getDataFloat());
+        assertEquals(originalReturn.getDataPayload(), csData1.getDataPayload());
 
         // now, modify and check return
-        csData1.setDataFloat("99,99,99,99");
+        csData1.setDataPayload("99,99,99,99");
 
         // test validity of update
         assertTrue(DBSingleton.getInstance(context).getDB().updateCSData(csData1));
 
-        DBData updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+        CSEntry updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
                 csData1.getTimeString(), csData1.getProcessID());
-        assertEquals(updatedReturn.getDataFloat(), csData1.getDataFloat());
+        assertEquals(updatedReturn.getDataPayload(), csData1.getDataPayload());
 
         // test bad update return
         assertFalse(DBSingleton.getInstance(context).getDB().updateCSData(null));
+
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete after testing
     }
 
     /**
      * @throws Exception
      */
     public void testUpdateSensorEntry() throws Exception {
+        DBSingleton.getInstance(context).getDB().deleteEntireSensorDB(); // delete before testing
 
         // add data before testing
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
@@ -581,7 +614,7 @@ public class DatabaseHandlerTest extends TestCase {
 
         assertTrue(DBSingleton.getInstance(context).getDB().updateSensorData(sensorData1));
 
-        DBData updatedSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
+        SensorDBEntry updatedSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
 
         assertTrue(updatedSensor1.getSensorCollectionInterval() == sensorData1.getSensorCollectionInterval());
 
@@ -594,13 +627,13 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception for failed tests
      */
     public void testDeletePITEntry() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete before testing
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
         assertEquals(originalReturn.getIpAddr(), pitData1.getIpAddr());
 
         // check deletePITEntry rejects bad data
@@ -617,22 +650,21 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception
      */
     public void testDeleteAllPackets() throws Exception {
-        // for safety, delete prior to test
-        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete before testing
 
         // test adding good data
         assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addPacketData(packetData2));
 
         // test return is valid object
-        ArrayList<DBData> allPackets = DBSingleton.getInstance(context).getDB().getAllPacketData();
+        ArrayList<PacketDBEntry> allPackets = DBSingleton.getInstance(context).getDB().getAllPacketData();
         assertTrue(allPackets != null);
 
         // delete
         DBSingleton.getInstance(context).getDB().deleteEntirePacketDB(); // delete after testing
 
         // now, after deletion, test return is a null object
-        ArrayList<DBData> allPacketsAfterDeletion = DBSingleton.getInstance(context).getDB().getAllPacketData();
+        ArrayList<PacketDBEntry> allPacketsAfterDeletion = DBSingleton.getInstance(context).getDB().getAllPacketData();
 
         assertTrue(allPacketsAfterDeletion == null);
     }
@@ -641,6 +673,8 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception
      */
     public void testDeleteSensorEntry() throws Exception {
+        DBSingleton.getInstance(context).getDB().deleteEntireSensorDB(); // delete before testing
+
         // add data before testing
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addSensorData(sensorData2));
@@ -650,8 +684,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().deleteSensorEntry(sensorData2.getSensorID()));
 
         // now, after deletion, test return is a null object
-        DBData afterDeleteSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getUserID());
-        DBData afterDeleteSensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getUserID());
+        SensorDBEntry afterDeleteSensor1 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData1.getSensorID());
+        SensorDBEntry afterDeleteSensor2 = DBSingleton.getInstance(context).getDB().getSpecificSensorData(sensorData2.getSensorID());
         assertTrue(afterDeleteSensor1 == null);
         assertTrue(afterDeleteSensor2 == null);
     }
@@ -660,13 +694,13 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception for failed tests
      */
     public void testDeleteFIBEntry() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireFIB(); // delete FIB before testing
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addFIBData(fibData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
+        FIBEntry originalReturn = DBSingleton.getInstance(context).getDB().getFIBData(fibData1.getUserID());
         assertEquals(originalReturn.getIpAddr(), fibData1.getIpAddr());
 
         // check null data rejected
@@ -683,15 +717,15 @@ public class DatabaseHandlerTest extends TestCase {
      * @throws Exception for failed tests
      */
     public void testDeleteCSEntry() throws Exception {
-        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete FIB before testing insertion
+        DBSingleton.getInstance(context).getDB().deleteEntireCS(); // delete before testing
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addCSData(csData1));
 
         // check original return
-        DBData originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
+        CSEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificCSData(csData1.getUserID(),
                 csData1.getTimeString(), csData1.getProcessID());
-        assertEquals(originalReturn.getDataFloat(), csData1.getDataFloat());
+        assertEquals(originalReturn.getDataPayload(), csData1.getDataPayload());
 
         // check null data rejected
         assertFalse(DBSingleton.getInstance(context).getDB().deleteCSEntry(null, null));

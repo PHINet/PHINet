@@ -17,7 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.SensorDBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -46,16 +46,14 @@ public class SensorListActivity extends ListActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // TODO - how to better synch data?
+        // TODO - how to better synch?
 
-        // synch as the user leaves activity; assumption is user may have collected more data
-        // through activity and it should now be synched because analytics may be requested shortly
+        // synch as the user leaves activity: user may have collected more data
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
         // only attempt synch of wifi is connected
         if (mWifi.isConnected()) {
-
             MainActivity.requestSynch(getApplicationContext());
         }
     }
@@ -65,10 +63,10 @@ public class SensorListActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensorlist);
 
-        ArrayList<DBData> sensorList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllSensorData();
+        ArrayList<SensorDBEntry> sensorList = DBSingleton.getInstance(getApplicationContext()).getDB().getAllSensorData();
 
         if (sensorList == null) {
-            // this should not be called; the sensor should always be present
+            // no sensors exist, set sensorList to empty ArrayList
             sensorList = new ArrayList<>();
         }
 
@@ -94,7 +92,7 @@ public class SensorListActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        DBData sensorQuery = DBSingleton.getInstance(getApplicationContext())
+                        SensorDBEntry sensorQuery = DBSingleton.getInstance(getApplicationContext())
                                 .getDB().getSpecificSensorData(sensorInput.getText().toString());
 
                         // verify that name is syntactically correct and unique
@@ -141,12 +139,12 @@ public class SensorListActivity extends ListActivity {
     /**
      * Used by sensor list view.
      */
-    private class SensorAdapter extends ArrayAdapter<DBData> {
+    private class SensorAdapter extends ArrayAdapter<SensorDBEntry> {
 
         Activity activity = null;
-        ArrayList<DBData> listData;
+        ArrayList<SensorDBEntry> listData;
 
-        public SensorAdapter(ListActivity li, ArrayList<DBData> allSensors)
+        public SensorAdapter(ListActivity li, ArrayList<SensorDBEntry> allSensors)
         {
             super(li, 0, allSensors);
             listData = allSensors;
@@ -178,6 +176,7 @@ public class SensorListActivity extends ListActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
+                            // HEARTBEAT_SENSOR is a special case; it is embedded into client device
                             if (sensorName.equals(ConstVar.HEARTBEAT_SENSOR)) {
 
                                 startActivity(new Intent(SensorListActivity.this, RecordHeartbeatActivity.class));

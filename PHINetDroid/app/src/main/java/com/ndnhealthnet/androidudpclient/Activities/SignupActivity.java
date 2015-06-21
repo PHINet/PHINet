@@ -12,10 +12,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Hashing.BCrypt;
 import com.ndnhealthnet.androidudpclient.R;
@@ -36,7 +37,6 @@ public class SignupActivity extends Activity {
 
     Button backBtn, signupBtn;
     EditText userNameEdit, pwEdit, verifyPWEdit, emailEdit;
-    TextView errorText;
     ProgressBar progressBar;
 
     final int SLEEP_TIME = 250; // 250 milliseconds = 1/4 second (chosen somewhat arbitrarily)
@@ -50,7 +50,6 @@ public class SignupActivity extends Activity {
         pwEdit = (EditText) findViewById(R.id.passwordEditText);
         verifyPWEdit = (EditText) findViewById(R.id.verifyPasswordEditText);
         emailEdit = (EditText) findViewById(R.id.email_editText);
-        errorText = (TextView) findViewById(R.id.inputErrorTextView);
         progressBar = (ProgressBar) findViewById(R.id.registerProgressBar);
 
         progressBar.setVisibility(View.GONE); // hide progress bar until signup pressed
@@ -58,20 +57,20 @@ public class SignupActivity extends Activity {
         backBtn = (Button) findViewById(R.id.signupBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                
+
+                // NOTE: credentials were only stored if signup was valid
+
                 // get current user credentials and determine whether valid
                 String currentPassword = Utils.getFromPrefs(getApplicationContext(),
                         ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
                 String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                         ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
-                Intent returnIntent = new Intent();
-
                 if (Utils.isValidUserName(currentUserID)
                         && Utils.isValidPassword(currentPassword)) {
-                    setResult(RESULT_OK, returnIntent); // notifies MainActivity of success
+                    setResult(RESULT_OK, new Intent()); // notifies MainActivity of success
                 } else {
-                    setResult(RESULT_CANCELED, returnIntent); // notifies MainActivity of failure
+                    setResult(RESULT_CANCELED, new Intent()); // notifies MainActivity of failure
                 }
 
                 finish();
@@ -81,8 +80,7 @@ public class SignupActivity extends Activity {
         signupBtn = (Button) findViewById(R.id.signupSubmitBtn);
         signupBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                errorText.setText(""); // remove any error text; user is attempting login again
-
+               
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
@@ -92,20 +90,21 @@ public class SignupActivity extends Activity {
                     /**
                      * Due to the nature of NDN, the client must first send signup Interest to
                      * server (because the server is the only one who can validate such requests). The
-                     * server will then reply with a blank Data and, shortly, an Interest requesting
-                     * signup credentials, and the client will then reply with a Data packet containing
-                     * them. The client then sends an Interest to the server querying for the result,
-                     * to which the server replies with a Data packet. If the results are positive,
-                     * the client has signed up; otherwise, signup failed.
+                     * server will an Interest requesting signup credentials, and the client will
+                     * then reply with a Data packet containing them. The client then sends an
+                     * Interest to the server querying for the result, to which the server replies
+                     * with a Data packet. If the results are positive, the client has signed up;
+                     * otherwise, signup failed.
                      */
 
                     final String userID = userNameEdit.getText().toString().trim();
                     final String password = pwEdit.getText().toString().trim();
                     final String email = emailEdit.getText().toString().equals("")
                             ? ConstVar.NULL_FIELD : emailEdit.getText().toString().trim();
+
                     final boolean pwMatch = password.equals(verifyPWEdit.getText().toString());
 
-                    // both inputs are valid, now query server for signup
+                    // all inputs are valid, now query server for signup
                     if (pwMatch && Utils.isValidUserName(userID) && Utils.isValidPassword(password)
                             && (email.equals(ConstVar.NULL_FIELD) || Utils.isValidEmail(email))) {
 
@@ -124,6 +123,9 @@ public class SignupActivity extends Activity {
 
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
+                        // NOTE: we don't store this Interest because it is never satisfied
+                            // it merely initiates the signup process
+
                         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
                                 .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
@@ -135,16 +137,23 @@ public class SignupActivity extends Activity {
                     }
                     // passwords don't match; only notify is PW was valid in first place
                     else if (Utils.isValidPassword(password) && !pwMatch) {
-                        errorText.setText("Error: passwords don't match.");
+
+                        Toast toast = Toast.makeText(SignupActivity.this,
+                                "Error: passwords don't match.", Toast.LENGTH_LONG);
+                        toast.show();
                     }
                     // one input (or both) were invalid, notify user
                     else {
-                        errorText.setText("Error: input syntactically incorrect.");
+                        Toast toast = Toast.makeText(SignupActivity.this,
+                                "Error: input syntactically incorrect.", Toast.LENGTH_LONG);
+                        toast.show();
                     }
                 }
                 // wifi connection invalid; notify user
                 else {
-                    errorText.setText("Error: WiFi connection is required.");
+                    Toast toast = Toast.makeText(SignupActivity.this,
+                            "Error: WiFi connection is required.", Toast.LENGTH_LONG);
+                    toast.show();
                 }
             }
         });
@@ -169,21 +178,23 @@ public class SignupActivity extends Activity {
                 int loopCount = 0;
                 boolean serverResponseFound = false;
 
+                // each loop, check for reply for server
                 while (loopCount++ < maxLoopCount) {
 
                     // check to see if server has sent an Interest asking for client's credentials
-                    ArrayList<DBData> pitRows = DBSingleton.getInstance(getApplicationContext())
+                    ArrayList<PITEntry> pitRows = DBSingleton.getInstance(getApplicationContext())
                             .getDB().getGeneralPITData(userID);
 
                     // valid Interest potentially found
                     if (pitRows != null) {
 
-                        DBData interestFound = null;
+                        PITEntry interestFound = null;
                         for (int i = 0; i < pitRows.size(); i++) {
 
                             // search for Interest with PID CREDENTIAL_REQUEST && request for this user
                             if (pitRows.get(i).getProcessID().equals(ConstVar.REGISTER_CREDENTIAL_DATA)
                                     && pitRows.get(i).getUserID().equals(userID)) {
+
                                 interestFound = pitRows.get(i);
                                 break; // valid interest found; break from loop
                             }
@@ -193,9 +204,10 @@ public class SignupActivity extends Activity {
                         if (interestFound != null) {
 
                             // reply with credentials to satisfy the interest
+                                // syntax: "userID,password,email"
                             String credentialContent = userID + "," + password + "," + email;
 
-                            DBData credentialData = new DBData(ConstVar.NULL_FIELD,
+                            CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
                                     ConstVar.REGISTER_CREDENTIAL_DATA, interestFound.getTimeString(),
                                     userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
@@ -249,7 +261,11 @@ public class SignupActivity extends Activity {
                     @Override
                     public void run() {
                         if (!serverResponseFoundFinal) {
-                            errorText.setText("Signup failed.\nCould not reach server.");
+
+                            Toast toast = Toast.makeText(SignupActivity.this,
+                                    "Signup failed.\nCould not reach server.", Toast.LENGTH_LONG);
+                            toast.show();
+                            
                             progressBar.setVisibility(View.GONE); // hide progress; signup failed
 
                             // delete initial Interest placed in PIT to initiate login
@@ -286,7 +302,7 @@ public class SignupActivity extends Activity {
         Interest interest = JNDNUtils.createInterestPacket(packetNameInner);
 
         // add entry into PIT
-        DBData data = new DBData(userID, ConstVar.REGISTER_RESULT,
+        PITEntry data = new PITEntry(userID, ConstVar.REGISTER_RESULT,
                 currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
@@ -320,16 +336,16 @@ public class SignupActivity extends Activity {
                 boolean serverResponseFound = false;
                 boolean accountMayExist = false;
 
+                // each loop, check for reply for server
                 while (loopCount++ < maxLoopCount) {
 
                     // query the ContentStore for the signup result
-
-                    ArrayList<DBData> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
+                    ArrayList<CSEntry> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
                             .getGeneralCSData(ConstVar.SERVER_ID);
 
                     if (potentiallyValidRows != null) {
 
-                        DBData signupResult = null;
+                        CSEntry signupResult = null;
 
                         /**
                          * Here userID is stored in sensorID position. We needed to send userID
@@ -345,10 +361,10 @@ public class SignupActivity extends Activity {
                         }
 
                         // signup response yields success
-                        if (signupResult != null && !signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
+                        if (signupResult != null && !signupResult.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
 
                             // on signup, server replies with FIB entries - place into FIB now
-                            Utils.insertServerFIBEntries(signupResult.getDataFloat(),
+                            Utils.insertServerFIBEntries(signupResult.getDataPayload(),
                                     signupResult.getTimeString(), getApplicationContext());
 
                             // after reading entry, delete it (it's been satisfied)
@@ -365,7 +381,7 @@ public class SignupActivity extends Activity {
 
                             break; // break from loop, response found
 
-                        } else if (signupResult != null && signupResult.getDataFloat().equals(ConstVar.REGISTER_FAILED)) {
+                        } else if (signupResult != null && signupResult.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
 
                             // after reading entry, delete it (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
@@ -397,11 +413,15 @@ public class SignupActivity extends Activity {
                                     .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
 
 
-                            errorText.setText("Signup failed.\nCould not reach server.");
+                            Toast toast = Toast.makeText(SignupActivity.this,
+                                    "Signup failed.\nCould not reach server.", Toast.LENGTH_LONG);
+                            toast.show();
 
                         } else if (serverResponseFoundFinal && accountMayExistFinal) {
-
-                            errorText.setText("Signup failed.\nAccount may already exist.");
+                            
+                            Toast toast = Toast.makeText(SignupActivity.this,
+                                    "Signup failed.\nAccount may already exist.", Toast.LENGTH_LONG);
+                            toast.show();;
 
                         } else if (serverResponseFoundFinal && !accountMayExistFinal) {
 

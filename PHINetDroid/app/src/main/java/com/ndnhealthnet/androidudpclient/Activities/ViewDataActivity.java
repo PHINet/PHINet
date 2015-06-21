@@ -19,7 +19,8 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -80,7 +81,7 @@ public class ViewDataActivity extends Activity {
         // TextView used to notify user whether data for patient exists
         dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
 
-        ArrayList<DBData> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
+        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
         ArrayList<String> sensors = new ArrayList<>();
 
         if (myData != null) {
@@ -194,13 +195,13 @@ public class ViewDataActivity extends Activity {
                 final String chosenTime = Utils.createTimeStringInterval(dataStatusText.getText().toString());
                 final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
-                DBData queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(myUserID, chosenTime, processID);
+                CSEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(myUserID, chosenTime, processID);
 
                 // first check to see if Analytic request isn't already in ContentStore and that it's still valid
                 if (queryResult != null
                         && Utils.isValidFreshnessPeriod(queryResult.getFreshnessPeriod(), queryResult.getTimeString())) {
 
-                    analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataFloat());
+                    analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataPayload());
                 } else {
                     // query server for analytic task
                     Name packetName = JNDNUtils.createName(myUserID, currentSensorSelected,
@@ -208,7 +209,7 @@ public class ViewDataActivity extends Activity {
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                     // add entry into PIT
-                    final DBData data = new DBData(currentSensorSelected, processID,
+                    final PITEntry data = new PITEntry(currentSensorSelected, processID,
                             chosenTime, myUserID, ConstVar.SERVER_IP);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
@@ -229,11 +230,11 @@ public class ViewDataActivity extends Activity {
                             int maxLoopCount = 8; // check for SLEEP_TIME*8 = 2 second (somewhat arbitrary)
                             int loopCount = 0;
 
-                            DBData analyticsResult = null;
+                            CSEntry analyticsResult = null;
 
                             while (loopCount++ < maxLoopCount) {
 
-                                ArrayList<DBData> candidateData = DBSingleton
+                                ArrayList<CSEntry> candidateData = DBSingleton
                                         .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
 
                                 for (int i = 0; i < candidateData.size(); i++) {
@@ -255,7 +256,7 @@ public class ViewDataActivity extends Activity {
                                 SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
                             }
 
-                            final DBData analyticsResultFinal = analyticsResult;
+                            final CSEntry analyticsResultFinal = analyticsResult;
 
                             ViewDataActivity.this.runOnUiThread(new Runnable() {
                                 @Override
@@ -270,7 +271,7 @@ public class ViewDataActivity extends Activity {
 
                                     if (analyticsResultFinal != null) {
 
-                                        analyticsResultText.setText(mostRecentlySelectedTask + " is " +analyticsResultFinal.getDataFloat());
+                                        analyticsResultText.setText(mostRecentlySelectedTask + " is " +analyticsResultFinal.getDataPayload());
                                     } else {
                                         // nothing found; display error
 
@@ -404,7 +405,7 @@ public class ViewDataActivity extends Activity {
         }
 
         // holds data before conversion
-        ArrayList<DBData> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
+        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
 
         // holds data after conversion
         ArrayList<Float> myFloatData;

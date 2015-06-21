@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.SensorDBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
@@ -32,6 +32,7 @@ public class SensorSettingsActivity extends Activity {
     final int REQUEST_ENABLE_BT = 1; // used for getActivityResult
     final int SENSOR_SELECTION_CODE = 2; // used for getActivityResult
     static final String CHOSEN_SENSOR_INFO = "CHOSEN_SENSOR_INFO"; // used to pass data in intent
+    private final String DEFAULT_INTERVAL = "24"; // initial, arbitrarily chosen, interval
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,15 +42,13 @@ public class SensorSettingsActivity extends Activity {
         final String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
-        // use IP and ID from intent to find patient among all patients
         sensorName = getIntent().getExtras().getString(SensorListActivity.SENSOR_NAME);
-
-        DBData specificSensor = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+        SensorDBEntry specificSensor = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
 
         intervalEdit = (EditText) findViewById(R.id.intervalEditText);
 
         if (specificSensor == null) {
-            intervalEdit.setText("24"); // initial, arbitrarily chosen, interval
+            intervalEdit.setText(DEFAULT_INTERVAL);
         } else {
             intervalEdit.setText(Integer.toString(specificSensor.getSensorCollectionInterval()));
         }
@@ -95,7 +94,7 @@ public class SensorSettingsActivity extends Activity {
         deleteSensorBtn = (Button) findViewById(R.id.deleteSensorBtn);
         deleteSensorBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+                SensorDBEntry sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
 
                 if (sensorQueryResult != null) {
                     // sensor exists within db; delete it now
@@ -136,19 +135,21 @@ public class SensorSettingsActivity extends Activity {
     }
 
     /**
-     * Should be invoked automatically after user enables bluetooth via Connect Dialog
+     * Should be invoked automatically OnActivityResult
      *
      * @param requestCode code of activity that has returned a result
      * @param resultCode status of activity return
      * @param data intent associated with returned activity
      */
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // invoked after requesting BT
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == RESULT_OK) {
                 connectToSensor();
             }
-        } else if (requestCode == SENSOR_SELECTION_CODE) {
+        }
+        // invoked after sensor chosen
+        else if (requestCode == SENSOR_SELECTION_CODE) {
             if (resultCode == RESULT_OK) {
 
                 chosenSensorInfo = data.getExtras().getString(CHOSEN_SENSOR_INFO);
@@ -176,18 +177,18 @@ public class SensorSettingsActivity extends Activity {
             Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval", Toast.LENGTH_LONG);
             toast.show();
         } else {
-            DBData sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
+            SensorDBEntry sensorQueryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificSensorData(sensorName);
 
             if (sensorQueryResult == null) {
                 // result was null; sensor hasn't been added yet - do so now
 
-                DBData newEntry = new DBData(sensorName, chosenInterval);
+                SensorDBEntry newEntry = new SensorDBEntry(sensorName, chosenInterval);
 
                 DBSingleton.getInstance(getApplicationContext()).getDB().addSensorData(newEntry);
             } else {
                 // result wasn't null; sensor has already been added - just update it
 
-                DBData updatedEntry = new DBData(sensorName, chosenInterval);
+                SensorDBEntry updatedEntry = new SensorDBEntry(sensorName, chosenInterval);
 
                 DBSingleton.getInstance(getApplicationContext()).getDB().updateSensorData(updatedEntry);
             }

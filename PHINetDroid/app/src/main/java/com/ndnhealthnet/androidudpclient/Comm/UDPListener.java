@@ -3,7 +3,9 @@ package com.ndnhealthnet.androidudpclient.Comm;
 import android.content.Context;
 
 import com.ndnhealthnet.androidudpclient.Activities.MainActivity;
-import com.ndnhealthnet.androidudpclient.DB.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
@@ -128,7 +130,7 @@ public class UDPListener extends Thread {
                             || processID.equals(ConstVar.REGISTER_CREDENTIAL_DATA)) {
 
             // store the request in the PIT; should be checked within Login or Signup Activity shortly
-            DBData pitEntry = new DBData(sensorID, processID, timeString, userID, ipAddr);
+            PITEntry pitEntry = new PITEntry(sensorID, processID, timeString, userID, ipAddr);
             DBSingleton.getInstance(context).getDB().addPITData(pitEntry);
 
         } else if (processID.equals(ConstVar.SYNCH_DATA_REQUEST)) {
@@ -152,7 +154,7 @@ public class UDPListener extends Thread {
                             String processID, String packetIP, int port)
     {
         // first, check CONTENT STORE (cache)
-        ArrayList<DBData> csDATA = DBSingleton.getInstance(context).getDB().getGeneralCSData(userID);
+        ArrayList<CSEntry> csDATA = DBSingleton.getInstance(context).getDB().getGeneralCSData(userID);
 
         if (csDATA != null) {
 
@@ -166,7 +168,7 @@ public class UDPListener extends Thread {
                   // TODO - perform better validation (such as checking sensor id)
 
                   // append all data to single string since all going to single source
-                  dataPayload += csDATA.get(i).getDataFloat()+ ",";
+                  dataPayload += csDATA.get(i).getDataPayload()+ ",";
                 }
             }
 
@@ -176,7 +178,7 @@ public class UDPListener extends Thread {
                 Name packetName = JNDNUtils.createName(userID, sensorID, timeString, processID);
                 Data data = JNDNUtils.createDataPacket(dataPayload, packetName);
 
-                DBData cacheEntry = new DBData(sensorID, processID, timeString,
+                CSEntry cacheEntry = new CSEntry(sensorID, processID, timeString,
                         userID, dataPayload, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                 // place data into Cache that is used to Satisfy the Interest
@@ -197,11 +199,11 @@ public class UDPListener extends Thread {
             if (DBSingleton.getInstance(context).getDB().getGeneralPITData(userID) == null) {
 
                 // add new request to PIT, then look into FIB before sending request
-                DBData newPITEntry = new DBData(sensorID, processID, timeString, userID, packetIP);
+                PITEntry newPITEntry = new PITEntry(sensorID, processID, timeString, userID, packetIP);
 
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
 
-                ArrayList<DBData> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
+                ArrayList<FIBEntry> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
 
                 if (allFIBData == null || allFIBData.size() == 0) {
 
@@ -233,7 +235,7 @@ public class UDPListener extends Thread {
             else {
 
                 // add new request to PIT and wait, request has already been sent
-                DBData newPITEntry = new DBData(sensorID, processID, timeString, userID, packetIP);
+                PITEntry newPITEntry = new PITEntry(sensorID, processID, timeString, userID, packetIP);
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
             }
         }
@@ -248,9 +250,11 @@ public class UDPListener extends Thread {
      */
     static void handleInterestSynchRequest(String userID, String timeString, int port) {
 
-        ArrayList<DBData> candidateData = DBSingleton.getInstance(context).getDB().getGeneralCSData(userID);
+        // TODO - delete initial Interest from PIT
 
-        ArrayList<DBData> validData = new ArrayList<>();
+        ArrayList<CSEntry> candidateData = DBSingleton.getInstance(context).getDB().getGeneralCSData(userID);
+
+        ArrayList<CSEntry> validData = new ArrayList<>();
 
         for (int i = 0; i < candidateData.size(); i++) {
             // verify that data came from valid sensor and is within proper interval
@@ -267,7 +271,7 @@ public class UDPListener extends Thread {
                 timeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
 
-        DBData cacheEntry = new DBData(ConstVar.NULL_FIELD, ConstVar.SYNCH_DATA_REQUEST, timeString,
+        CSEntry cacheEntry = new CSEntry(ConstVar.NULL_FIELD, ConstVar.SYNCH_DATA_REQUEST, timeString,
                 userID, formattedData, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
         // place Synch Data Packet into CS
@@ -301,7 +305,7 @@ public class UDPListener extends Thread {
         String processID = nameComponent[5].trim();
 
         // first, determine who wants the data
-        ArrayList<DBData> allValidPITEntries = DBSingleton.getInstance(context).getDB()
+        ArrayList<PITEntry> allValidPITEntries = DBSingleton.getInstance(context).getDB()
                 .getGeneralPITData(userID);
 
         // data was requested; handle it now
@@ -332,7 +336,7 @@ public class UDPListener extends Thread {
                         || Utils.isAnalyticProcessID(processID)) {
 
                     // these ProcessIDs all result in storing data into the ContentStore
-                    DBData dataPacket = new DBData(sensorID, processID,
+                    CSEntry dataPacket = new CSEntry(sensorID, processID,
                             timeString, userID, dataContents, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                     DBSingleton.getInstance(context).getDB().addCSData(dataPacket);
@@ -358,10 +362,10 @@ public class UDPListener extends Thread {
      */
     static void handleCacheData(String userID,String  sensorID,String  timeString,
                          String  processID,String  dataPayload,
-                         ArrayList<DBData> allValidPITEntries) {
+                         ArrayList<PITEntry> allValidPITEntries) {
 
         // data was requested; second, update cache with new packet
-        DBData data = new DBData(sensorID, processID, timeString, userID, dataPayload,
+        CSEntry data = new CSEntry(sensorID, processID, timeString, userID, dataPayload,
                 ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
         // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
