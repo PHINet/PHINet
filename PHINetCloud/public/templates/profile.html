@@ -15,7 +15,7 @@
 <div id="main">
     <div id="header">
         <div id="logo">
-            <h1>PHINet</h1>
+            <a href="/"><h1>PHINet</h1></a>
         </div>
 
         <div class="loginArea">
@@ -32,7 +32,7 @@
                 </li>
 
                 <li>
-                    <a href="/document">Documentation</a>
+                    <a href="/faq">FAQ</a>
                 </li>
 
                 <li>
@@ -47,11 +47,6 @@
                     <a href="/viewdata">Data</a>
                 </li>
                 <% } %>
-
-
-                <li>
-                    <a href="/contact">Contact</a>
-                </li><!--  <li><a href="/profile">Profile</a></li>-->
             </ul>
         </div>
     </div>
@@ -63,44 +58,52 @@
 
             <h1>Profile</h1>
             <hr>
+            <br>
 
-            <p>&nbsp;</p>
+            <div class='well'>
+                <div class="row">
+                    <div class='block_inline'>
+                        <span class="large_red">Name:</span>
+                    </div>
 
-            <table style="width:80%; text-align:center;">
-                <tr>
-                    <td>
-                        <p style="text-align: center"><strong>Personal
-                            information</strong></p>
-                    </td>
-                </tr>
+                    <div class='block_inline'>
 
-                <tr>
-                    <td>
-                        <br>
+                        <% if(user) { %><b><%= user %> </b>
+                            <% } %>
+                    </div>
+                </div>
 
-                        <p>Name:  <% if(user) { %><b><%= user %> </b>
-                            <% } %></p>
+                <div class="row">
+                    <div class='block_inline'>
+                        <span class="large_red">Email:</span>
+                    </div>
 
-                        <p>Email: <% if(email) { %><b><%= email %></b>
-                            <% } %></p>
+                    <div class='block_inline'>
+                        <% if(email) { %><b><%= email %></b>
+                        <% } %>
+                    </div>
+                </div>
 
-                        <p>User Type: <% if(type) { %><b><%= type %></b>
-                            <% } %></p>
-                    </td>
+                <div class="row">
+                    <div class='block_inline'>
+                        <span class="large_red">User Type:</span>
+                    </div>
 
-                </tr>
-            </table>
+                    <div class='block_inline'>
+                        <% if(type) { %><b><%= type %></b>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
 
-            <p>&nbsp;</p>
+            <br>
+            <input class="profile_btn" value="Edit">
+            
+            <input class="profile_btn" value="Reset PW">
+
+            <br>
+            <br>
         </div>
-    </div>
-
-    <div id="footer">
-        <p id="footer_time" style="text-align: center"></p><script>
-        document.getElementById("footer_time").innerHTML = Date();
-    </script>
-
-        <p></p>
     </div>
 </div>
 </body>

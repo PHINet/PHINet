@@ -6,92 +6,92 @@
     <meta content="website keywords, website keywords" name="keywords">
     <meta content="text/html; charset=utf-8" http-equiv="content-type">
     <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
-    type='text/css'>
+          type='text/css'>
     <link href="public/static/bootstrap/css/style.css" rel="stylesheet" type=
-    "text/css">
+            "text/css">
 </head>
 
 <body>
-    <div id="main">
-        <div id="header">
-            <div id="logo">
-                <h1>PHINet</h1>
-            </div>
-
-            <div class="loginArea">
-                <% if(user) { %><%= user %> | <a href="/logout">logout</a>
-                <% } else { %> <a href="/login">login</a> | <a href=
-                "/signup">signup</a> <% } %>
-            </div>
-
-            <div id="menubar">
-                <ul id="menu">
-
-                    <li>
-                        <a href="/">Home</a>
-                    </li>
-
-                    <li>
-                        <a href="/document">Documentation</a>
-                    </li>
-
-                    <li>
-                        <a href="/test">Test</a>
-                    </li><% if(user) { %>
-
-                    <li>
-                        <a href="/profile">Profile</a>
-                    </li>
-
-                    <li>
-                        <a href="/viewdata">Data</a>
-                    </li>
-                    <% } %>
-
-                    <li>
-                        <a href="/contact">Contact</a>
-                    </li><!--  <li><a href="/profile">Profile</a></li>-->
-                </ul>
-            </div>
+<div id="main">
+    <div id="header">
+        <div id="logo">
+            <a href="/"><h1>PHINet</h1></a>
         </div>
 
-        <div id="site_content">
-            <div id="sidebar_container"></div>
-
-            <div id="content">
-
-                <h1>Login</h1>
-
-                <p>&nbsp;</p>
-
-                <form action="/loginAction" method="post">
-                    <div class="form_settings">
-                        <p><span>User Name</span> <input class="contact" name=
-                        "user_name" type="text" value=""></p>
-
-                        <p><span>Password</span><input class="contact" name=
-                        "user_password" type="password" value=
-                        ""></p><% if(error) { %>
-
-                        <p class="error"><%= error %></p><% } %>
-
-                        <p style="padding-top: 15px">
-                        <span>&nbsp;</span><input class="submit" name=
-                        "contact_submitted" type="submit" value="submit"></p>
-                    </div>
-                </form>
-
-                <p>&nbsp;</p>
-            </div>
+        <div class="loginArea">
+            <% if(user) { %><%= user %>| <a href="/logout">logout</a>
+            <% } else { %> <a href="/login">login</a> | <a href=
+                                                                   "/signup">signup</a> <% } %>
         </div>
 
-        <div id="footer">
-            <p id="footer_time" style="text-align: center"></p><script>
-    document.getElementById("footer_time").innerHTML = Date();
-            </script>
+        <div id="menubar">
+            <ul id="menu">
+                <li>
+                    <a href="/">Home</a>
+                </li>
 
-            <p></p>
+                <li>
+                    <a href="/faq">FAQ</a>
+                </li>
+
+                <li>
+                    <a href="/test">Test</a>
+                </li><% if(user) { %>
+
+                <li>
+                    <a href="/profile">Profile</a>
+                </li>
+
+                <li>
+                    <a href="/viewdata">Data</a>
+                </li><% } %>
+            </ul>
         </div>
     </div>
+
+    <div id="site_content">
+        <div id="sidebar_container"></div>
+
+        <div id="content">
+            <h1>Login</h1>
+            <hr>
+            <br>
+
+            <form action="/loginAction" method="post">
+                <div class="form_settings">
+                    <div class='well'>
+                        <div class="row">
+                            <div class='block_inline'>
+                               <span> User Name</span>
+                            </div>
+
+                            <div class='block_inline'>
+                                <input class="contact" name="user_name"
+                                       type="text" value="">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='block_inline'>
+                               <span> Password</span>
+                            </div>
+
+                            <div class='block_inline'>
+                                <input class="contact" name="user_password"
+                                       type="password" value="">
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <input class="submit" name=
+                            "contact_submitted" type="submit" value="submit">
+                </div>
+            </form><% if(error) { %>
+
+            <p class="error"><%= error %></p><% } else {%><br>
+            <% } %>
+        </div>
+    </div>
+</div>
 </body>
 </html>

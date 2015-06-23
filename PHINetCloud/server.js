@@ -117,33 +117,12 @@ app.get('/logout', function(req, res) {
 });
 
 /**
- * Handles documentation page
+ * Handles FAQ page
  */
-app.get('/document', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/document.html', 'utf-8', function(err, content) {
+app.get('/faq', function (req, res) {
+    fs.readFile(__dirname + '/public/templates/faq.html', 'utf-8', function(err, content) {
         if (err) {
-            console.log("Error serving document.html: " + err);
-        } else {
-            var renderedHtml;
-
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
-            } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
-
-            res.send(renderedHtml);
-        }
-    });
-});
-
-/**
- * Handles contact page
- */
-app.get('/contact', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/contact.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving contact.html: " + err);
+            console.log("Error serving faq.html: " + err);
         } else {
             var renderedHtml;
 
@@ -175,8 +154,18 @@ app.get('/profile', function (req, res) {
 
                     // TODO - perform more sophisticated validation
 
-                    var renderedHtml = ejs.render(content, {user: req.cookies.user, email: queryResult.getEmail(),
-                                                                type: queryResult.getEntityType()});
+                    var displayedEmail;
+                    if (queryResult.getEmail() === StringConst.NULL_FIELD) {
+                        displayedEmail = "you didn't enter one"
+                    } else {
+                        displayedEmail = queryResult.getEmail();
+                    }
+
+                    // capitalize the first letter
+                    var displayedPatientType = queryResult.getEntityType().charAt(0) + queryResult.getEntityType().slice(1).toLocaleLowerCase();
+
+                    var renderedHtml = ejs.render(content, {user: req.cookies.user, email: displayedEmail,
+                                                                type: displayedPatientType});
 
                     res.send(renderedHtml);
                 });

@@ -160,7 +160,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * @param data data object to be entered
+     * @param data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addPITData(PITEntry data) {
@@ -191,7 +191,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * @param data data object to be entered
+     * @param data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addCSData(CSEntry data) {
@@ -221,7 +221,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * @param data data object to be entered
+     * @param data object to be entered
      * @return true if data was successfully entered into DB, false otherwise
      */
     public boolean addFIBData(FIBEntry data) {

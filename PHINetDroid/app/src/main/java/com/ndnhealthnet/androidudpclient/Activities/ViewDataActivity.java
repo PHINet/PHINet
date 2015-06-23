@@ -34,9 +34,6 @@ import java.util.ArrayList;
 
 /**
  * Activity deals specifically with interacting with user's own data.
- *
- * Uses include
- * 1. viewing patient data
  */
 public class ViewDataActivity extends Activity {
 
@@ -70,7 +67,7 @@ public class ViewDataActivity extends Activity {
         analyticsResultText = (TextView) findViewById(R.id.analyticsResultTextView);
 
         analyticsWait = (ProgressBar) findViewById(R.id.analyticsProgressBar);
-        analyticsWait.setVisibility(View.GONE); // node analytics requested yet; hide it
+        analyticsWait.setVisibility(View.GONE); // node analytics not requested yet; hide it
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID);  // display username on screen
@@ -177,7 +174,7 @@ public class ViewDataActivity extends Activity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                // update chosen task; if "Select" is chosen in dialog, task will be invoked
+                // update chosen task; then if "Select" is chosen in dialog, this task will be invoked
                 mostRecentlySelectedTask = analyticTasks.get(position);
             }
 
@@ -215,7 +212,7 @@ public class ViewDataActivity extends Activity {
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
                     new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                            .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                            .execute(interest.wireEncode().getImmutableArray()); // send Interest now
 
                     // store received packet in database for further review
                     Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -227,7 +224,7 @@ public class ViewDataActivity extends Activity {
                     new Thread(new Runnable() {
                         public void run() {
 
-                            int maxLoopCount = 8; // check for SLEEP_TIME*8 = 2 second (somewhat arbitrary)
+                            int maxLoopCount = 12; // check for SLEEP_TIME*12 = 3 seconds (somewhat arbitrary)
                             int loopCount = 0;
 
                             CSEntry analyticsResult = null;

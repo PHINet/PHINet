@@ -34,7 +34,7 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
             clientSocket.send(sendPacket);
 
             /**
-             * if we've just sent a packet, method must listen for incoming packet; otherwise
+             * if we've just sent a packet, we must listen for incoming packet; otherwise
              * we may not be able to detect incoming, requested packets from the server
              *
              * listen in new thread for 2 seconds (arbitrarily chosen)

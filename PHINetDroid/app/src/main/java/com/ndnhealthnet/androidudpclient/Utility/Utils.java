@@ -66,7 +66,7 @@ public class Utils {
      * Code from stackoverflow user umair.ali @ http://stackoverflow.com/users/1334114/umair-ali
      *
      * Called to retrieve required value from shared preferences, identified by given key.
-     * Default value will be returned of no value found or error occurred.
+     * Default value will be returned if no value found or if error occurred.
      * 
      * @param context Context of caller activity
      * @param key Key to find value against
@@ -330,20 +330,16 @@ public class Utils {
      */
     public static boolean isValidIP(String ip) {
 
-        if (ip == null) {
-            return false;
-        } else {
-            boolean validIP;
+        boolean validIP;
 
-            try {
-                InetAddress.getByName(ip);
-                validIP = true;
-            } catch (Exception e) {
-                validIP = false;
-            }
-
-            return validIP;
+        try {
+            InetAddress.getByName(ip);
+            validIP = true;
+        } catch (Exception e) {
+            validIP = false;
         }
+
+        return validIP;
     }
 
     /**
@@ -364,9 +360,7 @@ public class Utils {
         // TIME_STRING FORMAT: "yyyy-MM-ddTHH.mm.ss.SSS||yyyy-MM-ddTHH.mm.ss.SSS"
         // the former is start interval, latter is end interval
 
-        boolean beforeStartDate = false;
-        boolean afterEndDate = false;
-
+        boolean beforeStartDate, afterEndDate;
         Date startDate, endDate, dataDate;
 
         try {
@@ -468,11 +462,7 @@ public class Utils {
 
         // NOTE: keep username validation separate from password; they may change
 
-        if (userID != null) {
-            return userID.matches("^[a-zA-Z0-9._]{3,15}$");
-        } else {
-            return false;
-        }
+        return userID != null && userID.matches("^[a-zA-Z0-9._]{3,15}$");
       }
 
     /**
@@ -485,11 +475,7 @@ public class Utils {
      */
     public static boolean isValidPassword(String password) {
 
-        if (password != null) {
-            return password.matches("^[a-zA-Z0-9._]{3,15}$");
-        } else {
-            return false;
-        }
+        return password != null && password.matches("^[a-zA-Z0-9._]{3,15}$");
     }
 
     /**
@@ -502,11 +488,7 @@ public class Utils {
      */
     public static boolean isValidSensorName(String name) {
 
-        if (name != null) {
-            return name.matches("^[a-zA-Z0-9._]{3,20}$");
-        } else {
-            return false;
-        }
+        return name != null && name.matches("^[a-zA-Z0-9._]{3,20}$");
     }
 
     /**

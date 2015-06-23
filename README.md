@@ -23,7 +23,6 @@ GENERAL
 - REQUIRED: improve docs (for both website and wiki)
 
 CLIENT
-- REQUIRED: assess memory usage
 - DESIRED: modify/user all NDN packet components
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
@@ -31,9 +30,6 @@ CLIENT
 - DESIRED: allow interval-selection in PacketListActvity
 
 WEB
-- REQUIRED: improve handling in server.js
-- REQUIRED: view patient data (if applicable)
-- REQUIRED: edit profile data
 - DESIRED: improve layout
 - DESIRED: basic testing page (to test with device)
 - DESIRED: modify/use all NDN packet components
