@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Class handles incoming UDP packets.
@@ -112,9 +113,11 @@ public class UDPListener extends Thread {
         //decode the parsing characters "||"
         String [] nameComponent = interest.getName().toUri().replace("%7C%7C", "||").split("/");
 
+        System.out.println("interest name component: " + Arrays.toString(nameComponent));
+
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timeString/processID"
-        // the indexes used are position + 1 (+1 is due to string properties)
+        // the indexes used are position + 1 (due to string properties)
         String userID = nameComponent[2].trim();
         String sensorID = nameComponent[3].trim();
         String timeString = nameComponent[4].trim();
@@ -160,6 +163,8 @@ public class UDPListener extends Thread {
 
             String dataPayload = "";
 
+            // TODO - better handle the way in which CS data is retrieved
+
             for (int i = 0; i < csDATA.size(); i++) {
 
                 // only reply to interest with data that matches date && sensorID request
@@ -172,7 +177,7 @@ public class UDPListener extends Thread {
                 }
             }
 
-            // if valid data was found, now send Data packet
+            // if valid data (non-empty string) was found, send Data packet now
             if (!dataPayload.equals("")) {
 
                 Name packetName = JNDNUtils.createName(userID, sensorID, timeString, processID);
@@ -184,7 +189,6 @@ public class UDPListener extends Thread {
                 // place data into Cache that is used to Satisfy the Interest
                 DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
 
-
                 // reply to interest with DATA from cache
                 new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
 
@@ -194,6 +198,8 @@ public class UDPListener extends Thread {
         }
         // second, since no data found in CS, check PIT to see if an Interest was already sent
         else {
+
+            // TODO - rework this initial if-statement
 
             // no Interests have been sent for this data; do so now
             if (DBSingleton.getInstance(context).getDB().getGeneralPITData(userID) == null) {
@@ -213,21 +219,15 @@ public class UDPListener extends Thread {
 
                     for (int i = 0; i < allFIBData.size(); i++) {
 
-                        // don't send data to same node that requested; check first
-                        if (!allFIBData.get(i).getIpAddr().equals(packetIP)
-                                && !allFIBData.get(i).getIpAddr().equals(ConstVar.NULL_FIELD)) {
+                        Name packetName = JNDNUtils.createName(userID, sensorID,
+                                timeString, processID);
+                        Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                            Name packetName = JNDNUtils.createName(userID, sensorID,
-                                    timeString, processID);
-                            Interest interest = JNDNUtils.createInterestPacket(packetName);
+                        new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
+                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
 
-
-                            new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                                    .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
-
-                            // store sent packet in database for further review
-                            Utils.storeInterestPacket(context, interest);
-                        }
+                        // store sent packet in database for further review
+                        Utils.storeInterestPacket(context, interest);
                     }
                 }
             }
@@ -298,15 +298,15 @@ public class UDPListener extends Thread {
 
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timeString/processID"
-        // the indexes used are position + 1 (+1 is due to string properties)
+        // the indexes used are position + 1 (due to string properties)
         String userID = nameComponent[2].trim();
         String sensorID = nameComponent[3].trim();
         String timeString = nameComponent[4].trim();
         String processID = nameComponent[5].trim();
 
-        // first, determine who wants the data
+        // first, determine who wants the data (if anyone)
         ArrayList<PITEntry> allValidPITEntries = DBSingleton.getInstance(context).getDB()
-                .getGeneralPITData(userID);
+                .getPITEntryGivenPID(userID, processID);
 
         // data was requested; handle it now
         if (allValidPITEntries != null && allValidPITEntries.size() > 0) {
@@ -315,22 +315,22 @@ public class UDPListener extends Thread {
             boolean requestFoundWithinInterval = false;
             for (int i = 0; i < allValidPITEntries.size(); i++) {
 
-                // must match time, processID, and userID
-                if ((Utils.isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), timeString)
-                        || allValidPITEntries.get(i).getTimeString().equals(timeString))
-                        && allValidPITEntries.get(i).getProcessID().equals(processID)
-                        && allValidPITEntries.get(i).getUserID().equals(userID)) {
+                // must match time (already matched userID and processID)
+                if (Utils.isValidForTimeInterval(allValidPITEntries.get(i).getTimeString(), timeString)
+                        || allValidPITEntries.get(i).getTimeString().equals(timeString)) {
 
                     requestFoundWithinInterval = true;
                     break;
                 }
             }
 
+            // Data was requested; use ProcessID to direct it elsewhere
             if (requestFoundWithinInterval) {
                 if (processID.equals(ConstVar.DATA_CACHE)) {
 
                     handleCacheData(userID, sensorID, timeString, processID,
                             dataContents, allValidPITEntries);
+
                 } else if (processID.equals(ConstVar.LOGIN_RESULT)
                         || processID.equals(ConstVar.REGISTER_RESULT)
                         || Utils.isAnalyticProcessID(processID)) {
@@ -370,6 +370,8 @@ public class UDPListener extends Thread {
 
         // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
 
+        // TODO - this update is incorrect; provide a more precise query
+
         // if data exists in cache, just update
         if (DBSingleton.getInstance(context).getDB().getGeneralCSData(userID) != null) {
 
@@ -389,7 +391,6 @@ public class UDPListener extends Thread {
 
             // another device requested the data, send reply as Datapacket
             if (!allValidPITEntries.get(i).getIpAddr().equals(MainActivity.deviceIP))  {
-
 
                 Name packetName = JNDNUtils.createName(userID, sensorID, timeString,
                         processID);

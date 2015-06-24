@@ -152,7 +152,7 @@ public class PatientActivity extends Activity {
      */
     private void requestHelper() {
 
-        // performs a network-capabilities
+        // used to perform a network-capabilities check
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
@@ -160,6 +160,8 @@ public class PatientActivity extends Activity {
 
             ArrayList<PITEntry> pitEntries = DBSingleton.getInstance(getApplicationContext())
                     .getDB().getGeneralPITData(patientUserID);
+
+            // TODO - rework this logic
 
             // place entry into PIT for self; this is because if a request is
             // received for same data we request, we won't send another, identical Interest
@@ -177,7 +179,6 @@ public class PatientActivity extends Activity {
                 //  TODO - (the request interval should not be changed but rather sent time)
 
                 /*for (int i = 0; i < pitEntries.size(); i++) {
-
                     pitEntries.get(i).setTimeString(ConstVar.CURRENT_TIME);
                     DBSingleton.getInstance(getApplicationContext()).getDB().updatePITData(pitEntries.get(i));
                 }*/
@@ -198,7 +199,7 @@ public class PatientActivity extends Activity {
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                         new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
 
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);

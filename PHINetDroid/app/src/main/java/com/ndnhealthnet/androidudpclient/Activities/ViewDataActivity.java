@@ -67,7 +67,7 @@ public class ViewDataActivity extends Activity {
         analyticsResultText = (TextView) findViewById(R.id.analyticsResultTextView);
 
         analyticsWait = (ProgressBar) findViewById(R.id.analyticsProgressBar);
-        analyticsWait.setVisibility(View.GONE); // node analytics not requested yet; hide it
+        analyticsWait.setVisibility(View.GONE); // analytics not requested yet; hide it
 
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID);  // display username on screen
@@ -79,7 +79,7 @@ public class ViewDataActivity extends Activity {
         dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
 
         ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
-        ArrayList<String> sensors = new ArrayList<>();
+        ArrayList<String> sensors = new ArrayList<>(); // used to store all sensor names; then displayed to user
 
         if (myData != null) {
             // get all sensors in order to allow user to choose
@@ -226,34 +226,26 @@ public class ViewDataActivity extends Activity {
 
                             int maxLoopCount = 12; // check for SLEEP_TIME*12 = 3 seconds (somewhat arbitrary)
                             int loopCount = 0;
-
-                            CSEntry analyticsResult = null;
+                            CSEntry candidateData = null;
 
                             while (loopCount++ < maxLoopCount) {
 
-                                ArrayList<CSEntry> candidateData = DBSingleton
-                                        .getInstance(getApplicationContext()).getDB().getGeneralCSData(myUserID);
+                                candidateData = DBSingleton
+                                        .getInstance(getApplicationContext()).getDB()
+                                        .getSpecificCSData(myUserID, chosenTime, processID);
 
-                                for (int i = 0; i < candidateData.size(); i++) {
+                                if (candidateData != null
+                                        && Utils.isValidFreshnessPeriod(
+                                        candidateData.getFreshnessPeriod(),
+                                        candidateData.getTimeString())) {
 
-                                    if (candidateData.get(i).getProcessID().equals(processID)
-                                            && candidateData.get(i).getTimeString().equals(chosenTime)
-                                            && Utils.isValidFreshnessPeriod(candidateData.get(i).getFreshnessPeriod(),
-                                            candidateData.get(i).getTimeString())) {
-
-                                        analyticsResult = candidateData.get(i);
-                                        break; // result found; break from
-                                    }
-                                }
-
-                                if (analyticsResult != null) {
-                                    break; // the expected result was found; break from loop now
+                                    break; // result found; break from
                                 }
 
                                 SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
                             }
 
-                            final CSEntry analyticsResultFinal = analyticsResult;
+                            final CSEntry analyticsResultFinal = candidateData;
 
                             ViewDataActivity.this.runOnUiThread(new Runnable() {
                                 @Override

@@ -28,8 +28,6 @@ import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 
-import java.util.ArrayList;
-
 /**
  * Enables user to join to PHINet; request is sent to server for validation, notification sent back.
  */
@@ -127,7 +125,7 @@ public class SignupActivity extends Activity {
                             // it merely initiates the signup process
 
                         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
 
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -182,74 +180,58 @@ public class SignupActivity extends Activity {
                 while (loopCount++ < maxLoopCount) {
 
                     // check to see if server has sent an Interest asking for client's credentials
-                    ArrayList<PITEntry> pitRows = DBSingleton.getInstance(getApplicationContext())
-                            .getDB().getGeneralPITData(userID);
+                    PITEntry pitEntry = DBSingleton.getInstance(getApplicationContext())
+                            .getDB().getSpecificPITEntry(userID, packetTime, ConstVar.REGISTER_CREDENTIAL_DATA);
 
-                    // valid Interest potentially found
-                    if (pitRows != null) {
+                    // valid interest found
+                    if (pitEntry != null) {
 
-                        PITEntry interestFound = null;
-                        for (int i = 0; i < pitRows.size(); i++) {
+                        // reply with credentials to satisfy the interest
+                            // syntax: "userID,password,email"
+                        String credentialContent = userID + "," + password + "," + email;
 
-                            // search for Interest with PID CREDENTIAL_REQUEST && request for this user
-                            if (pitRows.get(i).getProcessID().equals(ConstVar.REGISTER_CREDENTIAL_DATA)
-                                    && pitRows.get(i).getUserID().equals(userID)) {
+                        CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
+                                ConstVar.REGISTER_CREDENTIAL_DATA, pitEntry.getTimeString(),
+                                userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
-                                interestFound = pitRows.get(i);
-                                break; // valid interest found; break from loop
+                        Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
+                                pitEntry.getTimeString(), ConstVar.REGISTER_CREDENTIAL_DATA);
+
+                        Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
+
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
+                                .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+
+                        // delete Interest requesting signup credentials from PIT; it has been satisfied
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .deletePITEntry(pitEntry.getUserID(), pitEntry.getTimeString(),
+                                        pitEntry.getIpAddr());
+
+                        // place packet into CACHE
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .addCSData(credentialData);
+
+                        // delete initial Interest placed in PIT to initiate signup
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
+
+                        // store packet in database for further review
+                        Utils.storeDataPacket(getApplicationContext(), data);
+
+                        SignupActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                new Handler().postDelayed(new Runnable() {
+                                    public void run() {
+                                        // wait 1 second for server to process results before checking result
+                                        credentialQueryHandler(userID, password);
+                                    }
+                                }, 1000); // chosen somewhat arbitrarily
                             }
-                        }
+                        });
 
-                        // server has replied with Interest requesting credentials
-                        if (interestFound != null) {
-
-                            // reply with credentials to satisfy the interest
-                                // syntax: "userID,password,email"
-                            String credentialContent = userID + "," + password + "," + email;
-
-                            CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
-                                    ConstVar.REGISTER_CREDENTIAL_DATA, interestFound.getTimeString(),
-                                    userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
-
-                            Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                                    interestFound.getTimeString(), ConstVar.REGISTER_CREDENTIAL_DATA);
-
-                            Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
-
-                            new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
-                                    .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
-
-                            // delete Interest requesting signup credentials from PIT; it has been satisfied
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .deletePITEntry(interestFound.getUserID(),
-                                            interestFound.getTimeString(), interestFound.getIpAddr());
-
-                            // place packet into CACHE
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .addCSData(credentialData);
-
-                            // delete initial Interest placed in PIT to initiate signup
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
-
-                            // store packet in database for further review
-                            Utils.storeDataPacket(getApplicationContext(), data);
-
-                            SignupActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    new Handler().postDelayed(new Runnable() {
-                                        public void run() {
-                                            // wait 1 second for server to process results before checking result
-                                            credentialQueryHandler(userID, password);
-                                        }
-                                    }, 1000); // chosen somewhat arbitrarily
-                                }
-                            });
-
-                            serverResponseFound = true;
-                            break; // result was found, break from loop
-                        }
+                        serverResponseFound = true;
+                        break; // result was found, break from loop
                     }
 
                     SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
@@ -274,7 +256,6 @@ public class SignupActivity extends Activity {
                         }
                     }
                 });
-
             }
 
         }).start();
@@ -308,7 +289,7 @@ public class SignupActivity extends Activity {
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
         new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
+                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -340,36 +321,21 @@ public class SignupActivity extends Activity {
                 while (loopCount++ < maxLoopCount) {
 
                     // query the ContentStore for the signup result
-                    ArrayList<CSEntry> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
-                            .getGeneralCSData(ConstVar.SERVER_ID);
+                    CSEntry csEntry = DBSingleton.getInstance(getApplicationContext()).getDB()
+                            .getSpecificCSData(ConstVar.SERVER_ID, packetTime, ConstVar.REGISTER_RESULT);
 
-                    if (potentiallyValidRows != null) {
-
-                        CSEntry signupResult = null;
-
-                        /**
-                         * Here userID is stored in sensorID position. We needed to send userID
-                         * but had no place to do so and sensorID would have otherwise been null.
-                         */
-
-                        for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                            if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.REGISTER_RESULT)
-                                    && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
-
-                                signupResult = potentiallyValidRows.get(i);
-                            }
-                        }
+                    if (csEntry != null) {
 
                         // signup response yields success
-                        if (signupResult != null && !signupResult.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
+                        if (!csEntry.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
 
                             // on signup, server replies with FIB entries - place into FIB now
-                            Utils.insertServerFIBEntries(signupResult.getDataPayload(),
-                                    signupResult.getTimeString(), getApplicationContext());
+                            Utils.insertServerFIBEntries(csEntry.getDataPayload(),
+                                    csEntry.getTimeString(), getApplicationContext());
 
                             // after reading entry, delete it (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
-                                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
+                                    .getDB().deleteCSEntry(csEntry.getUserID(), csEntry.getTimeString());
 
                             // signup was successful; store values now
                             String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -381,11 +347,11 @@ public class SignupActivity extends Activity {
 
                             break; // break from loop, response found
 
-                        } else if (signupResult != null && signupResult.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
+                        } else if (csEntry.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
 
                             // after reading entry, delete it (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
-                                    .getDB().deleteCSEntry(signupResult.getUserID(), signupResult.getTimeString());
+                                    .getDB().deleteCSEntry(csEntry.getUserID(), csEntry.getTimeString());
 
                             serverResponseFound = true; // response found
                             accountMayExist = true; // result failure; account does exist

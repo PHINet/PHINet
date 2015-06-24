@@ -28,8 +28,6 @@ import net.named_data.jndn.Data;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 
-import java.util.ArrayList;
-
 /**
  * Enables user to login to PHINet; request is sent to server for validation, notification sent back.
  */
@@ -168,74 +166,58 @@ public class LoginActivity extends Activity {
                 while (loopCount++ < maxLoopCount) {
 
                     // check to see if server has sent an Interest asking for client's credentials
-                    ArrayList<PITEntry> pitRows = DBSingleton.getInstance(getApplicationContext())
-                            .getDB().getGeneralPITData(userID);
+                    PITEntry pitEntry = DBSingleton.getInstance(getApplicationContext())
+                            .getDB().getSpecificPITEntry(userID, packetTime, ConstVar.LOGIN_CREDENTIAL_DATA);
 
-                    // valid Interest potentially found
-                    if (pitRows != null) {
+                    // valid Interest found
+                    if (pitEntry != null) {
 
-                        PITEntry interestFound = null;
-                        for (int i = 0; i < pitRows.size(); i++) {
+                        // reply with credentials to satisfy the interest
+                        // syntax: "userID,password"
+                        String credentialContent = userID + "," + password;
 
-                            // search for Interest with PID of  CREDENTIAL_REQUEST && request for this client
-                            if (pitRows.get(i).getProcessID().equals(ConstVar.LOGIN_CREDENTIAL_DATA)
-                                    && pitRows.get(i).getUserID().equals(userID)) {
+                        CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
+                                ConstVar.REGISTER_CREDENTIAL_DATA, pitEntry.getTimeString(),
+                                userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
-                                interestFound = pitRows.get(i);
-                                break; // valid interest found; break from loop
+                        Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
+                                pitEntry.getTimeString(), ConstVar.LOGIN_CREDENTIAL_DATA);
+
+                        Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
+
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
+                                .execute(data.wireEncode().getImmutableArray()); // send credentials now
+
+                        // delete initial Interest placed in PIT to initiate login
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
+
+                        // delete Interest requesting login credentials from PIT; it has been satisfied
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .deletePITEntry(pitEntry.getUserID(), pitEntry.getTimeString(),
+                                        pitEntry.getIpAddr());
+
+                        // place credential-packet into CACHE
+                        DBSingleton.getInstance(getApplicationContext()).getDB()
+                                .addCSData(credentialData);
+
+                        // store packet in database for further review
+                        Utils.storeDataPacket(getApplicationContext(), data);
+
+                        LoginActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                new Handler().postDelayed(new Runnable() {
+                                    public void run() {
+                                        // wait .5 second for server to process results before checking result
+                                        credentialQueryHandler(userID, password);
+                                    }
+                                }, 500); // chosen somewhat arbitrarily
                             }
-                        }
+                        });
 
-                        // server has replied with Interest requesting credentials
-                        if (interestFound != null) {
-
-                            // reply with credentials to satisfy the interest
-                                  // syntax: "userID,password"
-                            String credentialContent = userID + "," + password;
-
-                            CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
-                                    ConstVar.REGISTER_CREDENTIAL_DATA, interestFound.getTimeString(),
-                                    userID, credentialContent, ConstVar.DEFAULT_FRESHNESS_PERIOD);
-
-                            Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
-                                    interestFound.getTimeString(), ConstVar.LOGIN_CREDENTIAL_DATA);
-
-                            Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
-
-                            new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
-                                    .execute(data.wireEncode().getImmutableArray()); // send credentials now
-
-                            // delete initial Interest placed in PIT to initiate login
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
-
-                            // delete Interest requesting login credentials from PIT; it has been satisfied
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .deletePITEntry(interestFound.getUserID(),
-                                            interestFound.getTimeString(), interestFound.getIpAddr());
-
-                            // place credential-packet into CACHE
-                            DBSingleton.getInstance(getApplicationContext()).getDB()
-                                    .addCSData(credentialData);
-
-                            // store packet in database for further review
-                            Utils.storeDataPacket(getApplicationContext(), data);
-
-                            LoginActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    new Handler().postDelayed(new Runnable() {
-                                        public void run() {
-                                            // wait .5 second for server to process results before checking result
-                                            credentialQueryHandler(userID, password);
-                                        }
-                                    }, 500); // chosen somewhat arbitrarily
-                                }
-                            });
-
-                            serverResponseFound = true;
-                            break; // result was found, break from loop
-                        }
+                        serverResponseFound = true;
+                        break; // result was found, break from loop
                     }
 
                     SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
@@ -322,37 +304,20 @@ public class LoginActivity extends Activity {
                 while (loopCount++ < maxLoopCount) {
 
                     // query the ContentStore for the login result
-                    ArrayList<CSEntry> potentiallyValidRows = DBSingleton.getInstance(getApplicationContext()).getDB()
-                            .getGeneralCSData(ConstVar.SERVER_ID);
+                    CSEntry csEntry = DBSingleton.getInstance(getApplicationContext()).getDB()
+                            .getSpecificCSData(ConstVar.SERVER_ID, packetTime, ConstVar.LOGIN_RESULT);
 
-                    if (potentiallyValidRows != null) {
-
-                        CSEntry loginResult = null;
-
-                        /**
-                         * Here userID is stored in sensorID position. We needed to send userID
-                         * but had no place to do so and sensorID would have otherwise been null.
-                         */
-
-                        for (int i = 0; i < potentiallyValidRows.size(); i++) {
-                            // check that ProcessID is LOGIN_RESULT and packet is for this userID
-                            if (potentiallyValidRows.get(i).getProcessID().equals(ConstVar.LOGIN_RESULT)
-                                    && potentiallyValidRows.get(i).getSensorID().equals(userID)) {
-
-                                loginResult = potentiallyValidRows.get(i);
-                            }
-                        }
-
-                        if (loginResult != null && !loginResult.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
+                    if (csEntry != null) {
+                        if (!csEntry.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
                             // on login, server replies with FIB entries - place into FIB now
-                            Utils.insertServerFIBEntries(loginResult.getDataPayload(),
-                                    loginResult.getTimeString(), getApplicationContext());
+                            Utils.insertServerFIBEntries(csEntry.getDataPayload(),
+                                    csEntry.getTimeString(), getApplicationContext());
 
                             // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
                                     .getDB().deletePITEntry(ConstVar.SERVER_ID,
-                                    loginResult.getTimeString(), ConstVar.SERVER_IP);
+                                    csEntry.getTimeString(), ConstVar.SERVER_IP);
 
                             // login was successful; store values now
                             String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -364,12 +329,12 @@ public class LoginActivity extends Activity {
 
                             break; // break from loop, response found
 
-                        } else if (loginResult != null && loginResult.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
+                        } else if (csEntry.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
                             // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
                                     .getDB().deletePITEntry(ConstVar.SERVER_ID,
-                                    loginResult.getTimeString(), ConstVar.SERVER_IP);
+                                    csEntry.getTimeString(), ConstVar.SERVER_IP);
 
                             serverResponseFound = true; // response found
                             accountMayExist = true; // result failure; account does exist
