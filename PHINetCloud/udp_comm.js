@@ -22,6 +22,63 @@ var Name = require('./ndn-js/name.js').Name;
 var recentLoginValidations = []; // TODO - replace this temporary data structure
 var recentRegisterValidations = []; // TODO - replace this temporary data structure
 
+var rateLimitDictionary = {};
+
+// chosen somewhat arbitrarily, is hopefully large enough to server many legitimate users with private IP
+var MAX_HITS_PER_SECOND = 100;
+var CLEAN_RATE_DICT_INTERVAL = 1000 * 60 * 60; // chosen somewhat arbitrarily
+
+// TODO - improve upon this naive rate-limiting
+
+/**
+ * Enforces that each IP gets a maximum of MAX_HITS_PER_SECOND packets processed each second.
+ * 
+ * @param userIP of user requesting page
+ * @return boolean regarding isRateLimit status of user's IP
+ */
+var isRateLimited = function (userIP) {
+
+    var currentSecond = parseInt(new Date().getTime() / 1000);
+
+    if (!rateLimitDictionary[userIP]) {
+        rateLimitDictionary[userIP] = [currentSecond, 1];
+
+        return false;
+    } else {
+
+        if (rateLimitDictionary[userIP][0] === currentSecond) {
+
+            if(rateLimitDictionary[userIP][1] > MAX_HITS_PER_SECOND) {
+                return true;
+            } else {
+                rateLimitDictionary[userIP][1] += 1;
+                return false;
+            }
+        } else {
+            rateLimitDictionary[userIP] = [currentSecond, 1];
+            return false;
+        }
+    }
+
+}
+
+/**
+ * Each CLEAN_RATE_DICT_INTERVAL we remove all entries that contain
+ * invalid times (ie past times that could not cause a rate limit).
+ */
+setInterval(
+    function() {
+        var currentSecond = parseInt(new Date().getTime() / 1000);
+
+        for (var key in rateLimitDictionary) {
+            if (rateLimitDictionary[key][0] !== currentSecond) {
+                delete rateLimitDictionary[key];
+            }
+        }
+
+    }, CLEAN_RATE_DICT_INTERVAL
+); // invoke every interval
+
 /**
  * Returns object that handles majority of UDP communication. References to the core
  * NDN databases are passed to the module so that relevant queries can be performed.
@@ -52,30 +109,32 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             socket.bind(NDN_SENSOR_NET_PORT);
 			socket.on('message', function(msg, rinfo) {
 
+                if (!isRateLimited(rinfo.address)) {
 
-                console.log("message found: " + msg);
+                    console.log("message found: " + msg);
 
-                try {
-                    // attempt to create both Interest and Data packet; only one should be valid
-                    var interest = ndnjs_utils.decodeInterest(msg);
-                    var data = ndnjs_utils.decodeData(msg);
+                    try {
+                        // attempt to create both Interest and Data packet; only one should be valid
+                        var interest = ndnjs_utils.decodeInterest(msg);
+                        var data = ndnjs_utils.decodeData(msg);
 
-                    if (interest && !data) {
-                         console.log("interest packet found");
+                        if (interest && !data) {
+                             console.log("interest packet found");
 
-                        // Interest packet detected
-                        handleInterestPacket(interest, rinfo.address, rinfo.port);
-                    } else if (!interest && data) {
-                        console.log("data packet found");
+                            // Interest packet detected
+                            handleInterestPacket(interest, rinfo.address, rinfo.port);
+                        } else if (!interest && data) {
+                            console.log("data packet found");
 
-                        // Data packet detected
-                        handleDataPacket(data, rinfo.address);
-                    } else {
+                            // Data packet detected
+                            handleDataPacket(data, rinfo.address);
+                        } else {
 
-                        // unknown packet type; drop it
+                            // unknown packet type; drop it
+                        }
+                    } catch (e) {
+                        console.log("Something went wrong. Unable to parse packet. Error: " + e);
                     }
-                } catch (e) {
-                    console.log("Something went wrong. Unable to parse packet. Error: " + e);
                 }
 			});
 		},

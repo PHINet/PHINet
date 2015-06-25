@@ -195,10 +195,10 @@ public class MainActivity extends Activity {
                 while (true) {
 
                     ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                    NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                    NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
-                    // only attempt synch of wifi is connected
-                    if (mWifi.isConnected()) {
+                    // a network connection is required to synch
+                    if (netInfo != null) {
 
                         requestSynch(getApplicationContext());
                     }

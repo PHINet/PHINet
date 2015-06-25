@@ -154,9 +154,10 @@ public class PatientActivity extends Activity {
 
         // used to perform a network-capabilities check
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
-        if (mWifi.isConnected()) {
+        // network connection required
+        if (netInfo != null) {
 
             ArrayList<PITEntry> pitEntries = DBSingleton.getInstance(getApplicationContext())
                     .getDB().getGeneralPITData(patientUserID);
@@ -215,9 +216,9 @@ public class PatientActivity extends Activity {
                 }
             }
         } else {
-            // not connected to wifi
+            // not connected to network
             Toast toast = Toast.makeText(getApplicationContext(),
-                    "You must first connect to WiFi.", Toast.LENGTH_LONG);
+                    "Error: Network connection required.", Toast.LENGTH_LONG);
             toast.show();
         }
     }

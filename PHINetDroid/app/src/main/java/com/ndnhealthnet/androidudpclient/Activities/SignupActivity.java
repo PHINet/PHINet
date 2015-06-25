@@ -80,10 +80,10 @@ public class SignupActivity extends Activity {
             public void onClick(View v) {
                
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
-                // a wifi connection is required to signup
-                if (mWifi.isConnected()) {
+                // a network connection is required to signup
+                if (netInfo != null) {
 
                     /**
                      * Due to the nature of NDN, the client must first send signup Interest to
@@ -147,10 +147,10 @@ public class SignupActivity extends Activity {
                         toast.show();
                     }
                 }
-                // wifi connection invalid; notify user
+                // network connection invalid; notify user
                 else {
                     Toast toast = Toast.makeText(SignupActivity.this,
-                            "Error: WiFi connection is required.", Toast.LENGTH_LONG);
+                            "Error: Network connection is required.", Toast.LENGTH_LONG);
                     toast.show();
                 }
             }

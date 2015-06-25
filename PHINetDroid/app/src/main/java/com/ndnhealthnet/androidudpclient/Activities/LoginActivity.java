@@ -55,10 +55,10 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
 
                 ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
-                // a wifi connection is required to login
-                if (mWifi.isConnected()) {
+                // a network connection is required to login
+                if (netInfo != null) {
 
                     /**
                      * Due to the nature of NDN, the client must first send login Interest to
@@ -110,10 +110,10 @@ public class LoginActivity extends Activity {
                         toast.show();
                     }
                 }
-                // wifi connection invalid; notify user
+                // network connection invalid; notify user
                 else {
                     Toast toast = Toast.makeText(LoginActivity.this,
-                            "Error: WiFi connection required.", Toast.LENGTH_LONG);
+                            "Error: Network connection required.", Toast.LENGTH_LONG);
                     toast.show();
                 }
             }

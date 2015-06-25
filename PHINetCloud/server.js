@@ -34,26 +34,100 @@ app.set('port',  process.env.PORT || 3000);
 app.use(express.static(__dirname));
 app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
+
+var RATE_LIMIT_CODE = 429; // HTTP Code 429 is for rate-limits
+var rateLimitDictionary = {};
+
+// chosen somewhat arbitrarily, is hopefully large enough to server many legitimate users with private IP
+var MAX_HITS_PER_SECOND = 50; 
+var CLEAN_RATE_DICT_INTERVAL = 1000 * 60 * 60; // chosen somewhat arbitrarily
+
+// TODO - improve upon this naive rate-limiting
+
+/**
+ * Enforces that each IP recieves a maximum of MAX_HITS_PER_SECOND pages each second.
+ * 
+ * @param userIP of user requesting page
+ * @return boolean regarding isRateLimit status of user's IP
+ */
+var isRateLimited = function (userIP) {
+
+    var currentSecond = parseInt(new Date().getTime() / 1000);
+
+    if (!rateLimitDictionary[userIP]) {
+        rateLimitDictionary[userIP] = [currentSecond, 1];
+
+        return false;
+    } else {
+
+        if (rateLimitDictionary[userIP][0] === currentSecond) {
+
+            if(rateLimitDictionary[userIP][1] > MAX_HITS_PER_SECOND) {
+                return true;
+            } else {
+                rateLimitDictionary[userIP][1] += 1;
+                return false;
+            }
+        } else {
+            rateLimitDictionary[userIP] = [currentSecond, 1];
+            return false;
+        }
+    }
+
+}
+
+/**
+ * Each CLEAN_RATE_DICT_INTERVAL we remove all entries that contain
+ * invalid times (ie past times that could not cause a rate limit).
+ */
+setInterval(
+    function() {
+        var currentSecond = parseInt(new Date().getTime() / 1000);
+
+        for (var key in rateLimitDictionary) {
+            if (rateLimitDictionary[key][0] !== currentSecond) {
+                delete rateLimitDictionary[key];
+            }
+        }
+
+    }, CLEAN_RATE_DICT_INTERVAL
+); // invoke every interval
+
 /**
  * Handles main web page
  */
 app.get('/', function (req, res) {
 
-    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving index.html: " + err);
-        } else {
-            var renderedHtml;
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
+    if (!isRateLimited(ip)) {
+        fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving index.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
+                var renderedHtml;
 
-            res.send(renderedHtml);
-        }
-    });
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                } else {
+                    renderedHtml = ejs.render(content, {user: ""});
+                }
+
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
@@ -61,213 +135,345 @@ app.get('/', function (req, res) {
  */
 app.get('/login', function (req, res) {
 
-    fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving login.html: " + err);
-        } else {
-            var renderedHtml;
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+    if (!isRateLimited(ip)) {
+        fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving login.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: "", error:""});
-            }
+                var renderedHtml;
 
-            res.send(renderedHtml);
-        }
-    });
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+                } else {
+                    renderedHtml = ejs.render(content, {user: "", error:""});
+                }
+
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
  * Handles signup page
  */
 app.get('/signup', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving signup.html: " + err);
-        } else {
-            var renderedHtml;
 
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+        fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving signup.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: "", error:""});
-            }
+                var renderedHtml;
 
-            res.send(renderedHtml);
-        }
-    });
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
+                } else {
+                    renderedHtml = ejs.render(content, {user: "", error:""});
+                }
+
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
  * Handles logout request by clearing the login cookie.
  */
 app.get('/logout', function(req, res) {
-    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving index.html: " + err);
-        } else {
 
-            var renderedHtml = ejs.render(content, {user: "", error:""});
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-            res.clearCookie('user'); // user has logged out; clear the login cookie
-            res.send(renderedHtml);
-        }
-    });
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving index.html: " + err);
+            } else {
+
+                var renderedHtml = ejs.render(content, {user: "", error:""});
+
+                res.clearCookie('user'); // user has logged out; clear the login cookie
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
  * Handles FAQ page
  */
 app.get('/faq', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/faq.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving faq.html: " + err);
-        } else {
-            var renderedHtml;
 
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/faq.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving faq.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
+                var renderedHtml;
 
-            res.send(renderedHtml);
-        }
-    });
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                } else {
+                    renderedHtml = ejs.render(content, {user: ""});
+                }
+
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
  * Handles profile page
  */
 app.get('/profile', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/profile.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving profile.html: " + err);
-        } else {
 
-            // verify that user-login cookie exists before displaying profile page
-            if (req.cookies && req.cookies.user) {
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-                // now, query database as second level of validation
-                LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/profile.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving profile.html: " + err);
+            } else {
 
-                    // TODO - perform more sophisticated validation
+                // verify that user-login cookie exists before displaying profile page
+                if (req.cookies && req.cookies.user) {
 
-                    var displayedEmail;
-                    if (queryResult.getEmail() === StringConst.NULL_FIELD) {
-                        displayedEmail = "you didn't enter one"
-                    } else {
-                        displayedEmail = queryResult.getEmail();
-                    }
+                    // now, query database as second level of validation
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
 
-                    // capitalize the first letter
-                    var displayedPatientType = queryResult.getEntityType().charAt(0) + queryResult.getEntityType().slice(1).toLocaleLowerCase();
+                        // TODO - perform more sophisticated validation
 
-                    var renderedHtml = ejs.render(content, {user: req.cookies.user, email: displayedEmail,
-                                                                type: displayedPatientType});
+                        var displayedEmail;
+                        if (queryResult.getEmail() === StringConst.NULL_FIELD) {
+                            displayedEmail = "you didn't enter one"
+                        } else {
+                            displayedEmail = queryResult.getEmail();
+                        }
 
-                    res.send(renderedHtml);
-                });
+                        // capitalize the first letter
+                        var displayedPatientType = queryResult.getEntityType().charAt(0) + queryResult.getEntityType().slice(1).toLocaleLowerCase();
 
+                        var renderedHtml = ejs.render(content, {user: req.cookies.user, email: displayedEmail,
+                                                                    type: displayedPatientType});
+
+                        res.send(renderedHtml);
+                    });
+
+                }
+                // user doesn't exist, direct to main page
+                else {
+
+                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                        if (err) {
+                            console.log("Error serving profile.html: " + err);
+                        } else {
+
+                            res.send( ejs.render(content, {user: "", email:"", type:""}));
+                        }
+                    });
+                }
             }
-            // user doesn't exist, direct to main page
-            else {
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
 
-                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                    if (err) {
-                        console.log("Error serving profile.html: " + err);
-                    } else {
-
-                        res.send( ejs.render(content, {user: "", email:"", type:""}));
-                    }
-                });
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
             }
-        }
-    });
+        });
+    }
 });
 
 /**
  * Handles viewdata page
  */
 app.get('/viewdata', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/viewdata.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving viewdata.html: " + err);
-        } else {
 
-            // verify that user exists before displaying page
-            if (req.cookies && req.cookies.user) {
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-                // query the database for the user's data
-                CS.getGeneralCSData(req.cookies.user, function(rowsTouched, queryResults) {
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/viewdata.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving viewdata.html: " + err);
+            } else {
 
-                    // TODO - improve upon display (give patients or own data, etc)
+                // verify that user exists before displaying page
+                if (req.cookies && req.cookies.user) {
 
-                    var renderedHtml = ejs.render(content, {user: req.cookies.user, data:JSON.stringify(queryResults)});
+                    // query the database for the user's data
+                    CS.getGeneralCSData(req.cookies.user, function(rowsTouched, queryResults) {
 
-                    res.send(renderedHtml);
-                });
+                        // TODO - improve upon display (give patients or own data, etc)
 
+                        var renderedHtml = ejs.render(content, {user: req.cookies.user, data:JSON.stringify(queryResults)});
+
+                        res.send(renderedHtml);
+                    });
+
+                }
+                // user doesn't exist, direct to main page
+                else {
+
+                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                        if (err) {
+                            console.log("Error serving viewdata.html: " + err);
+                        } else {
+
+                            res.send( ejs.render(content, {user: "", email:"", type:""}));
+                        }
+                    });
+                }
             }
-            // user doesn't exist, direct to main page
-            else {
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
 
-                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                    if (err) {
-                        console.log("Error serving viewdata.html: " + err);
-                    } else {
-
-                        res.send( ejs.render(content, {user: "", email:"", type:""}));
-                    }
-                });
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
             }
-        }
-    });
+        });
+    }
 });
 
 /**
  * Handles test page
  */
 app.get('/test', function (req, res) {
-    fs.readFile(__dirname + '/public/templates/test.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving test.html: " + err);
-        } else {
-            var renderedHtml;
 
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/test.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving test.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
+                var renderedHtml;
 
-            res.send(renderedHtml);
-        }
-    });
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                } else {
+                    renderedHtml = ejs.render(content, {user: ""});
+                }
+
+                res.send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
  * Handles all other queries; responds with 404 page
  */
-app.get('*', function(req, res){
+app.get('*', function(req, res) {
 
-    fs.readFile(__dirname + '/public/templates/404.html', 'utf-8', function(err, content) {
-        if (err) {
-            console.log("Error serving 404.html: " + err);
-        } else {
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-            var renderedHtml ;
-
-            if (req.cookies && req.cookies.user) {
-                renderedHtml = ejs.render(content, {user: req.cookies.user});
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/404.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving 404.html: " + err);
             } else {
-                renderedHtml = ejs.render(content, {user: ""});
-            }
 
-            res.send(renderedHtml);
-        }
-    });
+                var renderedHtml ;
+
+                if (req.cookies && req.cookies.user) {
+                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                } else {
+                    renderedHtml = ejs.render(content, {user: ""});
+                }
+
+                res.status(404).send(renderedHtml);
+            }
+        });
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
+    }
 });
 
 /**
@@ -275,74 +481,94 @@ app.get('*', function(req, res){
  */
 app.post('/loginAction', function(req, res) {
 
-    // check that user entered both required params
-    if (!req.body.user_name || !req.body.user_password) {
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-        // notify user of unsuccessful login
-        fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving login.html: " + err);
-            } else {
+    if (!isRateLimited(ip)) {
+        
+        // check that user entered both required params
+        if (!req.body.user_name || !req.body.user_password) {
 
-                var renderedHtml = ejs.render(content, {error: "Login unsuccessful: provide all input.", user:""});
+            // notify user of unsuccessful login
+            fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving login.html: " + err);
+                } else {
 
-                res.send(renderedHtml);
-            }
-        });
+                    var renderedHtml = ejs.render(content, {error: "Login unsuccessful: provide all input.", user:""});
 
-    } else {
-        // user entered both required params, now query databse to verify password
-        LoginDB.getUserByID(req.body.user_name, function(rowsTouched, queryResults){
+                    res.send(renderedHtml);
+                }
+            });
 
-            // only attempt to compare passwords if query was successful
-            if (queryResults != null && rowsTouched == 1) {
+        } else {
 
-                utils.comparePassword(req.body.user_password, queryResults.getPassword(),
-                    function(err, isPasswordMatch) {
+            var pw = req.body.user_password.trim();
+            var userName = req.body.user_name.trim();
 
-                        if (isPasswordMatch) {
-                            // notify user of successful login
-                            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                                if (err) {
-                                    console.log("Error serving index.html: " + err);
-                                } else {
+            // user entered both required params, now query databse to verify password
+            LoginDB.getUserByID(userName, function(rowsTouched, queryResults){
 
-                                    // TODO - improve on cookie use
-                                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
+                // only attempt to compare passwords if query was successful
+                if (queryResults != null && rowsTouched == 1) {
 
-                                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                                    res.send(renderedHtml);
-                                }
-                            });
+                    utils.comparePassword(pw, queryResults.getPassword(),
+                        function(err, isPasswordMatch) {
+
+                            if (isPasswordMatch) {
+                                // notify user of successful login
+                                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                                    if (err) {
+                                        console.log("Error serving index.html: " + err);
+                                    } else {
+
+                                        // TODO - improve on cookie use
+                                        res.cookie('user', userName, {maxAge: 90000, httpOnly:true});
+
+                                        var renderedHtml = ejs.render(content, {user: userName});
+                                        res.send(renderedHtml);
+                                    }
+                                });
+                            } else {
+                                // notify user of unsuccessful login
+                                fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                                    if (err) {
+                                        console.log("Error serving login.html: " + err);
+                                    } else {
+
+                                        var renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+
+                                        res.send(renderedHtml);
+                                    }
+                                });
+                            }
+                    });
+                } else {
+                    // notify user of unsuccessful login (no user found)
+                    fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
+                        if (err) {
+                            console.log("Error serving login.html: " + err);
                         } else {
-                            // notify user of unsuccessful login
-                            fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
-                                if (err) {
-                                    console.log("Error serving login.html: " + err);
-                                } else {
 
-                                    var renderedHtml = ejs.render(content, {error: "Login unsuccessful: incorrect password.", user:""});
+                            var renderedHtml;
 
-                                    res.send(renderedHtml);
-                                }
-                            });
+                            // only remaining option: user does not exist
+                            renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
+
+                            res.send(renderedHtml);
                         }
-                });
+                    });
+                }
+            });
+        }
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
             } else {
-                // notify user of unsuccessful login (no user found)
-                fs.readFile(__dirname + '/public/templates/login.html', 'utf-8', function(err, content) {
-                    if (err) {
-                        console.log("Error serving login.html: " + err);
-                    } else {
+                var renderedHtml = ejs.render(content);
 
-                        var renderedHtml;
-
-                        // only remaining option: user does not exist
-                        renderedHtml = ejs.render(content, {error: "Login unsuccessful: user does not exist.", user:""});
-
-                        res.send(renderedHtml);
-                    }
-                });
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
             }
         });
     }
@@ -353,112 +579,133 @@ app.post('/loginAction', function(req, res) {
  */
 app.post('/registerAction', function(req, res) {
 
-    //check that user entered all required params
-    if (!req.body.user_password || !req.body.user_name || !req.body.user_type) {
-        // notify user of unsuccessful login
-        fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving login.html: " + err);
-            } else {
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-                var renderedHtml = ejs.render(content, {error: "Register unsuccessful: provide all input.", user:""});
+    if (!isRateLimited(ip)) {
+    
+        //check that user entered all required params
+        if (!req.body.user_password || !req.body.user_name || !req.body.user_type) {
+            // notify user of unsuccessful login
+            fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving login.html: " + err);
+                } else {
 
-                res.send(renderedHtml);
-            }
-        });
-    } else {
+                    var renderedHtml = ejs.render(content, {error: "Register unsuccessful: provide all input.", user:""});
 
-        // check that passwords match, enforce PW/Username syntax, and verify validity of email address
-        if (req.body.user_password[0] === req.body.user_password[1]
-            && utils.isValidPassword(req.body.user_password[0]) && utils.isValidUserName(req.body.user_name)
-            && (!req.body.user_email || utils.isValidEmail(req.body.user_email))) {
-
-            var userType = "";
-            if (req.body.user_type === 'p') {
-
-                // user type of 'p' denotes patient
-                userType = StringConst.PATIENT_ENTITY;
-            } else {
-
-                // only valid type remaining is DOCTOR
-                userType = StringConst.DOCTOR_ENTITY;
-            }
-
-            if (!req.body.user_email) {
-                req.body.user_email = StringConst.NULL_FIELD; // email not provided; list as null
-            }
-
-            // hash user's password then insert user in database
-            utils.hashPassword(req.body.user_password[0], function(err, hashedPW) {
-
-                // store hashed pw into DB
-                LoginDB.insertNewUser(req.body.user_name, hashedPW, req.body.user_email, userType,
-
-                    function(rowsTouched) {
-
-                        // one row touched corresponds to successful insertion
-                        if (rowsTouched === 1) {
-
-                            // notify user of successful register
-                            fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                                if (err) {
-                                    console.log("Error serving index.html: " + err);
-                                } else {
-
-                                    // TODO - improve on cookie use
-                                    res.cookie('user', req.body.user_name, {maxAge: 90000, httpOnly:true});
-
-                                    var renderedHtml = ejs.render(content, {user: req.body.user_name});
-                                    res.send(renderedHtml);
-                                }
-                            })
-                        }
-                        // an error occurred while inserting user into the database
-                        else {
-
-                            // notify user of bad input
-                            fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-                                if (err) {
-                                    console.log("Error serving signup.html: " + err);
-                                } else {
-                                    var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful."
-                                                    + "\nEither username or email already exists."});
-                                    res.send(renderedHtml);
-                                }
-                            })
-                        }
-                    });
+                    res.send(renderedHtml);
+                }
             });
-
         } else {
 
-            // notify user of password mismatch
-            fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
-                var renderedHtml;
+            var pw = req.body.user_password[1].trim();
+            var verifyPW = req.body.user_password[1].trim();
+            var userName = req.body.user_name.trim();
+            var email = req.body.user_email.trim();
+            
+            // check that passwords match, enforce PW/Username syntax, and verify validity of email address
+            if (pw === verifyPW
+                && utils.isValidPassword(pw) && utils.isValidUserName(userName)
+                && (!email || utils.isValidEmail(email))) {
 
-                if (err) {
-                    console.log("Error serving signup.html: " + err);
-                } else if (req.body.user_password[0] !== req.body.user_password[1]) {
+                var userType = "";
+                if (req.body.user_type === 'p') {
 
-                    renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
-                    res.send(renderedHtml);
+                    // user type of 'p' denotes patient
+                    userType = StringConst.PATIENT_ENTITY;
+                } else {
+
+                    // only valid type remaining is DOCTOR
+                    userType = StringConst.DOCTOR_ENTITY;
                 }
-                // since email is optional, validity only applies if it was entered
-                else if (!utils.isValidEmail(req.body.user_email) && req.body.user_email) {
 
-                    renderedHtml = ejs.render(content, {user: "", error: "Invalid email."});
-                    res.send(renderedHtml);
-                } else if (!utils.isValidPassword(req.body.user_password[0])) {
-
-                    renderedHtml = ejs.render(content, {user: "", error: "Invalid password. Must use 3-15 alpha-numerics."});
-                    res.send(renderedHtml);
-                } else if (!utils.isValidUserName(req.body.user_name)) {
-
-                    renderedHtml = ejs.render(content, {user: "", error: "Invalid username. Must use 3-15 alpha-numerics."});
-                    res.send(renderedHtml);
+                if (!email) {
+                    email = StringConst.NULL_FIELD; // email not provided; list as null
                 }
-            })
+
+                // hash user's password then insert user in database
+                utils.hashPassword(pw, function(err, hashedPW) {
+
+                    // store hashed pw into DB
+                    LoginDB.insertNewUser(userName, hashedPW, email, userType,
+
+                        function(rowsTouched) {
+
+                            // one row touched corresponds to successful insertion
+                            if (rowsTouched === 1) {
+
+                                // notify user of successful register
+                                fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+                                    if (err) {
+                                        console.log("Error serving index.html: " + err);
+                                    } else {
+
+                                        // TODO - improve on cookie use
+                                        res.cookie('user', userName, {maxAge: 90000, httpOnly:true});
+
+                                        var renderedHtml = ejs.render(content, {user: userName});
+                                        res.send(renderedHtml);
+                                    }
+                                })
+                            }
+                            // an error occurred while inserting user into the database
+                            else {
+
+                                // notify user of bad input
+                                fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                                    if (err) {
+                                        console.log("Error serving signup.html: " + err);
+                                    } else {
+                                        var renderedHtml = ejs.render(content, {user: "", error: "Register unsuccessful."
+                                                        + "\nEither username or email already exists."});
+                                        res.send(renderedHtml);
+                                    }
+                                })
+                            }
+                        });
+                });
+
+            } else {
+
+                // notify user of password mismatch
+                fs.readFile(__dirname + '/public/templates/signup.html', 'utf-8', function(err, content) {
+                    var renderedHtml;
+
+                    if (err) {
+                        console.log("Error serving signup.html: " + err);
+                    } else if (pw !== verifyPW) {
+
+                        renderedHtml = ejs.render(content, {user: "", error: "Passwords don't match."});
+                        res.send(renderedHtml);
+                    }
+                    // since email is optional, validity only applies if it was entered
+                    else if (!utils.isValidEmail(email) && email) {
+
+                        renderedHtml = ejs.render(content, {user: "", error: "Invalid email."});
+                        res.send(renderedHtml);
+                    } else if (!utils.isValidPassword(pw)) {
+
+                        renderedHtml = ejs.render(content, {user: "", error: "Invalid password. Must use 3-15 alpha-numerics."});
+                        res.send(renderedHtml);
+                    } else if (!utils.isValidUserName(userName)) {
+
+                        renderedHtml = ejs.render(content, {user: "", error: "Invalid username. Must use 3-15 alpha-numerics."});
+                        res.send(renderedHtml);
+                    }
+                })
+            }
         }
+    } else {
+        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving rate_limit.html: " + err);
+            } else {
+                var renderedHtml = ejs.render(content);
+
+                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+            }
+        });
     }
 });
 

@@ -2,7 +2,10 @@ package com.ndnhealthnet.androidudpclient.Activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
@@ -135,8 +138,19 @@ public class ViewDataActivity extends Activity {
         analyticsBtn = (Button) findViewById(R.id.analyticsBtn);
         analyticsBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                AlertDialog.Builder analyticDialog = generateAnalyticsSelector();
-                analyticDialog.show();
+
+                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo netInfo = connManager.getActiveNetworkInfo();
+
+                // only attempt analytics if connected to Network
+                if (netInfo != null) {
+                    AlertDialog.Builder analyticDialog = generateAnalyticsSelector();
+                    analyticDialog.show();
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Error: Network connection required", Toast.LENGTH_LONG);
+                    toast.show();
+                }
             }
         });
 

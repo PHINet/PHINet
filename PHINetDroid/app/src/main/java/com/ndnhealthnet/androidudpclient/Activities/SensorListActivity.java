@@ -50,10 +50,10 @@ public class SensorListActivity extends ListActivity {
 
         // synch as the user leaves activity: user may have collected more data
         ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
-        // only attempt synch of wifi is connected
-        if (mWifi.isConnected()) {
+        // only attempt synch if connected to network
+        if (netInfo != null) {
             MainActivity.requestSynch(getApplicationContext());
         }
     }

@@ -2,7 +2,7 @@
   position: absolute;
   top: 5%;
   right: 17%;
-  font-size: 180%;
+  font-size: 210%;
 }
 
 /* Used to create "table" for login/signup/profile */
@@ -185,6 +185,7 @@ margin-right: auto;
   margin-left:20%;
     padding:5%;
     width:150%;
+  font-size: 80%;
 }
 .form_settings .submit {
     border: 0;
@@ -210,6 +211,11 @@ margin-right: auto;
 }
 ul {
   font-size:120%;
+}
+.large_red_padding_right {
+  color:#FF6C47;
+  font-size:120%;
+  padding-right: 50%;
 }
 .large_red {
   color:#FF6C47;
