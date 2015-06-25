@@ -8,10 +8,12 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
@@ -36,6 +38,7 @@ public class SignupActivity extends Activity {
     Button backBtn, signupBtn;
     EditText userNameEdit, pwEdit, verifyPWEdit, emailEdit;
     ProgressBar progressBar;
+    RadioButton patientRadioBtn, doctorRadioBtn;
 
     final int SLEEP_TIME = 250; // 250 milliseconds = 1/4 second (chosen somewhat arbitrarily)
 
@@ -49,6 +52,10 @@ public class SignupActivity extends Activity {
         verifyPWEdit = (EditText) findViewById(R.id.verifyPasswordEditText);
         emailEdit = (EditText) findViewById(R.id.email_editText);
         progressBar = (ProgressBar) findViewById(R.id.registerProgressBar);
+        patientRadioBtn = (RadioButton) findViewById(R.id.patientRadioButton);
+        doctorRadioBtn = (RadioButton) findViewById(R.id.doctorRadioButton);
+
+        patientRadioBtn.toggle(); // let Patient be the default choice
 
         progressBar.setVisibility(View.GONE); // hide progress bar until signup pressed
 
@@ -63,8 +70,10 @@ public class SignupActivity extends Activity {
                         ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
                 String currentUserID = Utils.getFromPrefs(getApplicationContext(),
                         ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+                String userType = Utils.getFromPrefs(getApplicationContext(),
+                        ConstVar.PREFS_USER_TYPE_KEY, "");
 
-                if (Utils.isValidUserName(currentUserID)
+                if (Utils.isValidUserName(currentUserID) && Utils.isValidUserType(userType)
                         && Utils.isValidPassword(currentPassword)) {
                     setResult(RESULT_OK, new Intent()); // notifies MainActivity of success
                 } else {
@@ -99,12 +108,15 @@ public class SignupActivity extends Activity {
                     final String password = pwEdit.getText().toString().trim();
                     final String email = emailEdit.getText().toString().equals("")
                             ? ConstVar.NULL_FIELD : emailEdit.getText().toString().trim();
+                    final String userType = patientRadioBtn.isChecked()
+                            ? ConstVar.PATIENT_USER_TYPE : ConstVar.DOCTOR_USER_TYPE;
 
                     final boolean pwMatch = password.equals(verifyPWEdit.getText().toString());
 
                     // all inputs are valid, now query server for signup
                     if (pwMatch && Utils.isValidUserName(userID) && Utils.isValidPassword(password)
-                            && (email.equals(ConstVar.NULL_FIELD) || Utils.isValidEmail(email))) {
+                            && (email.equals(ConstVar.NULL_FIELD) || Utils.isValidEmail(email))
+                            && Utils.isValidUserType(userType)) {
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
@@ -131,7 +143,7 @@ public class SignupActivity extends Activity {
                         Utils.storeInterestPacket(getApplicationContext(), interest);
 
                         // invoke method that handles the server's reply
-                        initialServerReplyHandler(userID, password, email, currentTime);
+                        initialServerReplyHandler(userID, password, email, userType, currentTime);
                     }
                     // passwords don't match; only notify is PW was valid in first place
                     else if (Utils.isValidPassword(password) && !pwMatch) {
@@ -164,10 +176,12 @@ public class SignupActivity extends Activity {
      * @param userID entered to signup
      * @param password entered to signup
      * @param email entered to signup
+     * @param userType entered to signup
      * @param packetTime of initial Interest packet (used to delete from PIT if result not found)
      */
     private void initialServerReplyHandler(final String userID, final String password,
-                                           final String email, final String packetTime) {
+                                           final String email, final String userType,
+                                           final String packetTime) {
 
         new Thread(new Runnable() {
             public void run() {
@@ -224,7 +238,7 @@ public class SignupActivity extends Activity {
                                 new Handler().postDelayed(new Runnable() {
                                     public void run() {
                                         // wait 1 second for server to process results before checking result
-                                        credentialQueryHandler(userID, password);
+                                        credentialQueryHandler(userID, password, userType);
                                     }
                                 }, 1000); // chosen somewhat arbitrarily
                             }
@@ -267,8 +281,10 @@ public class SignupActivity extends Activity {
      *
      * @param userID entered to signup
      * @param password entered to signup
+     * @param userType entered to signup
      */
-    private void credentialQueryHandler(final String userID, final String password) {
+    private void credentialQueryHandler(final String userID, final String password,
+                                        final String userType) {
 
         String currentTime = Utils.getCurrentTime();
 
@@ -295,7 +311,7 @@ public class SignupActivity extends Activity {
         Utils.storeInterestPacket(getApplicationContext(), interest);
 
         // after sending query result, now handle its response
-        credentialQueryResultHandler(userID, password, currentTime);
+        credentialQueryResultHandler(userID, password, userType, currentTime);
     }
 
     /**
@@ -304,10 +320,11 @@ public class SignupActivity extends Activity {
      *
      * @param userID entered to signup
      * @param password entered to signup
+     * @param userType entered to signup
      * @param packetTime of Interest packet sent to query result (used to delete from PIT if result not found)
      */
     private void credentialQueryResultHandler(final String userID, final String password,
-                                              final String packetTime) {
+                                              final String userType, final String packetTime) {
 
         new Thread(new Runnable() {
             public void run() {
@@ -341,6 +358,7 @@ public class SignupActivity extends Activity {
                             String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
                             Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
                             Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_USER_TYPE_KEY, userType);
 
                             serverResponseFound = true; // response found
                             accountMayExist = false; // result success; account doesn't exist
@@ -377,7 +395,6 @@ public class SignupActivity extends Activity {
                             // delete initial Interest placed in PIT to initiate login
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
-
 
                             Toast toast = Toast.makeText(SignupActivity.this,
                                     "Signup failed.\nCould not reach server.", Toast.LENGTH_LONG);

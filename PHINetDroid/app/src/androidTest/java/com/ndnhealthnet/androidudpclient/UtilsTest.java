@@ -2,7 +2,7 @@ package com.ndnhealthnet.androidudpclient;
 
 import android.content.Context;
 
-import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.DBData;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
@@ -228,23 +228,23 @@ public class UtilsTest extends TestCase {
      * @throws Exception
      */
     public void testFormatSynchData() throws Exception {
-        DBData goodData1 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+        CSEntry goodData1 = new CSEntry("sensorID1", ConstVar.NULL_FIELD,
                 "1990-11-06T00.00.00.000", "userID", "10", ConstVar.DEFAULT_FRESHNESS_PERIOD);
-        DBData goodData2 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+        CSEntry goodData2 = new CSEntry("sensorID1", ConstVar.NULL_FIELD,
                 "1990-11-07T00.00.00.000", "userID", "15", ConstVar.DEFAULT_FRESHNESS_PERIOD);
-        DBData goodData3 = new DBData("sensorID1", ConstVar.NULL_FIELD,
+        CSEntry goodData3 = new CSEntry("sensorID1", ConstVar.NULL_FIELD,
                 "1990-11-08T00.00.00.000", "userID", "99", ConstVar.DEFAULT_FRESHNESS_PERIOD);
-        DBData goodData4 = new DBData("sensorID2", ConstVar.NULL_FIELD,
+        CSEntry goodData4 = new CSEntry("sensorID2", ConstVar.NULL_FIELD,
                 "1990-11-09T00.00.00.000", "userID", "100", ConstVar.DEFAULT_FRESHNESS_PERIOD);
-        DBData badData1 = null;
+        CSEntry badData1 = null;
 
-        ArrayList<DBData> goodDataList = new ArrayList<>();
+        ArrayList<CSEntry> goodDataList = new ArrayList<>();
         goodDataList.add(goodData1);
         goodDataList.add(goodData2);
         goodDataList.add(goodData3);
         goodDataList.add(goodData4);
 
-        ArrayList<DBData> badDataList = new ArrayList<>();
+        ArrayList<CSEntry> badDataList = new ArrayList<>();
         badDataList.add(goodData1);
         badDataList.add(badData1);
 

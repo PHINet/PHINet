@@ -70,9 +70,9 @@ public class DatabaseHandlerTest extends TestCase {
 
     // -- test Packet Data ---
 
-    PacketDBEntry packetData1 = new PacketDBEntry("packetName1", "ContentContentContentContent");
+    PacketDBEntry packetData1 = new PacketDBEntry("INTEREST packetName1", "ContentContentContentContent");
 
-    PacketDBEntry packetData2 = new PacketDBEntry("packetName2", "packetcontentpacketcontent");
+    PacketDBEntry packetData2 = new PacketDBEntry("INTEREST packetName2", "packetcontentpacketcontent");
 
     // -- test Packet Data ---
 
@@ -96,7 +96,7 @@ public class DatabaseHandlerTest extends TestCase {
         testAddSensorData();
         testAddPacketData();
         testGetGeneralPITData();
-        testGetSpecificPITData();
+        testGetSpecificPITEntry();
         testGetGeneralCSData();
         testGetAllFIBData();
         testGetAllSensorData();
@@ -120,6 +120,8 @@ public class DatabaseHandlerTest extends TestCase {
         DBSingleton.getInstance(context).getDB().deleteEntireCS();
         DBSingleton.getInstance(context).getDB().deleteEntirePIT();
         DBSingleton.getInstance(context).getDB().deleteEntireFIB();
+        DBSingleton.getInstance(context).getDB().deleteEntirePacketDB();
+        DBSingleton.getInstance(context).getDB().deleteEntireSensorDB();
     }
 
     /**
@@ -263,18 +265,20 @@ public class DatabaseHandlerTest extends TestCase {
     /**
      * @throws Exception for failed tests
      */
-    public void testGetSpecificPITData() throws Exception {
+    public void testGetSpecificPITEntry() throws Exception {
         DBSingleton.getInstance(context).getDB().deleteEntirePIT(); // delete PIT before testing
 
         // check null is returned for empty PIT
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificPITData("id1", "ip1"), null);
+        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificPITEntry("id1", "time1", "ip1"), null);
 
         // test addition of valid data
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData3));
 
-        PITEntry pitSpecific1 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
-        PITEntry pitSpecific3 = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData3.getUserID(), pitData3.getIpAddr());
+        PITEntry pitSpecific1 = DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getProcessID());
+        PITEntry pitSpecific3 = DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData3.getUserID(), pitData3.getTimeString(), pitData3.getProcessID());
 
         // test that pitData1 was returned correctly
         assertEquals(pitSpecific1.getIpAddr(), pitData1.getIpAddr());
@@ -442,11 +446,13 @@ public class DatabaseHandlerTest extends TestCase {
 
         for (int i = 0; i < packetData.size(); i++) {
 
-            if (packetData.get(i).getPacketName().equals(packetData1.getPacketName())) {
+            // only use the "real" portion of the name, not the appended INTEREST or DATA
+            if (packetData.get(i).getPacketName().equals(packetData1.getPacketName().split(" ")[1])) {
                 entry1Found = true;
             }
 
-            if (packetData.get(i).getPacketName().equals(packetData2.getPacketName())) {
+            // only use the "real" portion of the name, not the appended INTEREST or DATA
+            if (packetData.get(i).getPacketName().equals(packetData2.getPacketName().split(" ")[1])) {
                 entry2Found = true;
             }
         }
@@ -551,7 +557,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
 
         // check original return
-        PITEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry originalReturn = DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getProcessID());
         assertEquals(originalReturn.getIpAddr(), pitData1.getIpAddr());
 
         // now, modify and check return
@@ -560,7 +567,8 @@ public class DatabaseHandlerTest extends TestCase {
         // test validity of update
         assertTrue(DBSingleton.getInstance(context).getDB().updatePITData(pitData1));
 
-        PITEntry updatedReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry updatedReturn = DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getProcessID());
         assertEquals(updatedReturn.getIpAddr(), pitData1.getIpAddr());
 
         // test bad update return
@@ -633,7 +641,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().addPITData(pitData1));
 
         // check original return
-        PITEntry originalReturn = DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr());
+        PITEntry originalReturn = DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getProcessID());
         assertEquals(originalReturn.getIpAddr(), pitData1.getIpAddr());
 
         // check deletePITEntry rejects bad data
@@ -643,7 +652,8 @@ public class DatabaseHandlerTest extends TestCase {
         assertTrue(DBSingleton.getInstance(context).getDB().deletePITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getIpAddr()));
 
         // check, now deleted, entry returns null
-        assertEquals(DBSingleton.getInstance(context).getDB().getSpecificPITData(pitData1.getUserID(), pitData1.getIpAddr()), null);
+        assertEquals(DBSingleton.getInstance(context).getDB()
+                .getSpecificPITEntry(pitData1.getUserID(), pitData1.getTimeString(), pitData1.getProcessID()), null);
     }
 
     /**

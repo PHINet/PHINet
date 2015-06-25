@@ -23,6 +23,10 @@
     <string name="collectionInterval">Collect Interval (hours): </string>
     <string name="connectionStatus">Connection Status: </string>
     <string name="analyticsStatus">Analytics: </string>
+    <string name="patientType">Patient Type: </string>
+
+    <string name="doctor">Doctor</string>
+    <string name="patient">Patient</string>
 
     <string name="dataStatus">Data Status: </string>
     <string name="ip">IP: </string>

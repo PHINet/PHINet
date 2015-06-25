@@ -33,9 +33,8 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1; // used to identify the result of Login/Signup Activities
 
-	Button logoutBtn, myDataBtn, cliBeatBtn, loginBtn,
-            signupBtn, sensorBtn, viewPacketsBtn;
-	TextView credentialWarningText, doctorText, patientText, loggedInText;
+	Button logoutBtn, myDataBtn, patientsBtn, loginBtn, signupBtn, sensorBtn, viewPacketsBtn;
+	TextView credentialWarningText, loggedInText;
 	UDPListener receiverThread;
     BTSensorComm btSensorComm;
     Thread serverSynchWorker;
@@ -77,6 +76,8 @@ public class MainActivity extends Activity {
 
         final String myUserID = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+        final String userType = Utils.getFromPrefs(getApplicationContext(),
+                ConstVar.PREFS_USER_TYPE_KEY, "");
 
         if (!myUserID.equals("")) {
             // place userID on screen if user has logged in
@@ -85,8 +86,6 @@ public class MainActivity extends Activity {
         }
 
         credentialWarningText = (TextView) findViewById(R.id.credentialWarningTextView);
-        doctorText = (TextView) findViewById(R.id.doctorTextView);
-        patientText = (TextView) findViewById(R.id.patientTextView);
 
         loginBtn = (Button) findViewById(R.id.loginBtn);
         loginBtn.setOnClickListener(new View.OnClickListener() {
@@ -140,8 +139,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        cliBeatBtn = (Button) findViewById(R.id.cliBeatBtn);
-        cliBeatBtn.setOnClickListener(new View.OnClickListener(){
+        patientsBtn = (Button) findViewById(R.id.patientsBtn);
+        patientsBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, PatientListActivity.class));
             }
@@ -151,10 +150,8 @@ public class MainActivity extends Activity {
         if (myUserID.equals("")) {
 
             //destroy all buttons until user enters credentials
-            cliBeatBtn.setVisibility(View.GONE);
+            patientsBtn.setVisibility(View.GONE);
             myDataBtn.setVisibility(View.GONE);
-            patientText.setVisibility(View.GONE);
-            doctorText.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
             sensorBtn.setVisibility(View.GONE);
             viewPacketsBtn.setVisibility(View.GONE);
@@ -165,6 +162,10 @@ public class MainActivity extends Activity {
             credentialWarningText.setVisibility(View.GONE);
             loginBtn.setVisibility(View.GONE);
             signupBtn.setVisibility(View.GONE);
+
+            if (userType.equals(ConstVar.PATIENT_USER_TYPE)) {
+                patientsBtn.setVisibility(View.GONE); // a patient entity can't have its own patients
+            }
         }
     }
 

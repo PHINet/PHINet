@@ -73,6 +73,11 @@ public class ConstVar {
     // use to store/retrieve/identify user login credentials
     public static final String PREFS_LOGIN_USER_ID_KEY = "__USER_ID__" ;
     public static final String PREFS_LOGIN_PASSWORD_ID_KEY = "__PASSWORD_ID__" ;
+    public static final String PREFS_USER_TYPE_KEY = "__USER_TYPE__";
+
+    // denotes user type of patient (i.e. doctor or patient)
+    public static final String DOCTOR_USER_TYPE = "DOCTOR_USER_TYPE";
+    public static final String PATIENT_USER_TYPE = "PATIENT_USER_TYPE";
 
     // denotes the heartbeat sensor in SensorListActivity
     public static final String HEARTBEAT_SENSOR = "HeartbeatSensor";

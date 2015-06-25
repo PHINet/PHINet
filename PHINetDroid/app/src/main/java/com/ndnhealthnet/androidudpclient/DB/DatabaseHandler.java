@@ -121,9 +121,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(ConstVar.SENSOR_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
-
-            return true;
+            return db.insertWithOnConflict(ConstVar.SENSOR_DB, null, values, SQLiteDatabase.CONFLICT_FAIL) > 0;
         } catch (SQLiteConstraintException e) {
 
             return false;
@@ -151,9 +149,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(ConstVar.PACKET_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
-
-            return true;
+            return db.insertWithOnConflict(ConstVar.PACKET_DB, null, values, SQLiteDatabase.CONFLICT_FAIL) > 0;
         } catch (SQLiteConstraintException e) {
 
             return false;
@@ -182,11 +178,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(ConstVar.PIT_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
+            return db.insertWithOnConflict(ConstVar.PIT_DB, null, values, SQLiteDatabase.CONFLICT_FAIL) > 0;
 
-            return true;
         } catch (SQLiteConstraintException e) {
-
             return false;
         }
     }
@@ -212,9 +206,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(ConstVar.CS_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
-
-            return true;
+            return db.insertWithOnConflict(ConstVar.CS_DB, null, values, SQLiteDatabase.CONFLICT_FAIL) > 0;
         } catch (SQLiteConstraintException e) {
 
             return false;
@@ -243,9 +235,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
 
             // Inserting Row
-            db.insertWithOnConflict(ConstVar.FIB_DB, null, values, SQLiteDatabase.CONFLICT_FAIL);
-
-            return true;
+            return db.insertWithOnConflict(ConstVar.FIB_DB, null, values, SQLiteDatabase.CONFLICT_FAIL) > 0;
         } catch (SQLiteConstraintException e) {
 
             return false;
@@ -433,7 +423,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor = db.query(ConstVar.SENSOR_DB, new String[]{KEY_SENSOR_ID,
                 KEY_COLLECTION_INTERVAL}, whereSelection, null, null, null, null);
 
-        if (cursor != null || cursor.getCount() == 1) {
+        if (cursor != null && cursor.getCount() == 1) {
 
             cursor.moveToFirst();
 

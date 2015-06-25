@@ -45,8 +45,9 @@ public class Utils {
     public static boolean saveToPrefs(Context context, String key, String value) {
 
         if (context == null || key == null || value == null
-                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
-                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
+                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal valid key
+                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY)
+                && !key.equals(ConstVar.PREFS_USER_TYPE_KEY))) { // otherwise, it's invalid
             return false;
         }
 
@@ -76,8 +77,9 @@ public class Utils {
     public static String getFromPrefs(Context context, String key, String defaultValue) {
 
         if (context == null || key == null || defaultValue == null
-                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal either one
-                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY))) { // otherwise, it's invalid
+                || (!key.equals(ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY) // key must equal valid key
+                && !key.equals(ConstVar.PREFS_LOGIN_USER_ID_KEY)
+                && !key.equals(ConstVar.PREFS_USER_TYPE_KEY))) { // otherwise, it's invalid
             return null;
         }
 
@@ -323,6 +325,17 @@ public class Utils {
     }
 
     /**
+     * Verifies validity of userType
+     *
+     * @param userType selected by user
+     * @return validity of userType selection
+     */
+    public static boolean isValidUserType(String userType) {
+        return userType.equals(ConstVar.PATIENT_USER_TYPE)
+                || userType.equals(ConstVar.DOCTOR_USER_TYPE);
+    }
+
+    /**
      * tests validity of IP input
      *
      * @param ip input to be validated
@@ -339,7 +352,7 @@ public class Utils {
             validIP = false;
         }
 
-        return validIP;
+        return ip != null && validIP;
     }
 
     /**
@@ -499,6 +512,7 @@ public class Utils {
      */
     public static boolean isValidEmail(String email) {
         boolean result = true;
+
         try {
             InternetAddress emailAddr = new InternetAddress(email);
             emailAddr.validate();
