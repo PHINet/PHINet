@@ -10,13 +10,13 @@ var UserClass = require('../user');
 // --- test entries ---
 
 var user1 = UserClass.User();
-user1.user("uid111", "pw1", "email1",StringConst.DOCTOR_ENTITY);
+user1.user("uid111", "pw1", "email1",StringConst.DOCTOR_USER_TYPE);
 
 var user2 = UserClass.User();
-user2.user("uid222", "pw2", "email2",StringConst.PATIENT_ENTITY);
+user2.user("uid222", "pw2", "email2",StringConst.PATIENT_USER_TYPE);
 
 var user3 = UserClass.User();
-user3.user("uid123", "pw3", "email1", StringConst.DOCTOR_ENTITY); // test that this is rejected (same email as user1)
+user3.user("uid123", "pw3", "email1", StringConst.DOCTOR_USER_TYPE); // test that this is rejected (same email as user1)
 
 
 // --- test entries ---

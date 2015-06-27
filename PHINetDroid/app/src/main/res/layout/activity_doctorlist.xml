@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="25dp"
-        android:text="@string/patients"
+        android:text="@string/doctors"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#000000"
         android:textStyle="bold"
@@ -33,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/noPatientNotifier"
+        android:text="@string/noDoctorNotifier"
         android:textStyle="bold"
         android:id="@+id/emptyListTextView"
         android:layout_gravity="center_horizontal" />
@@ -44,6 +44,16 @@
         android:id="@android:id/list"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.93" />
+
+    <Button
+        android:id="@+id/addNewDoctorBtn"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:text="@string/addNewDoctor"
+        android:background="@drawable/black_button"
+        style="@style/button_text"
+        android:layout_gravity="center|bottom"
+        android:textSize="20sp" />
 
     <Button
         android:id="@+id/backBtn"

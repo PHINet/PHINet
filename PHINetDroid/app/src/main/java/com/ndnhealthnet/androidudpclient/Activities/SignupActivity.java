@@ -202,7 +202,7 @@ public class SignupActivity extends Activity {
 
                         // reply with credentials to satisfy the interest
                             // syntax: "userID,password,email"
-                        String credentialContent = userID + "," + password + "," + email;
+                        String credentialContent = userID + "," + password + "," + email + "," + userType;
 
                         CSEntry credentialData = new CSEntry(ConstVar.NULL_FIELD,
                                 ConstVar.REGISTER_CREDENTIAL_DATA, pitEntry.getTimeString(),

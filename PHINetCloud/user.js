@@ -13,6 +13,7 @@ exports.User = function () {
         password: null,
         email: null,
         entityType: null,
+        doctorList: null,
         // --- member variables that may be manipulated ---
 
         /**
@@ -25,7 +26,8 @@ exports.User = function () {
          */
         user: function (userID, password, email, entityType) {
 
-            if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
+            if (entityType !== StringConst.DOCTOR_USER_TYPE
+                            && entityType !== StringConst.PATIENT_USER_TYPE) {
                 throw "!! Error in User constructor: entity is of invalid type \'" + entityType + "\' .";
             }
 
@@ -33,6 +35,7 @@ exports.User = function () {
             this.password = password;
             this.email = email;
             this.entityType = entityType;
+            this.doctorList = ""; // set to empty string now; let user add doctors (if any) later
         },
 
         getUserID : function() {
@@ -65,6 +68,15 @@ exports.User = function () {
 
         setEntityType : function(entityType) {
             this.entityType = entityType;
+        },
+
+        getDoctorList : function() {
+            // Syntax for Doctor list is "doctor_1,...,doctor_n"
+            return this.doctorList.split(",");
+        }, 
+
+        setDoctorList : function(doctorList) {
+            this.doctorList = doctorList;
         }
     }
 };

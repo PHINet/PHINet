@@ -94,6 +94,40 @@ setInterval(
 ); // invoke every interval
 
 /**
+ * Function displays the rate limit page
+ *
+ * @param res - TODO; doc
+ */
+function displayRateLimitPage(res) {
+    fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving rate_limit.html: " + err);
+        } else {
+
+            res.status(RATE_LIMIT_CODE).send(ejs.render(content));
+        }
+    });
+}
+
+/**
+ * Function displays Index page with params specified
+ *
+ * @param res - TODO; doc
+ * @param user - username of signed-in user (can be empty string)
+ * @param userIsPatient - boolean regarding whether user is a patient
+ */
+function displayIndexPage(res, user, userIsPatient) {
+    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
+        if (err) {
+            console.log("Error serving index.html: " + err);
+        } else {
+
+            res.send( ejs.render(content, {user: user, userIsPatient:userIsPatient}));
+        }
+    });
+}
+
+/**
  * Handles main web page
  */
 app.get('/', function (req, res) {
@@ -106,27 +140,30 @@ app.get('/', function (req, res) {
             if (err) {
                 console.log("Error serving index.html: " + err);
             } else {
-                var renderedHtml;
 
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient});
+                        }
+                        else {
+                            renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                        }
+
+                        res.send(renderedHtml);
+                    });
                 } else {
-                    renderedHtml = ejs.render(content, {user: ""});
+                    res.send(ejs.render(content, {user: "", userIsPatient: ""}));
                 }
-
-                res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -143,27 +180,14 @@ app.get('/login', function (req, res) {
             if (err) {
                 console.log("Error serving login.html: " + err);
             } else {
-                var renderedHtml;
 
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
-                } else {
-                    renderedHtml = ejs.render(content, {user: "", error:""});
-                }
+                var renderedHtml = ejs.render(content, {error:""});
 
                 res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -180,27 +204,13 @@ app.get('/signup', function (req, res) {
             if (err) {
                 console.log("Error serving signup.html: " + err);
             } else {
-                var renderedHtml;
-
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user, error:""});
-                } else {
-                    renderedHtml = ejs.render(content, {user: "", error:""});
-                }
+                var renderedHtml = ejs.render(content, {error:""});
 
                 res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -219,22 +229,14 @@ app.get('/logout', function(req, res) {
                 console.log("Error serving index.html: " + err);
             } else {
 
-                var renderedHtml = ejs.render(content, {user: "", error:""});
+                var renderedHtml = ejs.render(content, {user: "", userIsPatient: "", error:""});
 
                 res.clearCookie('user'); // user has logged out; clear the login cookie
                 res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -252,27 +254,30 @@ app.get('/faq', function (req, res) {
             if (err) {
                 console.log("Error serving faq.html: " + err);
             } else {
-                var renderedHtml;
 
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient});
+                        }
+                        else {
+                            renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                        }
+
+                        res.send(renderedHtml);
+                    });
                 } else {
-                    renderedHtml = ejs.render(content, {user: ""});
+                    res.send(ejs.render(content, {user: "", userIsPatient: ""}));
                 }
-
-                res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -297,49 +302,42 @@ app.get('/profile', function (req, res) {
                     // now, query database as second level of validation
                     LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
 
-                        // TODO - perform more sophisticated validation
+                        if (queryResult) {
+                            var displayedEmail;
+                            if (queryResult.getEmail() === StringConst.NULL_FIELD) {
+                                displayedEmail = "you didn't enter one"
+                            } else {
+                                displayedEmail = queryResult.getEmail();
+                            }
 
-                        var displayedEmail;
-                        if (queryResult.getEmail() === StringConst.NULL_FIELD) {
-                            displayedEmail = "you didn't enter one"
+                            var userType;
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+                            if (queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE) {
+                                userType = "Patient";
+                            } else {
+                                userType = "Doctor";
+                            }
+
+
+                            var renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient,
+                                email: displayedEmail, type: userType});
+
+                            res.send(renderedHtml);
                         } else {
-                            displayedEmail = queryResult.getEmail();
+                            displayIndexPage(res, "", ""); // no params specified; user doesn't exist
                         }
-
-                        // capitalize the first letter
-                        var displayedPatientType = queryResult.getEntityType().charAt(0) + queryResult.getEntityType().slice(1).toLocaleLowerCase();
-
-                        var renderedHtml = ejs.render(content, {user: req.cookies.user, email: displayedEmail,
-                                                                    type: displayedPatientType});
-
-                        res.send(renderedHtml);
                     });
 
                 }
                 // user doesn't exist, direct to main page
                 else {
 
-                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                        if (err) {
-                            console.log("Error serving profile.html: " + err);
-                        } else {
-
-                            res.send( ejs.render(content, {user: "", email:"", type:""}));
-                        }
-                    });
+                    displayIndexPage(res, "", ""); // only patients can view Doctors.html; redirect to main
                 }
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -364,38 +362,36 @@ app.get('/viewdata', function (req, res) {
                     // query the database for the user's data
                     CS.getGeneralCSData(req.cookies.user, function(rowsTouched, queryResults) {
 
+
+                        LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                            var renderedHtml;
+
+                            if (queryResult) {
+                                var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                                renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient,
+                                                                                data:JSON.stringify(queryResults)});
+                            }
+                            else {
+                                renderedHtml = ejs.render(content, {user: "", userIsPatient: "", data:""});
+                            }
+
+                            res.send(renderedHtml);
+                        });
                         // TODO - improve upon display (give patients or own data, etc)
-
-                        var renderedHtml = ejs.render(content, {user: req.cookies.user, data:JSON.stringify(queryResults)});
-
-                        res.send(renderedHtml);
                     });
 
                 }
                 // user doesn't exist, direct to main page
                 else {
 
-                    fs.readFile(__dirname + '/public/templates/index.html', 'utf-8', function(err, content) {
-                        if (err) {
-                            console.log("Error serving viewdata.html: " + err);
-                        } else {
-
-                            res.send( ejs.render(content, {user: "", email:"", type:""}));
-                        }
-                    });
+                    displayIndexPage(res, "", ""); // only patients can view Doctors.html; redirect to main
                 }
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res)
     }
 });
 
@@ -413,27 +409,127 @@ app.get('/test', function (req, res) {
             if (err) {
                 console.log("Error serving test.html: " + err);
             } else {
-                var renderedHtml;
 
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient});
+                        }
+                        else {
+                            renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                        }
+
+                        res.send(renderedHtml);
+                    });
                 } else {
-                    renderedHtml = ejs.render(content, {user: ""});
+                    res.send(ejs.render(content, {user: "", userIsPatient: ""}));
                 }
-
-                res.send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
+        displayRateLimitPage(res)
+    }
+});
 
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+/**
+ * Handles doctors page
+ */
+app.get('/doctors', function (req, res) {
+
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/doctors.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving doctors.html: " + err);
+            } else {
+
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            if (userIsPatient) {
+
+                                // TODO - place real doctors here
+
+                                renderedHtml = ejs.render(content, {user: req.cookies.user, 
+                                            userIsPatient: userIsPatient, doctors: ["TEST DR1", "TEST DR2"]});
+                                res.send(renderedHtml);
+                            } else {
+                                displayIndexPage(res, req.cookies.user, userIsPatient); // only patients can view Doctors.html; redirect to main
+                            }
+
+                        }
+                        else {
+                            displayIndexPage(res, "", ""); // no user found in DB; display index page
+                        }
+                    });
+                } else {
+                    displayIndexPage(res, "", ""); // user doesn't exist
+                }
             }
         });
+    } else {
+        displayRateLimitPage(res);
+    }
+});
+
+/**
+ * Handles patients page
+ */
+app.get('/patients', function (req, res) {
+
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+    
+        fs.readFile(__dirname + '/public/templates/patients.html', 'utf-8', function(err, content) {
+            if (err) {
+                console.log("Error serving patients.html: " + err);
+            } else {
+
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
+
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            if (!userIsPatient) {
+
+                                // TODO - place real patients here
+
+                                renderedHtml = ejs.render(content, {user: req.cookies.user, 
+                                    userIsPatient: userIsPatient, patients: ["TEST PATIENT1", "TEST PATIENT2"]});
+                                res.send(renderedHtml);
+                            } else {
+                                displayIndexPage(res, req.cookies.user, userIsPatient); // only doctorss can view Patients.html; redirect to main
+                            }
+                        }
+                        else {
+                            displayIndexPage(res, "", ""); // user doesn't exist
+                        }
+                    });
+                } else {
+                    displayIndexPage(res, "", ""); // user doesn't exist
+                }
+            }
+        });
+    } else {
+        displayRateLimitPage(res);
     }
 });
 
@@ -452,27 +548,29 @@ app.get('*', function(req, res) {
                 console.log("Error serving 404.html: " + err);
             } else {
 
-                var renderedHtml ;
+                if (req.cookies.user) {
+                    LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
 
-                if (req.cookies && req.cookies.user) {
-                    renderedHtml = ejs.render(content, {user: req.cookies.user});
+                        var renderedHtml;
+
+                        if (queryResult) {
+                            var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                            renderedHtml = ejs.render(content, {user: req.cookies.user, userIsPatient: userIsPatient});
+                        }
+                        else {
+                            renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                        }
+
+                        res.status(404).send(renderedHtml);
+                    });
                 } else {
-                    renderedHtml = ejs.render(content, {user: ""});
+                    res.send(ejs.render(content, {user: "", userIsPatient: ""}));
                 }
-
-                res.status(404).send(renderedHtml);
             }
         });
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -525,8 +623,21 @@ app.post('/loginAction', function(req, res) {
                                         // TODO - improve on cookie use
                                         res.cookie('user', userName, {maxAge: 90000, httpOnly:true});
 
-                                        var renderedHtml = ejs.render(content, {user: userName});
-                                        res.send(renderedHtml);
+                                        LoginDB.getUserByID(userName, function(rowsTouched, queryResult) {
+
+                                            var renderedHtml;
+
+                                            if (queryResult) {
+                                                var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                                                renderedHtml = ejs.render(content, {user: userName, userIsPatient: userIsPatient});
+                                            }
+                                            else {
+                                                renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                                            }
+
+                                            res.send(renderedHtml);
+                                        });
                                     }
                                 });
                             } else {
@@ -562,15 +673,7 @@ app.post('/loginAction', function(req, res) {
             });
         }
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
-
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
-            }
-        });
+        displayRateLimitPage(res);
     }
 });
 
@@ -613,11 +716,11 @@ app.post('/registerAction', function(req, res) {
                 if (req.body.user_type === 'p') {
 
                     // user type of 'p' denotes patient
-                    userType = StringConst.PATIENT_ENTITY;
+                    userType = StringConst.PATIENT_USER_TYPE;
                 } else {
 
                     // only valid type remaining is DOCTOR
-                    userType = StringConst.DOCTOR_ENTITY;
+                    userType = StringConst.DOCTOR_USER_TYPE;
                 }
 
                 if (!email) {
@@ -644,8 +747,21 @@ app.post('/registerAction', function(req, res) {
                                         // TODO - improve on cookie use
                                         res.cookie('user', userName, {maxAge: 90000, httpOnly:true});
 
-                                        var renderedHtml = ejs.render(content, {user: userName});
-                                        res.send(renderedHtml);
+                                        LoginDB.getUserByID(userName, function(rowsTouched, queryResult) {
+
+                                            var renderedHtml;
+
+                                            if (queryResult) {
+                                                var userIsPatient = queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE;
+
+                                                renderedHtml = ejs.render(content, {user: userName, userIsPatient: userIsPatient});
+                                            }
+                                            else {
+                                                renderedHtml = ejs.render(content, {user: "", userIsPatient: ""});
+                                            }
+
+                                            res.send(renderedHtml);
+                                        });
                                     }
                                 })
                             }
@@ -697,15 +813,52 @@ app.post('/registerAction', function(req, res) {
             }
         }
     } else {
-        fs.readFile(__dirname + '/public/templates/rate_limit.html', 'utf-8', function(err, content) {
-            if (err) {
-                console.log("Error serving rate_limit.html: " + err);
-            } else {
-                var renderedHtml = ejs.render(content);
+        displayRateLimitPage(res);
+    }
+});
 
-                res.status(RATE_LIMIT_CODE).send(renderedHtml);
+/**
+ * Handles user register-attempt
+ */
+app.post('/addDoctor', function(req, res) {
+
+     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+                req.socket.remoteAddress || req.connection.socket.remoteAddress;
+
+    if (!isRateLimited(ip)) {
+    
+        var doctorName = req.body.doctor_name;
+
+        //check that user entered all required params
+        if (!doctorName) {
+            // notify user of unsuccessful login
+            fs.readFile(__dirname + '/public/templates/doctors.html', 'utf-8', function(err, content) {
+                if (err) {
+                    console.log("Error serving doctors.html: " + err);
+                } else {
+
+                    // TODO - get real doctors
+
+                      renderedHtml = ejs.render(content, {user: req.cookies.user, 
+                                            userIsPatient: true, doctors: ["TEST DR1", "TEST DR2"], 
+                                            error: "You must enter the doctor's name first."});
+                    res.send(renderedHtml);
+                }
+            });
+        } else {
+            
+            // check validity of input
+            if (utils.isValidUserName(doctorName)) {
+
+                // TODO - if user exists, add to patient's doctor list
+
+                // TODO - if user doesn't exist, notify user
+
+            } else {
+                // TODO - display error to user (bad input name)
             }
-        });
+    } else {
+        displayRateLimitPage(res);
     }
 });
 

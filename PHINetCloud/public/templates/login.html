@@ -19,9 +19,7 @@
         </div>
 
         <div class="loginArea">
-            <% if(user) { %><%= user %>| <a href="/logout">logout</a>
-            <% } else { %> <a href="/login">login</a> | <a href=
-                                                                   "/signup">signup</a> <% } %>
+            <a href="/login">login</a> | <a href="/signup">signup</a> 
         </div>
 
         <br><br>
@@ -38,15 +36,7 @@
 
                 <li>
                     <a href="/test">Test</a>
-                </li><% if(user) { %>
-
-                <li>
-                    <a href="/profile">Profile</a>
                 </li>
-
-                <li>
-                    <a href="/viewdata">Data</a>
-                </li><% } %>
             </ul>
         </div>
     </div>

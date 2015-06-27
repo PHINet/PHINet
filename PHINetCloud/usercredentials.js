@@ -49,7 +49,8 @@ exports.LoginCredentials = function (tableName) {
                     return false;
                 } else {
 
-                    if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
+                    if (entityType !== StringConst.PATIENT_USER_TYPE
+                                        && entityType !== StringConst.DOCTOR_USER_TYPE) {
                         console.log("!! Error in user insertion: entity is of invalid type \'" + entityType + "\' .");
                         return false;
                     }
@@ -60,11 +61,14 @@ exports.LoginCredentials = function (tableName) {
                             insCallback(0); // do not insert user if another user has same email
                         } else {
 
+                            var doctorList = ""; // set the initial doctor list to an empty string
+
                             // no other user has this email, add now
                             client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID + ", "
                                 + StringConst.KEY_EMAIL + ", " + StringConst.KEY_ENTITY_TYPE + ", "
-                                + StringConst.KEY_PASSWORD + ") values($1, $2, $3, $4)",
-                                [userID, email, entityType, password],
+                                + StringConst.KEY_PASSWORD + + ", " + StringConst.KEY_DOCTOR_LIST 
+                                + ") values($1, $2, $3, $4, $5)",
+                                [userID, email, entityType, password, doctorList],
 
                                 function(err, result) {
 
@@ -117,6 +121,7 @@ exports.LoginCredentials = function (tableName) {
                                     queriedRow.setEntityType(result.rows[0].entitytype);
                                     queriedRow.setPassword(result.rows[0].password);
                                     queriedRow.setEmail(result.rows[0].email);
+                                    queriedRow.setDoctorList(result.rows[0].doctorlist);
 
                                     getCallback(result.rowCount, queriedRow);
                                 } else {
@@ -166,6 +171,7 @@ exports.LoginCredentials = function (tableName) {
                                     queriedRow.setEntityType(result.rows[i].entitytype);
                                     queriedRow.setPassword(result.rows[i].password);
                                     queriedRow.setEmail(result.rows[i].email);
+                                    queriedRow.setDoctorList(result.rows[i].doctorlist)
 
                                     users.push(queriedRow);
                                 }
@@ -190,16 +196,18 @@ exports.LoginCredentials = function (tableName) {
          * @param email used to update user information
          * @param entityType used to update user information
          * @param updateCallback testing callback: rowCount is returned and checked against expected value
+         * @param doctorList used to update user information
          * @return boolean - true if valid query, false otherwise
          */
-        updateUser: function(userID, password, email, entityType, updateCallback) {
+        updateUser: function(userID, password, email, entityType, doctorList, updateCallback) {
 
             try {
                 if (!userID || !password || !email || !entityType || !updateCallback) {
                     return false;
                 } else {
 
-                    if (entityType !== StringConst.DOCTOR_ENTITY && entityType !== StringConst.PATIENT_ENTITY) {
+                    if (entityType !== StringConst.DOCTOR_USER_TYPE
+                                        && entityType !== StringConst.PATIENT_USER_TYPE) {
                         console.log("!! Error in user update: entity is of invalid type \'" + entityType + "\' .");
 
                         return false;
@@ -208,7 +216,8 @@ exports.LoginCredentials = function (tableName) {
                     client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_EMAIL + " = \'"
                         + email + "\', " + StringConst.KEY_PASSWORD + " = \'" + password + "\', "
                         + StringConst.KEY_ENTITY_TYPE + " = \'" + entityType + "\' WHERE "
-                        + StringConst.KEY_USER_ID + " = \'" + userID + "\'",
+                        + StringConst.KEY_USER_ID + " = \'" + userID + "\', " 
+                        + StringConst.DOCTOR_USER_TYPE + " = \'" + doctorlist + "\'",
 
                         function(err, result) {
                             if (err) {
@@ -224,6 +233,92 @@ exports.LoginCredentials = function (tableName) {
                 }
             } catch (err) {
                 console.log("!!Error in LoginCredentials.updateUser(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * TODO - doc
+         *
+         * @param userID
+         * @param doctor
+         * @param addDrCallback
+         */
+        addDoctor: function(userID, doctor, addDrCallback) {
+            try {
+                if (!userID || !doctor || !addDrCallback) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
+                            + userID + "\'",
+
+                        function(err, result) {
+                            if (err) {
+
+                                addDrCallback(0);  // error occurred - 0 rows modified; return
+                            } else {
+
+                                if (result.rowCount > 0) {
+                                    
+                                    // TODO - userId is valid; now add doctor to list of doctors
+                                        // if 1. not already done and 2. doctor does exist
+
+                                } else {
+
+                                    addDrCallback(0, null);
+                                }
+                            }
+                        });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.addDoctor(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * TODO - doc
+         *
+         * @param userID
+         * @param getDrCallback
+         */
+        getDoctors: function(userID, getDrCallback) {
+            try {
+                if (!userID || !getDrCallback) {
+                    return false;
+                } else {
+                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
+                            + userID + "\'",
+
+                        function(err, result) {
+                            if (err) {
+
+                                getDrCallback(0, null);  // error occurred - 0 rows modified; return
+                            } else {
+
+                                if (result.rowCount > 0) {
+                                    var doctorList = result.rows[0].doctorList;
+
+                                    if (doctorlist) {
+                                        // doctor list syntax: "doctor_1,...,doctor_n"; thus split on comma
+                                        getDrCallback(result.rowCount, doctorlist.split(","));
+                                    } else {
+                                        getDrCallback(0, []); // return nothing, no doctors found
+                                    }
+
+                                } else {
+
+                                    getDrCallback(0, null);
+                                }
+                            }
+                        });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.getDoctors(): " + err);
                 return false;
             }
         },

@@ -459,24 +459,24 @@ function handleRegisterData(dataContents) {
 
     if (dataContents) {
 
-        // syntax is "userID,password,email"
+        // syntax is "userID,password,email,userType"
         var registerCredentials = dataContents.split(",");
 
         var userID = registerCredentials[0].trim();
+        var pw = registerCredentials[1].trim();
         var email = registerCredentials[2].trim();
+        var userType = registerCredentials[3].trim();
 
         // hash password before storing
-        utils.hashPassword(registerCredentials[1].trim(),  function(err, hashedPW){
+        utils.hashPassword(pw,  function(err, hashedPW){
 
             USER_CREDENTIALS.getUserByID(userID, function(rowCount, queryResult) {
 
                 // register successful; this user was not found in database
                 if (rowCount === 0 && !queryResult) {
 
-                    var entityType = StringConst.PATIENT_ENTITY; // TODO - fix this default value
-
                     // place user in database
-                    USER_CREDENTIALS.insertNewUser(userID, hashedPW, email, entityType,
+                    USER_CREDENTIALS.insertNewUser(userID, hashedPW, email, userType,
                         function(rowsTouched) {
 
                             if (rowsTouched === 1) {

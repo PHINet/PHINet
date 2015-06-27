@@ -33,7 +33,8 @@ public class MainActivity extends Activity {
 
     final int CREDENTIAL_RESULT_CODE = 1; // used to identify the result of Login/Signup Activities
 
-	Button logoutBtn, myDataBtn, patientsBtn, loginBtn, signupBtn, sensorBtn, viewPacketsBtn;
+	Button logoutBtn, myDataBtn, patientsBtn, loginBtn, signupBtn,
+            sensorBtn, viewPacketsBtn, doctorsBtn;
 	TextView credentialWarningText, loggedInText;
 	UDPListener receiverThread;
     BTSensorComm btSensorComm;
@@ -146,6 +147,13 @@ public class MainActivity extends Activity {
             }
         });
 
+        doctorsBtn = (Button) findViewById(R.id.doctorsBtn);
+        doctorsBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, DoctorListActivity.class));
+            }
+        });
+
         // check to see if userID has been entered (denotes Logged-in user)
         if (myUserID.equals("")) {
 
@@ -165,6 +173,8 @@ public class MainActivity extends Activity {
 
             if (userType.equals(ConstVar.PATIENT_USER_TYPE)) {
                 patientsBtn.setVisibility(View.GONE); // a patient entity can't have its own patients
+            } else {
+                doctorsBtn.setVisibility(View.GONE); // a doctor entity can't have its own doctors
             }
         }
     }
