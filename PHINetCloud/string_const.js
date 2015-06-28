@@ -81,6 +81,7 @@ exports.StringConst = {
     KEY_IP_ADDRESS : "ipAddress",
     KEY_DATA_CONTENTS : "dataContents",
     KEY_DOCTOR_LIST : "doctorList",  // a list of doctors for given user
+    KEY_PATIENT_LIST: "patientList", // a list of patients for given user
     KEY_EMAIL: "email",
     KEY_PASSWORD: "password",
     KEY_ENTITY_TYPE: "entityType",  // this key represents doctor or patient status (DOCTOR or PATIENT, respectively)
@@ -93,6 +94,16 @@ exports.StringConst = {
     // denotes user type of patient (i.e. doctor or patient)
     DOCTOR_USER_TYPE : "DOCTOR_USER_TYPE",
     PATIENT_USER_TYPE : "PATIENT_USER_TYPE",
+
+    // TODO - DOC
+    ADD_DOCTOR : "ADD_DOCTOR",
+    CLIENT_DOCTOR_SELECTION: "CLIENT_DOCTOR_SELECTION",
+    DOCTOR_LIST: "DOCTOR_LIST",
+
+    // TODO - DOC
+    ADD_PATIENT : "ADD_PATIENT",
+    CLIENT_PATIENT_SELECTION: "CLIENT_PATIENT_SELECTION",
+    PATIENT_LIST: "PATIENT_LIST",
 
     /**
      * Creates and returns string that generates table and test-table.
@@ -145,6 +156,7 @@ exports.StringConst = {
 
         return "CREATE TABLE " + dbName + "("
         + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," + this.KEY_DOCTOR_LIST + " TEXT," + 
-        this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
+        this.KEY_PATIENT_LIST  + " TEXT ," + this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE 
+        + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
     }
 };

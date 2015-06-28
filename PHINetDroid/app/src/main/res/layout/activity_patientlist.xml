@@ -45,6 +45,14 @@
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.93" />
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:id="@+id/patientProgressBar"/>
+
     <Button
         android:id="@+id/backBtn"
         android:layout_width="180dp"

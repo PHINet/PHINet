@@ -6,35 +6,47 @@ import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
+import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PITEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBSingleton;
 import com.ndnhealthnet.androidudpclient.R;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
+import com.ndnhealthnet.androidudpclient.Utility.JNDNUtils;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
+import net.named_data.jndn.Interest;
+import net.named_data.jndn.Name;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * Activity displays list of current patients and allows
- * 1. add new patient
- * 2. select patient and move to activity where modification/data-requests are possible
+ * Activity displays list of current patients and allows selection patient and 
+ * move to activity where modification/data-requests are possible
  */
 public class PatientListActivity extends ListActivity {
 
     Button backBtn;
     TextView emptyListTextView, loggedInText;
+    ProgressBar progressBar;
+    PatientAdapter adapter;
+
+    final int SLEEP_TIME = 250; // 250 milliseconds = 1/4 second (chosen somewhat arbitrarily)
 
     // used to identify intent-data
-    final static String PATIENT_IP = "PATIENT_IP";
     final static String PATIENT_USER_ID = "PATIENT_USER_ID";
 
     @Override
@@ -54,9 +66,13 @@ public class PatientListActivity extends ListActivity {
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place username on screen
 
-        ArrayList<FIBEntry> patientList = getPatients();
+        progressBar = (ProgressBar) findViewById(R.id.patientProgressBar);
+        progressBar.setVisibility(View.GONE); // hide until query made
 
-        final PatientAdapter adapter = new PatientAdapter(this, patientList);
+        ArrayList<String> patientList = new ArrayList<>(); // TODO -
+        getPatients(currentUserID);
+
+        adapter = new PatientAdapter(this, patientList);
         setListAdapter(adapter);
 
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
@@ -76,28 +92,116 @@ public class PatientListActivity extends ListActivity {
     }
 
     /**
-     * Return all patients from FIB
+     * TODO -
      *
-     * @return ArrayList of all patients
+     * @param userID
      */
-    private ArrayList<FIBEntry> getPatients() {
+    private void getPatients(final String userID) {
 
-        // TODO - query server
-        return new ArrayList<FIBEntry>();
+        progressBar.setVisibility(View.VISIBLE); // query begins, show progressbar
+
+        final String currentTime = Utils.getCurrentTime();
+
+        /**
+         * Here userID is stored in sensorID position. We needed to send userID
+         * but had no place to do so and sensorID would have otherwise been null.
+         */
+
+        Name packetName = JNDNUtils.createName(ConstVar.SERVER_ID, userID,
+                currentTime, ConstVar.PATIENT_LIST);
+        Interest interest = JNDNUtils.createInterestPacket(packetName);
+
+        // add entry into PIT
+        PITEntry pitEntry = new PITEntry(userID, ConstVar.PATIENT_LIST,
+                currentTime, ConstVar.SERVER_ID, ConstVar.SERVER_IP);
+
+        DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(pitEntry);
+
+        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
+                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+
+        // store received packet in database for further review
+        Utils.storeInterestPacket(getApplicationContext(), interest);
+
+        // create thread to check for Interest from server
+        new Thread(new Runnable() {
+            public void run() {
+
+                int maxLoopCount = 8; // check for SLEEP_TIME*8 = 2 seconds (somewhat arbitrary)
+                int loopCount = 0;
+                CSEntry candidateEntry = null;
+
+                while (loopCount++ < maxLoopCount) {
+
+                    candidateEntry = DBSingleton
+                            .getInstance(getApplicationContext()).getDB()
+                            .getSpecificCSData(ConstVar.SERVER_ID, currentTime,
+                                    ConstVar.PATIENT_LIST);
+
+                    if (candidateEntry != null) {
+                        break; // result found; break from
+                    }
+
+                    SystemClock.sleep(SLEEP_TIME); // sleep until next check for reply
+                }
+
+                final CSEntry patientList = candidateEntry;
+
+                // delete PATIENT_LIST Interest from PIT
+                DBSingleton.getInstance(getApplicationContext())
+                        .getDB().deletePITEntry(ConstVar.SERVER_ID,
+                        currentTime, ConstVar.SERVER_IP);
+
+                if (candidateEntry != null) {
+
+                    // update UI with query result
+                    PatientListActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setVisibility(View.GONE); // query over, hide progress bar
+
+                            // update ListView adapter
+                            adapter.listData.clear();
+                            adapter.listData.addAll(new ArrayList<>(Arrays.asList(patientList.getDataPayload().split(","))));
+                            adapter.notifyDataSetChanged();
+
+                            if (adapter.listData.size() > 0) {
+                                emptyListTextView.setVisibility(View.GONE); // hide empty list text
+                            }
+                        }
+                    });
+
+                } else {
+
+                    // update UI with query result
+                    PatientListActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setVisibility(View.GONE); // query over, hide progress bar
+
+                            Toast toast = Toast.makeText(PatientListActivity.this,
+                                    "Error: could not get patient list from server.", Toast.LENGTH_LONG);
+                            toast.show();
+                        }
+                    });
+                }
+
+            }
+        }).start();
     }
 
     /**
      * Used by patient list view.
      */
-    private class PatientAdapter extends ArrayAdapter<FIBEntry> {
+    private class PatientAdapter extends ArrayAdapter<String> {
 
         Activity activity = null;
-        ArrayList<FIBEntry> listData;
+        ArrayList<String> listData;
 
-        public PatientAdapter(ListActivity li, ArrayList<FIBEntry> allFIBData)
+        public PatientAdapter(ListActivity li, ArrayList<String> patientList)
         {
-            super(li, 0, allFIBData);
-            listData = allFIBData;
+            super(li, 0, patientList);
+            listData = patientList;
             activity = li;
         }
 
@@ -109,11 +213,11 @@ public class PatientListActivity extends ListActivity {
                         .inflate(R.layout.list_item_patient, null);
             }
 
-            final FIBEntry dbData = listData.get(position);
+            final String patientName = listData.get(position);
 
             // creates individual button in ListView for each patient
             Button patientButton = (Button)convertView.findViewById(R.id.listPatientButton);
-            patientButton.setText("IP: "  + dbData.getIpAddr() + "\nName: "+ dbData.getUserID());
+            patientButton.setText("Name: "+ patientName);
             patientButton.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -129,8 +233,7 @@ public class PatientListActivity extends ListActivity {
                             Intent intent = new Intent(PatientListActivity.this, PatientActivity.class);
 
                             // through intent, pass patient information to activity
-                            intent.putExtra(PATIENT_IP, dbData.getIpAddr());
-                            intent.putExtra(PATIENT_USER_ID, dbData.getUserID());
+                            intent.putExtra(PATIENT_USER_ID, patientName);
                             startActivity(intent);
                         }
                     });

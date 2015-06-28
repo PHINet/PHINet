@@ -105,9 +105,10 @@ public class MainActivity extends Activity {
         logoutBtn = (Button) findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                // clear userID & password on logout
+                // clear userID, userType, and password on logout
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
                 Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, "");
+                Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_USER_TYPE_KEY, "");
 
                 onCreateHelper();
             }
@@ -159,6 +160,7 @@ public class MainActivity extends Activity {
 
             //destroy all buttons until user enters credentials
             patientsBtn.setVisibility(View.GONE);
+            doctorsBtn.setVisibility(View.GONE);
             myDataBtn.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
             sensorBtn.setVisibility(View.GONE);

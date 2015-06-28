@@ -130,9 +130,12 @@ public class UDPListener extends Thread {
             handleInterestCacheRequest(userID, sensorID, timeString,
                     processID, ipAddr, port);
         } else if (processID.equals(ConstVar.LOGIN_CREDENTIAL_DATA)
-                            || processID.equals(ConstVar.REGISTER_CREDENTIAL_DATA)) {
+                            || processID.equals(ConstVar.REGISTER_CREDENTIAL_DATA)
+                            || processID.equals(ConstVar.CLIENT_DOCTOR_SELECTION)
+                            || processID.equals(ConstVar.CLIENT_PATIENT_SELECTION)) {
 
-            // store the request in the PIT; should be checked within Login or Signup Activity shortly
+
+            // store the request in the PIT; should be checked within an Activity shortly
             PITEntry pitEntry = new PITEntry(sensorID, processID, timeString, userID, ipAddr);
             DBSingleton.getInstance(context).getDB().addPITData(pitEntry);
 
@@ -296,6 +299,8 @@ public class UDPListener extends Thread {
         String [] nameComponent = data.getName().toUri().replace("%7C%7C", "||").split("/");
         String dataContents = data.getContent().toString();
 
+        System.out.println("data name component: " + Arrays.toString(nameComponent));
+
         // information extracted from our name format:
         // "/ndn/userID/sensorID/timeString/processID"
         // the indexes used are position + 1 (due to string properties)
@@ -333,7 +338,9 @@ public class UDPListener extends Thread {
 
                 } else if (processID.equals(ConstVar.LOGIN_RESULT)
                         || processID.equals(ConstVar.REGISTER_RESULT)
-                        || Utils.isAnalyticProcessID(processID)) {
+                        || Utils.isAnalyticProcessID(processID)
+                        || processID.equals(ConstVar.DOCTOR_LIST)
+                        || processID.equals(ConstVar.PATIENT_LIST)) {
 
                     // these ProcessIDs all result in storing data into the ContentStore
                     CSEntry dataPacket = new CSEntry(sensorID, processID,

@@ -56,7 +56,7 @@
 
     <string name="patientNotifier">For patients: </string>
     <string name="doctorNotifier">For doctors: </string>
-    <string name="noPatientNotifier">You have no patients.\nOne must add you first..</string>
+    <string name="noPatientNotifier">You have no patients.\nOne must add you first.</string>
     <string name="noDoctorNotifier">You have no doctors.\nAdd one now.</string>
     <string name="noPacketNotifier">You haven\'t exchanged\nany packets yet.</string>
 </resources>

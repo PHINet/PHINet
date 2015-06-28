@@ -70,13 +70,22 @@
                 <h1>Your Doctors</h1>
                 <hr>
                 <br>
+                <% if(doctors.length > 0)  { %> 
                  <ul>
-                <% for(var i=0; i<doctors.length; i++) {%>
-                   <li > 
-                        <a class="large_red" href="/viewdata"><%= doctors[i] %></a>
-                </li>
-                <% } %>
+               
+                    <% for(var i=0; i<doctors.length; i++) {%>
+                       <li class="large_red"> 
+                            <%= doctors[i]%>
+                        </li>
+                    <% } %>
+                    
                 </ul>
+                <% } else { %>
+
+                <p class="large_red"> You have no doctors</p>
+
+                <% } %>
+                <br>
                  <hr>
 
                 <br>
@@ -100,10 +109,15 @@
                         </div>
                         <br>
                         <input class="submit" name=
-                                "doctor_name" type="submit" value="Add Doctor">
+                                "doctor_submit" type="submit" value="Add Doctor">
                     </div>
                 </form>
                 <br>
+                <% if(error) { %>
+
+            <p class="error"><%= error %></p><% } else {%><br>
+            <% } %>
+            <br>
 
             </div>
         </div>

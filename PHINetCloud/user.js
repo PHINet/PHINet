@@ -14,6 +14,7 @@ exports.User = function () {
         email: null,
         entityType: null,
         doctorList: null,
+        patientList: null,
         // --- member variables that may be manipulated ---
 
         /**
@@ -35,7 +36,10 @@ exports.User = function () {
             this.password = password;
             this.email = email;
             this.entityType = entityType;
-            this.doctorList = ""; // set to empty string now; let user add doctors (if any) later
+
+            // set to empty string now; add doctors/patients (if any) later
+            this.doctorList = ""; 
+            this.patientList = "";
         },
 
         getUserID : function() {
@@ -72,11 +76,33 @@ exports.User = function () {
 
         getDoctorList : function() {
             // Syntax for Doctor list is "doctor_1,...,doctor_n"
-            return this.doctorList.split(",");
+
+            console.log("doctor list, get");
+            if (!this.doctorList) {
+                console.log('1');
+                return [];
+            } else {
+                console.log("2");
+                return this.doctorList.split(",");
+            }
         }, 
 
         setDoctorList : function(doctorList) {
             this.doctorList = doctorList;
+        },
+
+        getPatientList: function() {
+
+            if (!this.patientList) {
+                return [];
+            } else {
+                // Syntax for Patient list is "patient_1,...,patient_n"
+                return this.patientList.split(",");
+            }
+        }, 
+
+        setPatientList : function(patientList) {
+            return this.patientList = patientList;
         }
     }
 };

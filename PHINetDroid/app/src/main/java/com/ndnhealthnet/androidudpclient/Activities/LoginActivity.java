@@ -46,8 +46,8 @@ public class LoginActivity extends Activity {
 
         userNameEdit = (EditText) findViewById(R.id.usernameEditText);
         pwEdit = (EditText) findViewById(R.id.passwordEditText);
-        progressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
 
+        progressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
         progressBar.setVisibility(View.GONE); // hide progress bar until login pressed
 
         loginBtn = (Button) findViewById(R.id.loginSubmitBtn);
@@ -310,8 +310,12 @@ public class LoginActivity extends Activity {
                     if (csEntry != null) {
                         if (!csEntry.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
+                            // payload syntax: userType;;userid_1,ipaddr_1||...||userid_n,ipaddr_n"
+                            String userType = csEntry.getDataPayload().split(";;")[0];
+
                             // on login, server replies with FIB entries - place into FIB now
-                            Utils.insertServerFIBEntries(csEntry.getDataPayload(),
+                                    // AND only send second portion of the string to the fib
+                            Utils.insertServerFIBEntries(csEntry.getDataPayload().split(";;")[1],
                                     csEntry.getTimeString(), getApplicationContext());
 
                             // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
@@ -323,6 +327,7 @@ public class LoginActivity extends Activity {
                             String hashedPW = BCrypt.hashpw(password, BCrypt.gensalt());
                             Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
                             Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_PASSWORD_ID_KEY, hashedPW);
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_USER_TYPE_KEY, userType);
 
                             serverResponseFound = true; // response found
                             accountMayExist = false; // result success; account doesn't exist

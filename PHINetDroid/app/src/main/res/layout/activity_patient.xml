@@ -57,55 +57,13 @@
 
     </LinearLayout>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/background"
-        android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:layout_margin="5dp"
-        android:weightSum="1">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/ip"
-            android:layout_margin="10dp"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:id="@+id/ip_textView" />
-
-        <EditText
-            android:layout_width="252dp"
-            android:layout_height="match_parent"
-            android:id="@+id/ip_editText"
-            android:gravity="end"
-            android:layout_marginLeft="35dp"
-            android:layout_marginStart="35dp" />
-
-    </LinearLayout>
-
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="212dp"
+        android:layout_height="150dp"
         android:gravity="center"
         android:layout_margin="5dp"
         android:layout_gravity="bottom">
-
-
-        <Button
-            android:id="@+id/viewDataBtn"
-            android:layout_width="325dp"
-            android:layout_height="wrap_content"
-            android:text="@string/viewData"
-            android:background="@drawable/black_button"
-            style="@style/button_text"
-            android:textSize="20sp"
-            android:layout_margin="5dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="100dp" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -125,10 +83,10 @@
                 android:textSize="20sp" />
 
             <Button
-                android:id="@+id/patientDataSubmitBtn"
+                android:id="@+id/viewDataBtn"
                 android:layout_width="160dp"
                 android:layout_height="wrap_content"
-                android:text="@string/saveChanges"
+                android:text="@string/viewData"
                 android:background="@drawable/black_button"
                 style="@style/button_text"
                 android:textSize="20sp" />
@@ -140,16 +98,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:gravity="center">
-
-            <Button
-                android:id="@+id/deletePatientBtn"
-                android:layout_width="160dp"
-                android:layout_height="wrap_content"
-                android:text="@string/deletePatient"
-                android:background="@drawable/black_button"
-                style="@style/button_text"
-                android:layout_gravity="center|bottom"
-                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/patientDataBackBtn"

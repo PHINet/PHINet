@@ -34,10 +34,9 @@ import java.util.ArrayList;
  */
 public class PatientActivity extends Activity {
 
-    Button backBtn, requestBtn, saveBtn, deleteBtn, viewDataBtn;
-    EditText ipEditText;
+    Button backBtn, requestBtn, viewDataBtn;
     TextView nameText, loggedInText;
-    String patientIP, patientUserID;
+    String  patientUserID;
 
     // --- used by the interval selector ---
     private int startYear = 0, startMonth = 0, startDay = 0;
@@ -55,15 +54,11 @@ public class PatientActivity extends Activity {
         loggedInText = (TextView) findViewById(R.id.loggedInTextView);
         loggedInText.setText(currentUserID); // place userID on screen
 
-        // use IP and ID from intent to find patient among all patients
-        patientIP = getIntent().getExtras().getString(PatientListActivity.PATIENT_IP);
+        // use ID from intent to find patient among all patients
         patientUserID = getIntent().getExtras().getString(PatientListActivity.PATIENT_USER_ID);
 
         nameText = (TextView) findViewById(R.id.nameText);
         nameText.setText(patientUserID);  // place userID on screen
-
-        ipEditText = (EditText) findViewById(R.id.ip_editText);
-        ipEditText.setText(patientIP);
 
         viewDataBtn = (Button) findViewById(R.id.viewDataBtn);
         viewDataBtn.setOnClickListener(new View.OnClickListener(){
@@ -86,14 +81,6 @@ public class PatientActivity extends Activity {
             }
         });
 
-        /** saves updated user information **/
-        saveBtn = (Button) findViewById(R.id.patientDataSubmitBtn);
-        saveBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-                saveChanges();
-            }
-        });
-
         backBtn = (Button) findViewById(R.id.patientDataBackBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
@@ -101,50 +88,6 @@ public class PatientActivity extends Activity {
                finish();
             }
         });
-
-        /** Deletes patient from Doctor's patient list **/
-        deleteBtn = (Button) findViewById(R.id.deletePatientBtn);
-        deleteBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-
-                // TODO - rework with actual Patient/Doctor relationship
-
-                // delete from FIB
-                DBSingleton.getInstance(getApplicationContext()).getDB().deleteFIBEntry(patientUserID);
-
-                finish();
-            }
-        });
-    }
-
-    /**
-     * Invoked when user elects to save patient changes.
-     */
-    private void saveChanges() {
-        // check before save AND notify user if invalid ip
-        if (!Utils.isValidIP(ipEditText.getText().toString())) {
-
-            final AlertDialog.Builder builder = new AlertDialog.Builder(PatientActivity.this);
-
-            builder.setTitle("Invalid IP entered. Submit anyways?");
-
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    updatePatientData();
-                }
-            });
-            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
-
-            builder.show();
-        } else {
-            updatePatientData();
-        }
     }
 
     /**
@@ -328,21 +271,6 @@ public class PatientActivity extends Activity {
         } else {
             throw new NullPointerException("Cannot construct date! Data is bad.");
         }
-    }
-
-    /**
-     * Called when user wishes to save patient data. Updates FIB entry.
-     */
-    void updatePatientData() {
-
-        // updates patient data
-        FIBEntry updatedFIBEntry = new FIBEntry(patientUserID, ConstVar.CURRENT_TIME,
-                ipEditText.getText().toString(), true);
-
-        DBSingleton.getInstance(getApplicationContext()).getDB().updateFIBData(updatedFIBEntry);
-
-        Toast toast = Toast.makeText(this, "Save successful.", Toast.LENGTH_LONG);
-        toast.show();
     }
 
     /**

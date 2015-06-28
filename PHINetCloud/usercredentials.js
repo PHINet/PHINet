@@ -61,18 +61,19 @@ exports.LoginCredentials = function (tableName) {
                             insCallback(0); // do not insert user if another user has same email
                         } else {
 
-                            var doctorList = ""; // set the initial doctor list to an empty string
+                            var doctorList = "", patientList = ""; // set of initial lists to empty string
 
                             // no other user has this email, add now
                             client.query("INSERT INTO " + dbName + "(" + StringConst.KEY_USER_ID + ", "
                                 + StringConst.KEY_EMAIL + ", " + StringConst.KEY_ENTITY_TYPE + ", "
-                                + StringConst.KEY_PASSWORD + + ", " + StringConst.KEY_DOCTOR_LIST 
+                                + StringConst.KEY_PASSWORD + ", " + StringConst.KEY_DOCTOR_LIST 
                                 + ") values($1, $2, $3, $4, $5)",
                                 [userID, email, entityType, password, doctorList],
 
                                 function(err, result) {
 
                                     if (err) {
+                                        console.log("err: " + err);
 
                                         insCallback(0);  // error occurred - 0 rows modified; return
                                     } else {
@@ -122,6 +123,7 @@ exports.LoginCredentials = function (tableName) {
                                     queriedRow.setPassword(result.rows[0].password);
                                     queriedRow.setEmail(result.rows[0].email);
                                     queriedRow.setDoctorList(result.rows[0].doctorlist);
+                                    queriedRow.setPatientList(result.rows[0].patientlist);
 
                                     getCallback(result.rowCount, queriedRow);
                                 } else {
@@ -171,7 +173,8 @@ exports.LoginCredentials = function (tableName) {
                                     queriedRow.setEntityType(result.rows[i].entitytype);
                                     queriedRow.setPassword(result.rows[i].password);
                                     queriedRow.setEmail(result.rows[i].email);
-                                    queriedRow.setDoctorList(result.rows[i].doctorlist)
+                                    queriedRow.setDoctorList(result.rows[i].doctorlist);
+                                    queriedRow.setPatientList(result.rows[i].patientlist);
 
                                     users.push(queriedRow);
                                 }
@@ -217,7 +220,7 @@ exports.LoginCredentials = function (tableName) {
                         + email + "\', " + StringConst.KEY_PASSWORD + " = \'" + password + "\', "
                         + StringConst.KEY_ENTITY_TYPE + " = \'" + entityType + "\' WHERE "
                         + StringConst.KEY_USER_ID + " = \'" + userID + "\', " 
-                        + StringConst.DOCTOR_USER_TYPE + " = \'" + doctorlist + "\'",
+                        + StringConst.DOCTOR_USER_TYPE + " = \'" + doctorList + "\'",
 
                         function(err, result) {
                             if (err) {
@@ -241,47 +244,6 @@ exports.LoginCredentials = function (tableName) {
          * TODO - doc
          *
          * @param userID
-         * @param doctor
-         * @param addDrCallback
-         */
-        addDoctor: function(userID, doctor, addDrCallback) {
-            try {
-                if (!userID || !doctor || !addDrCallback) {
-                    return false;
-                } else {
-                    client.query( "SELECT * FROM " + dbName + " WHERE " + StringConst.KEY_USER_ID + " = \'"
-                            + userID + "\'",
-
-                        function(err, result) {
-                            if (err) {
-
-                                addDrCallback(0);  // error occurred - 0 rows modified; return
-                            } else {
-
-                                if (result.rowCount > 0) {
-                                    
-                                    // TODO - userId is valid; now add doctor to list of doctors
-                                        // if 1. not already done and 2. doctor does exist
-
-                                } else {
-
-                                    addDrCallback(0, null);
-                                }
-                            }
-                        });
-
-                    return true;
-                }
-            } catch (err) {
-                console.log("!!Error in LoginCredentials.addDoctor(): " + err);
-                return false;
-            }
-        },
-
-        /**
-         * TODO - doc
-         *
-         * @param userID
          * @param getDrCallback
          */
         getDoctors: function(userID, getDrCallback) {
@@ -293,24 +255,24 @@ exports.LoginCredentials = function (tableName) {
                             + userID + "\'",
 
                         function(err, result) {
+
                             if (err) {
 
-                                getDrCallback(0, null);  // error occurred - 0 rows modified; return
+                                getDrCallback(0, []);  // error occurred - 0 rows modified; return
                             } else {
 
                                 if (result.rowCount > 0) {
-                                    var doctorList = result.rows[0].doctorList;
+                                    var doctorList = result.rows[0].doctorlist;
 
-                                    if (doctorlist) {
+                                    if (doctorList) {
                                         // doctor list syntax: "doctor_1,...,doctor_n"; thus split on comma
-                                        getDrCallback(result.rowCount, doctorlist.split(","));
+                                        getDrCallback(result.rowCount, doctorList.split(","));
                                     } else {
                                         getDrCallback(0, []); // return nothing, no doctors found
                                     }
 
                                 } else {
-
-                                    getDrCallback(0, null);
+                                    getDrCallback(0, []);
                                 }
                             }
                         });
@@ -319,6 +281,138 @@ exports.LoginCredentials = function (tableName) {
                 }
             } catch (err) {
                 console.log("!!Error in LoginCredentials.getDoctors(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * TODO - doc
+         *
+         * @param userID
+         * @param getPatientsCallback
+         */
+        getPatients: function(userID, getPatientsCallback) {
+            try {
+                if (!userID || !getPatientsCallback) {
+                    return false;
+                } else {
+
+                    this.getUserByID(userID, function(rowsTouched, queryResult) {
+
+                        if (rowsTouched === 1 && queryResult 
+                            && queryResult.getEntityType() === StringConst.DOCTOR_USER_TYPE) {
+
+                            var patientList = queryResult.getPatientList();
+                            getPatientsCallback(patientList.length, patientList);
+
+                        } else {
+                            getPatientsCallback(0, []);
+                        }
+                    });
+
+                    return true;
+                }
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.getPatients(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * TODO - doc
+         *
+         * @param userID
+         * @param doctor
+         * @param addDrCallback
+         */
+        addDoctor: function(userID, doctor, addDrCallback) {
+            try {
+                if (!userID || !doctor || !addDrCallback) {
+                    return false;
+                } else {
+
+                    var getDoctors = this.getDoctors;
+
+                    this.addPatient(doctor, userID, function(rowCount) {
+                        if (rowCount === 1) {
+                            getDoctors(userID, function(rowCount, queryResult) {
+
+                                var doctorArray = queryResult;
+                                var doctorList = queryResult.join();
+
+                                if (doctorArray.indexOf(doctor) === -1) {
+                                    doctorList += "," + doctor; // append doctor to list
+
+                                    client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_DOCTOR_LIST + " = \'"
+                                        +  doctorList + "\' WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\' ",
+
+                                        function(err, result) {
+                                            if (err) {
+
+                                                addDrCallback(0);  // error occurred - 0 rows modified; return
+                                            } else {
+                                                addDrCallback(result.rowCount);
+                                            }
+                                    });
+                                }  else {
+                                     addDrCallback(0); // doctor already in list; do nothing
+                                 }   
+                            });
+                        } else {
+                            addDrCallback(0); // no patient was added implies patient already added
+                        }
+                    });
+                return true;
+                }   
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.addDoctor(): " + err);
+                return false;
+            }
+        },
+
+        /**
+         * TODO - doc
+         *
+         * @param userID
+         * @param patient
+         * @param addDrCallback
+         */
+        addPatient: function(userID, patient, addPatientCallback) {
+            try {
+                if (!userID || !patient || !addPatientCallback) {
+                    return false;
+                } else {
+
+                     this.getPatients(userID, function(rowCount, queryResult) {
+
+                        var patientArray = queryResult;
+                        var patientList = queryResult.join();
+
+                        if (patientArray.indexOf(patient) === -1) {
+                            patientList += "," + patient; // append doctor to list
+
+                            client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_PATIENT_LIST + " = \'"
+                                +  patientList + "\' WHERE " + StringConst.KEY_USER_ID + " = \'" + userID + "\' ",
+
+                                function(err, result) {
+
+                                    if (err) {
+
+                                        addPatientCallback(0);  // error occurred - 0 rows modified; return
+                                    } else {
+                                        addPatientCallback(result.rowCount);
+                                    }
+                            });
+                        } else {
+                            addPatientCallback(0); // doctor already in list; do nothing
+                        }
+                });
+
+
+                    return true;       
+                }
+            } catch (err) {
+                console.log("!!Error in LoginCredentials.addPatient(): " + err);
                 return false;
             }
         },

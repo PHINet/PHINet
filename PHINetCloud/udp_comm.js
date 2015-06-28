@@ -243,6 +243,18 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             else if (processID === StringConst.INITIATE_SYNCH_REQUEST) {
 
                 handleSynchRequest(sensorID, timeString, packetIP, packetPort);
+            } else if (processID === StringConst.ADD_DOCTOR) {
+
+                handleAddDoctor(sensorID, timeString, packetIP, packetPort);
+            } else if (processID === StringConst.DOCTOR_LIST) {
+
+                handleDoctorList(sensorID, timeString, packetIP, packetPort);
+            } else if (processID === StringConst.ADD_PATIENT) {
+
+                handleAddPatient(sensorID, timeString, packetIP, packetPort);
+            } else if (processID === StringConst.PATIENT_LIST) {
+
+                handlePatientList(sensorID, timeString, packetIP, packetPort);
             } else  {
                 // unknown process id; drop packet
             }
@@ -314,6 +326,9 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                         else if (processID === StringConst.SYNCH_DATA_REQUEST) {
 
                             handleSynchRequestData(userID, dataContents);
+                        } else if (processID === StringConst.CLIENT_DOCTOR_SELECTION) {
+
+                            handleClientDoctorSelection(userID, dataContents);
                         } else {
                             // unknown process id; drop packet
                         }
@@ -361,7 +376,7 @@ function sendMessage (message, ip, port) {
  * @param packetFloatContent contents of incoming Data packet
  * @param allValidPITEntries ArrayList of all PIT entries requesting this data
  */
-function handleCacheData (userID, sensorID, timeString,
+function handleCacheData(userID, sensorID, timeString,
                            processID, packetFloatContent, allValidPITEntries) {
 
     var data = DBData.DATA();
@@ -430,7 +445,8 @@ function handleLoginData(dataContents) {
                         if (isPasswordMatch) {
 
                             // store result now so that user can query it
-                            recentLoginValidations.push({"userID": userID, "password": password});
+                            recentLoginValidations.push({"userID": userID, "password": password, 
+                                                        "userType": queryResult.getEntityType()});
                         }
                         // login unsuccessful
                         else {
@@ -517,6 +533,29 @@ function handleSynchRequestData(userID, dataContents) {
 }
 
 /**
+ * TODO -
+ *
+ * @param userID
+ * @param doctorName
+ */
+function handleClientDoctorSelection(userID, doctorName) {
+
+    USER_CREDENTIALS.getUserByID(doctorName, function(rowCount, queryResult) {
+
+
+        // TODO - delete entry from PIT
+
+        // check that doctorName is a valid doctor
+        if (rowCount === 1 && queryResult
+                        && queryResult.getEntityType() === StringConst.DOCTOR_USER_TYPE) {
+
+            USER_CREDENTIALS.addDoctor(userID, doctorName, function(){});
+        }
+
+    });
+}
+
+/**
  * performs NDN logic on packet that requests data
  *
  * @param userID userID associated with requested data from cache
@@ -527,7 +566,7 @@ function handleSynchRequestData(userID, dataContents) {
  * @param packetPort specifies IP that will receive reply if parse success
  * @return boolean - true if a packet sent, false otherwise (true indicates valid input; useful during testing)
  */
-function handleInterestCacheRequest (userID, sensorID, timeString,
+function handleInterestCacheRequest(userID, sensorID, timeString,
                                        processID, packetIP, packetPort) {
 
     // first, check CONTENT STORE (cache) for requested information
@@ -723,6 +762,7 @@ function handleRegisterResultRequest(sensorID, timeString, hostIP, hostPort) {
  */
 function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) {
     var userValidationFound = false;
+    var userType = null;
     var recentValidations;
 
     // set validation array based upon requestType (i.e., register or login)
@@ -736,6 +776,7 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
     for (var i = 0; i < recentValidations.length; i++) {
 
         if (recentValidations[i].userID === userID) {
+            userType = recentValidations.userType;
             recentValidations.splice(i, 1); // remove element
             userValidationFound = true;
 
@@ -765,7 +806,8 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
 
         FIB.getAllFIBData(function(rowsTouched, queryResult) {
 
-            var packetContent = "";
+            // append user type on login
+            var packetContent = userType + ";;";
 
             if (rowsTouched > 0 && queryResult) {
 
@@ -978,4 +1020,128 @@ function handleSynchRequest(sensorID, timeString, hostIP, hostPort) {
 
     newPITEntry.pitData(sensorID, StringConst.NULL_FIELD, StringConst.SYNCH_DATA_REQUEST, timeString, hostIP);
     PIT.insertPITData(newPITEntry, function(){});
+}
+
+/**
+ * TODO - 
+ * TODO - note user of userID v. sensorID 
+ *
+ * @param userIDID
+ * @param timeString
+ * @param hostIP
+ * @param hostPort
+ */
+function handleAddDoctor(userID, timeString, hostIP, hostPort) {
+
+    // create and send packet with ndn-js module
+    var packetName = ndnjs_utils.createName(userID, StringConst.NULL_FIELD, timeString, StringConst.CLIENT_DOCTOR_SELECTION);
+    var interest = ndnjs_utils.createInterestPacket(packetName);
+
+    // ask for new doctor from requestor via INTEREST packet
+    sendMessage(interest.wireEncode(), hostIP, hostPort);
+
+    // add request to PIT
+    var newPITEntry = DBData.DATA();
+
+    newPITEntry.pitData(userID, StringConst.NULL_FIELD, StringConst.CLIENT_DOCTOR_SELECTION, timeString, hostIP);
+    PIT.insertPITData(newPITEntry, function(){});
+}
+ 
+/**
+ * TODO -  && note use of userID v. sensorID
+ * 
+ * @param userID  
+ * @param timeString
+ * @param hostIP
+ * @param hostPort
+ */          
+function handleDoctorList(userID, timeString, hostIP, hostPort) {
+
+    // TODO - look into database for doctor list and return
+
+    USER_CREDENTIALS.getUserByID(userID, function(rowCount, queryResult) {
+
+        // verify that user exists and is a valid patient
+        if (rowCount === 1 && queryResult 
+            && queryResult.getEntityType() === StringConst.PATIENT_USER_TYPE) {
+
+            var doctorList = queryResult.getDoctorList();
+
+            if (doctorList.indexOf("") !== -1) {
+                doctorList.splice(doctorList.indexOf(""), 1); // remove empty string
+            }
+
+            doctorList = doctorList.join(); // join array into string
+
+            // TODO - note use of placing into X
+
+            var packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID, timeString, StringConst.DOCTOR_LIST);
+
+            var data = ndnjs_utils.createDataPacket(doctorList, packetName);
+
+            sendMessage(data.wireEncode(), hostIP, hostPort);
+        }
+    });
+}
+
+/**
+ * TODO - 
+ * TODO - note user of userID v. sensorID 
+ *
+ * @param userID
+ * @param timeString
+ * @param hostIP
+ * @param hostPort
+ */
+function handleAddPatient(userID, timeString, hostIP, hostPort) {
+
+    // create and send packet with ndn-js module
+    var packetName = ndnjs_utils.createName(userID, StringConst.NULL_FIELD, timeString, StringConst.CLIENT_PATIENT_SELECTION);
+    var interest = ndnjs_utils.createInterestPacket(packetName);
+
+    // ask for new doctor from requestor via INTEREST packet
+    sendMessage(interest.wireEncode(), hostIP, hostPort);
+
+    // add request to PIT
+    var newPITEntry = DBData.DATA();
+
+    newPITEntry.pitData(userID, StringConst.NULL_FIELD, StringConst.CLIENT_PATIENT_SELECTION, timeString, hostIP);
+    PIT.insertPITData(newPITEntry, function(){});
+}
+ 
+/**
+ * TODO -  && note use of userID v. sensorID
+ * 
+ * @param userID  
+ * @param timeString
+ * @param hostIP
+ * @param hostPort
+ */          
+function handlePatientList(userID, timeString, hostIP, hostPort) {
+
+    // TODO - look into database for doctor list and return
+
+    USER_CREDENTIALS.getUserByID(userID, function(rowCount, queryResult) {
+
+        // verify that user exists and is a valid patient
+        if (rowCount === 1 && queryResult 
+            && queryResult.getEntityType() === StringConst.DOCTOR_USER_TYPE) {
+
+            var patientList = queryResult.getPatientList();
+
+            if (patientList.indexOf("") !== -1) {
+                patientList.splice(patientList.indexOf(""), 1); // remove empty string
+            }
+
+            patientList = patientList.join(); // join array into string
+
+            // TODO - note use of placing into X
+
+            var packetName = ndnjs_utils.createName(StringConst.SERVER_ID, userID, timeString, StringConst.PATIENT_LIST);
+
+            var data = ndnjs_utils.createDataPacket(patientList, packetName);
+
+            sendMessage(data.wireEncode(), hostIP, hostPort);
+        }
+    });
 }

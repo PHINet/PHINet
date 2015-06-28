@@ -86,8 +86,18 @@ public class ConstVar {
     public static final String ENTITY_NAME = "ENTITY_NAME";
 
     // information used to contact the server
-    public static final String SERVER_IP = "52.26.209.179";
+    public static final String SERVER_IP = "10.0.0.3";//"52.26.209.179"; // TODO
     public static final String SERVER_ID = "CLOUD-SERVER";
+
+    // TODO -
+    public static final String ADD_DOCTOR = "ADD_DOCTOR";
+    public static final String CLIENT_DOCTOR_SELECTION = "CLIENT_DOCTOR_SELECTION";
+    public static final String DOCTOR_LIST = "DOCTOR_LIST";
+
+    // TODO -
+    public static final String ADD_PATIENT = "ADD_PATIENT";
+    public static final String CLIENT_PATIENT_SELECTION = "CLIENT_PATIENT_SELECTION";
+    public static final String PATIENT_LIST = "PATIENT_LIST";
 
     // port used by all PHINet applications
     public static final int PHINET_PORT = 50056;

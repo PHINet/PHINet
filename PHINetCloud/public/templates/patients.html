@@ -71,13 +71,22 @@
                 <hr>
                 <br>
 
-                <ul>
-                <% for(var i=0; i<patients.length; i++) {%>
-                   <li > 
-                        <a class="large_red" href="/viewdata"><%= patients[i]%></a>
-                </li>
-                <% } %>
+                <% if(patients.length > 0)  { %> 
+                 <ul>
+               
+                    <% for(var i=0; i<patients.length; i++) {%>
+                       <li > 
+                            <!-- TODO - provide link to patients data <a class="large_red" href="/viewdata"><%= patients[i]%></a>-->
+                            <%= patients[i]%>
+                    </li>
+                    <% } %>
+
                 </ul>
+                <% } else { %>
+
+                <p class="large_red"> You have no patients</p>
+
+                <% } %>
                    
                 <br><br>
 
