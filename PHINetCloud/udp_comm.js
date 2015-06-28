@@ -776,7 +776,8 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
     for (var i = 0; i < recentValidations.length; i++) {
 
         if (recentValidations[i].userID === userID) {
-            userType = recentValidations.userType;
+            console.dir(recentValidations[i]);
+            userType = recentValidations[i].userType;
             recentValidations.splice(i, 1); // remove element
             userValidationFound = true;
 
@@ -806,8 +807,13 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
 
         FIB.getAllFIBData(function(rowsTouched, queryResult) {
 
-            // append user type on login
-            var packetContent = userType + ";;";
+            var packetContent = "";
+            if (requestType === StringConst.LOGIN_REQUEST) {
+                // append user type on login
+                packetContent = userType + ";;";
+                console.log("adding now");
+            }
+            console.log("packet content: " + packetContent);
 
             if (rowsTouched > 0 && queryResult) {
 
