@@ -69,11 +69,11 @@ public class DoctorListActivity extends ListActivity {
         progressBar = (ProgressBar) findViewById(R.id.doctorProgressBar);
         progressBar.setVisibility(View.GONE); // hide until query made
 
-        ArrayList<String> doctorList = new ArrayList<>(); // TODO - set list
-        getDoctors(userID);
-
-        adapter = new DoctorAdapter(this, doctorList);
+        // call to getDoctors() will populate; pass empty ArrayList now
+        adapter = new DoctorAdapter(this, new ArrayList<String>());
         setListAdapter(adapter);
+
+        getDoctors(userID); // query server to populate ListView
 
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
 
@@ -152,9 +152,8 @@ public class DoctorListActivity extends ListActivity {
         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
         // NOTE: don't add Interest into PIT (it shouldn't be satisfied); only initiates the process
-        
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+
+        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
         // store received packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -192,8 +191,8 @@ public class DoctorListActivity extends ListActivity {
 
                     Data data = JNDNUtils.createDataPacket(doctorName, packetName);
 
-                    new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                            .execute(data.wireEncode().getImmutableArray()); // send Interest now
+                    new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP)
+                            .execute(data.wireEncode().getImmutableArray()); // send Data now
 
                     // store received packet in database for further review
                     Utils.storeDataPacket(getApplicationContext(), data);
@@ -232,10 +231,10 @@ public class DoctorListActivity extends ListActivity {
     }
 
     /**
-     * TODO -
+     * Invoked after sending to-be-added doctor to server; checks for result.
      *
-     * @param doctorName
-     * @param userID
+     * @param doctorName that was sent to server
+     * @param userID of client using this device
      */
     private void queryServerForResult(final String doctorName, String userID) {
 
@@ -263,9 +262,9 @@ public class DoctorListActivity extends ListActivity {
     }
 
     /**
-     * TODO -
+     * Queries server for all doctors and waits for response.
      *
-     * @param userID
+     * @param userID of client using this device
      */
     private void getDoctors(final String userID) {
 
@@ -288,8 +287,7 @@ public class DoctorListActivity extends ListActivity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(pitEntry);
 
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
         // store received packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -331,12 +329,13 @@ public class DoctorListActivity extends ListActivity {
                         public void run() {
                             progressBar.setVisibility(View.GONE); // query over, hide progress bar
 
-                            // update ListView adapter
-                            adapter.listData.clear();
-                            adapter.listData.addAll(new ArrayList<>(Arrays.asList(doctorList.getDataPayload().split(","))));
-                            adapter.notifyDataSetChanged();
+                            // only update if data exists
+                            if (!doctorList.getDataPayload().isEmpty()) {
+                                // update ListView adapter
+                                adapter.listData.clear();
+                                adapter.listData.addAll(new ArrayList<>(Arrays.asList(doctorList.getDataPayload().split(","))));
+                                adapter.notifyDataSetChanged();
 
-                            if (adapter.listData.size() > 0) {
                                 emptyListTextView.setVisibility(View.GONE); // hide empty list text
                             }
                         }

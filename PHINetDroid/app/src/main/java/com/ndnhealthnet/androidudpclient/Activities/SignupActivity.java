@@ -106,7 +106,7 @@ public class SignupActivity extends Activity {
 
                     final String userID = userNameEdit.getText().toString().trim();
                     final String password = pwEdit.getText().toString().trim();
-                    final String email = emailEdit.getText().toString().equals("")
+                    final String email = emailEdit.getText().toString().isEmpty()
                             ? ConstVar.NULL_FIELD : emailEdit.getText().toString().trim();
                     final String userType = patientRadioBtn.isChecked()
                             ? ConstVar.PATIENT_USER_TYPE : ConstVar.DOCTOR_USER_TYPE;
@@ -117,6 +117,9 @@ public class SignupActivity extends Activity {
                     if (pwMatch && Utils.isValidUserName(userID) && Utils.isValidPassword(password)
                             && (email.equals(ConstVar.NULL_FIELD) || Utils.isValidEmail(email))
                             && Utils.isValidUserType(userType)) {
+
+                        // store userID temporarily (until signup result); UDPListener logic accesses it
+                        Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
@@ -136,8 +139,7 @@ public class SignupActivity extends Activity {
                         // NOTE: we don't store this Interest because it is never satisfied
                             // it merely initiates the signup process
 
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+                        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -213,7 +215,7 @@ public class SignupActivity extends Activity {
 
                         Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
 
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP)
                                 .execute(data.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                         // delete Interest requesting signup credentials from PIT; it has been satisfied
@@ -257,6 +259,9 @@ public class SignupActivity extends Activity {
                     @Override
                     public void run() {
                         if (!serverResponseFoundFinal) {
+
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
 
                             Toast toast = Toast.makeText(SignupActivity.this,
                                     "Signup failed.\nCould not reach server.", Toast.LENGTH_LONG);
@@ -304,8 +309,7 @@ public class SignupActivity extends Activity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -341,7 +345,10 @@ public class SignupActivity extends Activity {
                     CSEntry csEntry = DBSingleton.getInstance(getApplicationContext()).getDB()
                             .getSpecificCSData(ConstVar.SERVER_ID, packetTime, ConstVar.REGISTER_RESULT);
 
+                    System.out.println("cs Entry: " + csEntry);
+
                     if (csEntry != null) {
+                        System.out.println("data payload: " + csEntry.getDataPayload());
 
                         // signup response yields success
                         if (!csEntry.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {
@@ -392,6 +399,9 @@ public class SignupActivity extends Activity {
 
                         if (!serverResponseFoundFinal) {
 
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
                             // delete initial Interest placed in PIT to initiate login
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
@@ -401,7 +411,10 @@ public class SignupActivity extends Activity {
                             toast.show();
 
                         } else if (serverResponseFoundFinal && accountMayExistFinal) {
-                            
+
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
                             Toast toast = Toast.makeText(SignupActivity.this,
                                     "Signup failed.\nAccount may already exist.", Toast.LENGTH_LONG);
                             toast.show();;

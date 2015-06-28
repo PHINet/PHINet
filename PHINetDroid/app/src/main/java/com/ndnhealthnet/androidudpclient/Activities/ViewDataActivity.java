@@ -202,11 +202,10 @@ public class ViewDataActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                final String myUserID = Utils.getFromPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
                 final String chosenTime = Utils.createTimeStringInterval(dataStatusText.getText().toString());
                 final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
-                CSEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(myUserID, chosenTime, processID);
+                CSEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(entityName, chosenTime, processID);
 
                 // first check to see if Analytic request isn't already in ContentStore and that it's still valid
                 if (queryResult != null
@@ -215,18 +214,17 @@ public class ViewDataActivity extends Activity {
                     analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataPayload());
                 } else {
                     // query server for analytic task
-                    Name packetName = JNDNUtils.createName(myUserID, currentSensorSelected,
+                    Name packetName = JNDNUtils.createName(entityName, currentSensorSelected,
                             chosenTime, processID);
                     Interest interest = JNDNUtils.createInterestPacket(packetName);
 
                     // add entry into PIT
                     final PITEntry data = new PITEntry(currentSensorSelected, processID,
-                            chosenTime, myUserID, ConstVar.SERVER_IP);
+                            chosenTime, entityName, ConstVar.SERVER_IP);
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-                    new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                            .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+                    Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
                     // store received packet in database for further review
                     Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -246,7 +244,7 @@ public class ViewDataActivity extends Activity {
 
                                 candidateData = DBSingleton
                                         .getInstance(getApplicationContext()).getDB()
-                                        .getSpecificCSData(myUserID, chosenTime, processID);
+                                        .getSpecificCSData(entityName, chosenTime, processID);
 
                                 if (candidateData != null
                                         && Utils.isValidFreshnessPeriod(
@@ -260,6 +258,8 @@ public class ViewDataActivity extends Activity {
                             }
 
                             final CSEntry analyticsResultFinal = candidateData;
+
+                            System.out.println("final result found: " + analyticsResultFinal);
 
                             ViewDataActivity.this.runOnUiThread(new Runnable() {
                                 @Override
@@ -344,6 +344,8 @@ public class ViewDataActivity extends Activity {
 
                             if (Utils.isValidInterval(startYear, startMonth, startDay, endYear, endMonth, endDay)) {
                                 // now that interval has been entered, update the graph
+
+                                analyticsResultText.setText("none requested"); // reset text for new data
                                 updateGraph();
                             } else {
                                 Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval: start must be before end.", Toast.LENGTH_LONG);

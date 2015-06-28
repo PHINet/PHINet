@@ -78,6 +78,9 @@ public class LoginActivity extends Activity {
 
                         progressBar.setVisibility(View.VISIBLE); // show progress bar now
 
+                        // store userID temporarily (until login result); UDPListener logic accesses it
+                        Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, userID);
+
                         String currentTime = Utils.getCurrentTime();
 
                         /**
@@ -93,8 +96,7 @@ public class LoginActivity extends Activity {
                         // NOTE: we don't store this Interest because it is never satisfied
                         // it merely initiates the login process
 
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray());
+                        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
                         // store sent packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -185,7 +187,7 @@ public class LoginActivity extends Activity {
 
                         Data data = JNDNUtils.createDataPacket(credentialContent, packetName);
 
-                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.DATA_TYPE)
+                        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP)
                                 .execute(data.wireEncode().getImmutableArray()); // send credentials now
 
                         // delete initial Interest placed in PIT to initiate login
@@ -229,6 +231,10 @@ public class LoginActivity extends Activity {
                     @Override
                     public void run() {
                         if (!serverResponseFoundFinal) {
+
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
                             Toast toast = Toast.makeText(LoginActivity.this,
                                     "Login failed.\nCould not reach server.", Toast.LENGTH_LONG);
                             toast.show();
@@ -271,8 +277,7 @@ public class LoginActivity extends Activity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(pitEntry);
 
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send now
+        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
         // store packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -311,12 +316,18 @@ public class LoginActivity extends Activity {
                         if (!csEntry.getDataPayload().equals(ConstVar.LOGIN_FAILED)) {
 
                             // payload syntax: userType;;userid_1,ipaddr_1||...||userid_n,ipaddr_n"
-                            String userType = csEntry.getDataPayload().split(";;")[0];
+                            String [] payloadSplit = csEntry.getDataPayload().split(";;");
 
-                            // on login, server replies with FIB entries - place into FIB now
-                                    // AND only send second portion of the string to the fib
-                            Utils.insertServerFIBEntries(csEntry.getDataPayload().split(";;")[1],
-                                    csEntry.getTimeString(), getApplicationContext());
+                            String userType = payloadSplit[0];
+
+                            if (payloadSplit.length == 2) { // only access latter part if it exists
+
+
+                                // on login, server replies with FIB entries - place into FIB now
+                                // AND only send second portion of the string to the fib
+                                Utils.insertServerFIBEntries(payloadSplit[1],
+                                        csEntry.getTimeString(), getApplicationContext());
+                            }
 
                             // delete LOGIN_RESULT Interest from PIT (it's been satisfied)
                             DBSingleton.getInstance(getApplicationContext())
@@ -362,6 +373,9 @@ public class LoginActivity extends Activity {
 
                         if (!serverResponseFoundFinal) {
 
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
                             // delete initial Interest placed in PIT to initiate login
                             DBSingleton.getInstance(getApplicationContext()).getDB()
                                     .deletePITEntry(ConstVar.SERVER_ID, packetTime, ConstVar.SERVER_IP);
@@ -371,6 +385,10 @@ public class LoginActivity extends Activity {
                             toast.show();
 
                         } else if (serverResponseFoundFinal && accountMayExistFinal) {
+
+                            // remove from storage now
+                            Utils.saveToPrefs(getApplicationContext(), ConstVar.PREFS_LOGIN_USER_ID_KEY, "");
+
                             Toast toast = Toast.makeText(LoginActivity.this,
                                     "Login failed.\nInput combination does not seem to exist.", Toast.LENGTH_LONG);
                             toast.show();

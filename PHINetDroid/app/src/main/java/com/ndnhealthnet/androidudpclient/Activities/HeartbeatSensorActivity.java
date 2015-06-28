@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Linked to GetOwnHeartbeatButton
  */
-public class RecordHeartbeatActivity extends Activity {
+public class HeartbeatSensorActivity extends Activity {
     private static final String TAG = "HeartRateMonitor";
     private static final AtomicBoolean processing = new AtomicBoolean(false);
 
@@ -134,8 +134,6 @@ public class RecordHeartbeatActivity extends Activity {
             }
         
         });
-
-	    // TODO Add Component for to Sending data to Server
     }
 
     @Override

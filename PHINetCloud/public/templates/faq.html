@@ -2,8 +2,6 @@
 <html>
 <head>
     <title>PHINet | FAQ</title>
-    <meta content="website description" name="description">
-    <meta content="website keywords, website keywords" name="keywords">
     <meta content="text/html; charset=utf-8" http-equiv="content-type">
     <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'
     type='text/css'>
@@ -36,9 +34,9 @@
                         <a href="/faq">FAQ</a>
                     </li>
 
-                    <li>
+                   <!-- <li>
                         <a href="/test">Test</a>
-                    </li><% if(user) { %>
+                    </li>--><% if(user) { %>
 
                     <li>
                         <a href="/profile">Profile</a>
@@ -110,6 +108,13 @@
                     This is a trouble area since NDN hasn't been deployed. Connecting via your mobile network
                     will only allow communication with the server while connecting via WiFi makes it possible
                     to communicate with both the server and any PHINet-enabled device over LAN.
+
+                    <br><br>
+                    <li class="large_red">Why can't doctors add patients?</li>
+
+                    The current solution (only patients can add doctors) was implemented first
+                    due to it being quick and simple - patients choose to reveal things, doctors
+                    cannot ask. However, more sophisticated mechanisms may be implemented in the future.
 
                 </ul>
 

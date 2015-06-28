@@ -44,7 +44,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activities.RecordHeartbeatActivity"
+            android:name=".Activities.HeartbeatSensorActivity"
             android:parentActivityName=".Activities.SensorListActivity"
             android:screenOrientation="portrait" >
             <meta-data

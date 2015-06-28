@@ -179,7 +179,7 @@ public class SensorListActivity extends ListActivity {
                             // HEARTBEAT_SENSOR is a special case; it is embedded into client device
                             if (sensorName.equals(ConstVar.HEARTBEAT_SENSOR)) {
 
-                                startActivity(new Intent(SensorListActivity.this, RecordHeartbeatActivity.class));
+                                startActivity(new Intent(SensorListActivity.this, HeartbeatSensorActivity.class));
                             } else {
                                 Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
 

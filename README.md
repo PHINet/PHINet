@@ -1,46 +1,56 @@
 # PHINet
 
-PHINet is a Health-IoT testbed framework for the future Named Data Networking Internet architecture. 
+PHINet is a testbed for Health-IoT over the Content Centric Network (CCN) known as Named Data Networking (NDN). Its creation was primarily motivated by the gap in what was possible and what was desired in terms of studying the implications Health-IoT over a CCN.
 
 This project is described in a paper accepted by the IEEE Mobile Services conference (link will be provided soon).
 
-## Abstract of Work
-
-Named Data Networking, a future networking paradigm, allows for features such as the naming of content for identification and routing as well as router-based caching for ubiquitous storage. These features are well suited for an Internet of Things (IoT) which can network identifiable and addressable electronic devices such as sensors that, in an IoT, are often configured in a Wireless Body Area Network. To bridge the gap between research approaches in the area of both Health-IoT and content centric networking, this paper presents the first content centric networking testbed framework called PHINet for experimentation with Health-IoT. PHINet aims to fulfill the following goals: ease of use, seamless scaling, support for testing, development and integration of health services and sensors, support for experimentation with live traffic underneath, and integration of the cloud into Health-IoT. Architecture, design, and implementation of PHINet is presented. Furthermore, through several use cases, we demonstrate the applicability of the proposed work.
-
 # Install
 
-Our client application is available for android devices. [Link here.](https://play.google.com/store/apps/details?id=com.ndnhealthnet.androidudpclient)
+[Our client application is available for android devices.](https://play.google.com/store/apps/details?id=com.ndnhealthnet.androidudpclient)
 
 [Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/)
 
 # Contributing
 
-All documented and tested contributions that further the aim of this project are welcome. Consult the following list for contribution ideas.
+All documented and tested contributions that further the aim of this project are welcome. Consult the following list for ideas.
 
-GENERAL
+###GENERAL
 - REQUIRED: test multiple clients interacting
 - REQUIRED: improve docs (for both website and wiki)
+- REQUIRED: forward Packets to appropriate FIB entries (store where data comes from, etc)
+- REQUIRED: modify/use all NDN packet components
+- REQUIRED: increase code clarity / handle all TODOs
+- REQUIRED: more rigorous testing
+- REQUIRED: add to the "supported senors" list
 
-CLIENT
-- DESIRED: modify/user all NDN packet components
+###CLIENT
+- REQUIRED: handle case of if user already sent interest and its still in pit (not satisfied)
+- REQUIRED: connect to sensors, send data requests at given intervals, retrieve and store data
+- REQUIRED: keep FIB fresh
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
 - DESIRED: improve layout
 - DESIRED: allow interval-selection in PacketListActvity
+- DESIRED: assess memory usage
 
-WEB
+###WEB
+- REQUIRED: server incorrectly assumes all data is for itself; fix (it's functional now, however)
+- REQUIRED: get rid of temporary data structures that store login/signup result
+- REQUIRED: view your own data
+- REQUIRED: provide link for doctor's to view patient's data
+- DESIRED: allow for editing of profile data
+- DESIRED: improve naive rate-limiting
+- DESIRED: improve DB schemas; they don't scale well
 - DESIRED: improve layout
 - DESIRED: basic testing page (to test with device)
-- DESIRED: modify/use all NDN packet components
 - DESIRED: perform more complex analytics
 - DESIRED: make mobile friendly
 
 # Tests
 
-In order to run the PHINetCloud tests, you must install mocha (preferably globally): "npm install -g mocha". Then, within the tests directory, run "mocha test_x.js" where "x" is the test you'd like to run. Moreover, all tests can be run given the following command: "mocha test_*.js".
+- To run the PHINetCloud tests, you must install mocha (preferably globally): "npm install -g mocha". Then, within the tests directory, run "mocha test_x.js" where "x" is the test you'd like to run. Moreover, all tests can be run given the following command: "mocha test_*.js".
 
-In order to run PHINetDroid tests, right click on the ApplicationTest file and click the android icon (if your configrations are different, you must delete them and then click).
+- To run PHINetDroid tests, right click on the ApplicationTest file and click the android icon (if your configrations are different, you must delete them and then click).
 
 # Running Server Code Locally
 
@@ -52,4 +62,4 @@ Send all questions to cseales6@gmail.com.
 
 # License
 
-GNU GENERAL PUBLIC LICENSE, view LICENSE.
+[MIT License.](https://github.com/seales/PHINet/blob/master/LICENSE.md)

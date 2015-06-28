@@ -80,7 +80,7 @@ public class MainActivity extends Activity {
         final String userType = Utils.getFromPrefs(getApplicationContext(),
                 ConstVar.PREFS_USER_TYPE_KEY, "");
 
-        if (!myUserID.equals("")) {
+        if (!myUserID.isEmpty() && !userType.isEmpty()) {
             // place userID on screen if user has logged in
             loggedInText = (TextView) findViewById(R.id.loggedInTextView);
             loggedInText.setText(myUserID);
@@ -156,7 +156,7 @@ public class MainActivity extends Activity {
         });
 
         // check to see if userID has been entered (denotes Logged-in user)
-        if (myUserID.equals("")) {
+        if (myUserID.isEmpty() && userType.isEmpty()) {
 
             //destroy all buttons until user enters credentials
             patientsBtn.setVisibility(View.GONE);
@@ -248,8 +248,7 @@ public class MainActivity extends Activity {
 
         DBSingleton.getInstance(context).getDB().addPITData(data);
 
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send synch request now
+        Utils.forwardInterestPacket(interest, context); // forward Interest now
 
         // store sent packet in database for further review
         Utils.storeInterestPacket(context, interest);

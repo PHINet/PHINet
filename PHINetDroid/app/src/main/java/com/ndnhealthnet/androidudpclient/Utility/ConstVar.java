@@ -86,7 +86,7 @@ public class ConstVar {
     public static final String ENTITY_NAME = "ENTITY_NAME";
 
     // information used to contact the server
-    public static final String SERVER_IP = "52.26.209.179";
+    public static final String SERVER_IP = "10.0.0.3"; // TODO - //"52.26.209.179";
     public static final String SERVER_ID = "CLOUD-SERVER";
 
     // used to query patients from server

@@ -52,7 +52,7 @@ public class UDPListener extends Thread {
                 try {
                     clientSocket.receive(receivePacket);
 
-                    String hostIP = receivePacket.getAddress().getHostAddress();
+                    String hostIP = receivePacket.getAddress().toString();  //.getAddress().getHostAddress();
                     int hostPort = receivePacket.getPort();
 
                     handleNDNPacket(receiveData, hostIP, hostPort);
@@ -110,6 +110,8 @@ public class UDPListener extends Thread {
      */
     static void handleInterestPacket(Interest interest, String ipAddr, int port) {
 
+        final String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "").trim();
+
         //decode the parsing characters "||"
         String [] nameComponent = interest.getName().toUri().replace("%7C%7C", "||").split("/");
 
@@ -125,25 +127,24 @@ public class UDPListener extends Thread {
 
         // now, use the processID to determine what should be done
 
-        if (processID.equals(ConstVar.INTEREST_CACHE_DATA)) {
+        if ((processID.equals(ConstVar.LOGIN_CREDENTIAL_DATA)
+                || processID.equals(ConstVar.REGISTER_CREDENTIAL_DATA)
+                || processID.equals(ConstVar.CLIENT_DOCTOR_SELECTION)
+                || processID.equals(ConstVar.CLIENT_PATIENT_SELECTION)) && userID.equals(myUserID)) {
 
-            handleInterestCacheRequest(userID, sensorID, timeString,
-                    processID, ipAddr, port);
-        } else if (processID.equals(ConstVar.LOGIN_CREDENTIAL_DATA)
-                            || processID.equals(ConstVar.REGISTER_CREDENTIAL_DATA)
-                            || processID.equals(ConstVar.CLIENT_DOCTOR_SELECTION)
-                            || processID.equals(ConstVar.CLIENT_PATIENT_SELECTION)) {
-
-
-            // store the request in the PIT; should be checked within an Activity shortly
+            // Interest belongs to me, store it now; should be requested within Activity shortly
             PITEntry pitEntry = new PITEntry(sensorID, processID, timeString, userID, ipAddr);
             DBSingleton.getInstance(context).getDB().addPITData(pitEntry);
 
-        } else if (processID.equals(ConstVar.SYNCH_DATA_REQUEST)) {
+        } else if (processID.equals(ConstVar.SYNCH_DATA_REQUEST) && userID.equals(myUserID)) {
 
-            handleInterestSynchRequest(userID, timeString, port);
-        } else {
-            // unknown processID; drop packet
+            // handle my own synch request
+            handleInterestSynchRequest(userID, timeString, ipAddr, port);
+        }
+        else {
+
+            // look into cache to satisfy the Interest; forward if you cannot satisfy
+            handleInterestCacheRequest(userID, sensorID, timeString, processID, ipAddr, port);
         }
     }
 
@@ -193,7 +194,7 @@ public class UDPListener extends Thread {
                 DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
 
                 // reply to interest with DATA from cache
-                new UDPSocket(port, packetIP, ConstVar.DATA_TYPE).execute(data.wireEncode().getImmutableArray());
+                new UDPSocket(port, packetIP).execute(data.wireEncode().getImmutableArray());
 
                 // add packet content to database for future review
                 Utils.storeDataPacket(context, data);
@@ -212,27 +213,14 @@ public class UDPListener extends Thread {
 
                 DBSingleton.getInstance(context).getDB().addPITData(newPITEntry);
 
-                ArrayList<FIBEntry> allFIBData = DBSingleton.getInstance(context).getDB().getAllFIBData();
+                Name packetName = JNDNUtils.createName(userID, sensorID,
+                        timeString, processID);
+                Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                if (allFIBData == null || allFIBData.size() == 0) {
+                Utils.forwardInterestPacket(interest, context); // forward Interest now
 
-                    // FIB is empty, user must reconfigure
-                    throw new NullPointerException("Cannot send message; FIB is empty.");
-                } else {
-
-                    for (int i = 0; i < allFIBData.size(); i++) {
-
-                        Name packetName = JNDNUtils.createName(userID, sensorID,
-                                timeString, processID);
-                        Interest interest = JNDNUtils.createInterestPacket(packetName);
-
-                        new UDPSocket(port, allFIBData.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
-
-                        // store sent packet in database for further review
-                        Utils.storeInterestPacket(context, interest);
-                    }
-                }
+                // store sent packet in database for further review
+                Utils.storeInterestPacket(context, interest);
             }
             // Interests have been sent for data, append request to PIT and wait
             else {
@@ -249,9 +237,10 @@ public class UDPListener extends Thread {
      *
      * @param userID of client targeted by server for synch
      * @param timeString of data requested
+     * @param ipAddr of sender
      * @param port of sender
      */
-    static void handleInterestSynchRequest(String userID, String timeString, int port) {
+    static void handleInterestSynchRequest(String userID, String timeString, String ipAddr, int port) {
 
         // TODO - delete initial Interest from PIT
 
@@ -270,6 +259,8 @@ public class UDPListener extends Thread {
         // Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
         String formattedData = Utils.formatSynchData(validData);
 
+        System.out.println("sending data sync: " + formattedData);
+
         Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                 timeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
@@ -280,8 +271,10 @@ public class UDPListener extends Thread {
         // place Synch Data Packet into CS
         DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
 
+        System.out.println("sending to server: " + ipAddr + " " + port);
+
         // reply to interest with DATA from cache
-        new UDPSocket(port, ConstVar.SERVER_IP, ConstVar.DATA_TYPE) .execute(data.wireEncode().getImmutableArray());
+        new UDPSocket(port, ipAddr).execute(data.wireEncode().getImmutableArray());
 
         Utils.storeDataPacket(context, data); // add packet content to database for future review
     }
@@ -294,6 +287,8 @@ public class UDPListener extends Thread {
      * @param data newly received
      */
     static void handleDataPacket(Data data) {
+
+        final String myUserID = Utils.getFromPrefs(context, ConstVar.PREFS_LOGIN_USER_ID_KEY, "").trim();
 
         // decode the parsing characters "||" and break into components
         String [] nameComponent = data.getName().toUri().replace("%7C%7C", "||").split("/");
@@ -329,27 +324,43 @@ public class UDPListener extends Thread {
                 }
             }
 
+            System.out.println("processID: " + processID);
+            System.out.println("sensorID: " + sensorID);
+            System.out.println("found within interval: " + requestFoundWithinInterval);
+           System.out.println("my user id: " + myUserID);
+
             // Data was requested; use ProcessID to direct it elsewhere
             if (requestFoundWithinInterval) {
-                if (processID.equals(ConstVar.DATA_CACHE)) {
 
-                    handleCacheData(userID, sensorID, timeString, processID,
-                            dataContents, allValidPITEntries);
-
-                } else if (processID.equals(ConstVar.LOGIN_RESULT)
+                if ((processID.equals(ConstVar.LOGIN_RESULT)
                         || processID.equals(ConstVar.REGISTER_RESULT)
-                        || Utils.isAnalyticProcessID(processID)
                         || processID.equals(ConstVar.DOCTOR_LIST)
-                        || processID.equals(ConstVar.PATIENT_LIST)) {
+                        || processID.equals(ConstVar.PATIENT_LIST)) && sensorID.equals(myUserID)) {
 
-                    // these ProcessIDs all result in storing data into the ContentStore
+                    System.out.println("from within if");
+                    System.out.println("data contents: " + dataContents);
+
+                    // Data belongs to me, store it now; should be requested within Activity shortly
                     CSEntry dataPacket = new CSEntry(sensorID, processID,
                             timeString, userID, dataContents, ConstVar.DEFAULT_FRESHNESS_PERIOD);
 
                     DBSingleton.getInstance(context).getDB().addCSData(dataPacket);
 
+                } else if (Utils.isAnalyticProcessID(processID)) {
+
+                    // Data belongs to me, store it now; should be requested within Activity shortly
+                    CSEntry dataPacket = new CSEntry(sensorID, processID,
+                            timeString, userID, dataContents, ConstVar.DEFAULT_FRESHNESS_PERIOD);
+
+                    DBSingleton.getInstance(context).getDB().addCSData(dataPacket);
+
+                    // TODO - create "handle analytic data" method
+
                 } else {
-                    // unknown process id; drop packet
+                    // handle all other requests here
+                    handleCacheData(userID, sensorID, timeString, processID,
+                            dataContents, allValidPITEntries);
+
                 }
             } else {
                 // no PIT requests found; drop packet
@@ -403,7 +414,7 @@ public class UDPListener extends Thread {
                         processID);
                 Data dataPacket = JNDNUtils.createDataPacket(dataPayload, packetName);
 
-                new UDPSocket(ConstVar.PHINET_PORT, allValidPITEntries.get(i).getIpAddr(), ConstVar.DATA_TYPE)
+                new UDPSocket(ConstVar.PHINET_PORT, allValidPITEntries.get(i).getIpAddr())
                         .execute(dataPacket.wireEncode().getImmutableArray()); // reply to interest with DATA from cache
 
                 // store sent packet in database for further review

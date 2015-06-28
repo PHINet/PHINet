@@ -69,11 +69,11 @@ public class PatientListActivity extends ListActivity {
         progressBar = (ProgressBar) findViewById(R.id.patientProgressBar);
         progressBar.setVisibility(View.GONE); // hide until query made
 
-        ArrayList<String> patientList = new ArrayList<>(); // TODO -
-        getPatients(currentUserID);
-
-        adapter = new PatientAdapter(this, patientList);
+        // call to getPatients() will populate; pass empty ArrayList now
+        adapter = new PatientAdapter(this, new ArrayList<String>());
         setListAdapter(adapter);
+
+        getPatients(currentUserID);// query server to populate ListView
 
         emptyListTextView = (TextView) findViewById(R.id.emptyListTextView);
 
@@ -92,9 +92,9 @@ public class PatientListActivity extends ListActivity {
     }
 
     /**
-     * TODO -
+     * Queries server for all patients and waits for response.
      *
-     * @param userID
+     * @param userID of client using this device
      */
     private void getPatients(final String userID) {
 
@@ -117,8 +117,7 @@ public class PatientListActivity extends ListActivity {
 
         DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(pitEntry);
 
-        new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP, ConstVar.INTEREST_TYPE)
-                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
         // store received packet in database for further review
         Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -160,12 +159,13 @@ public class PatientListActivity extends ListActivity {
                         public void run() {
                             progressBar.setVisibility(View.GONE); // query over, hide progress bar
 
-                            // update ListView adapter
-                            adapter.listData.clear();
-                            adapter.listData.addAll(new ArrayList<>(Arrays.asList(patientList.getDataPayload().split(","))));
-                            adapter.notifyDataSetChanged();
+                            // only update if data exists
+                            if (!patientList.getDataPayload().isEmpty()) {
+                                // update ListView adapter
+                                adapter.listData.clear();
+                                adapter.listData.addAll(new ArrayList<>(Arrays.asList(patientList.getDataPayload().split(","))));
+                                adapter.notifyDataSetChanged();
 
-                            if (adapter.listData.size() > 0) {
                                 emptyListTextView.setVisibility(View.GONE); // hide empty list text
                             }
                         }

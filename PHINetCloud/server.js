@@ -350,6 +350,7 @@ app.get('/viewdata', function (req, res) {
 /**
  * Handles test page
  */
+ /*
 app.get('/test', function (req, res) {
 
      var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
@@ -381,7 +382,7 @@ app.get('/test', function (req, res) {
     } else {
         displayPage(RATE_LIMIT_CODE, res, '/public/templates/rate_limit.html', "Error serving rate_limit.html: ", {});
     }
-});
+});*/
 
 /**
  * Handles doctors page

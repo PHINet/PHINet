@@ -9,7 +9,7 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.ndnhealthnet.androidudpclient.Activities.RecordHeartbeatActivity;
+import com.ndnhealthnet.androidudpclient.Activities.HeartbeatSensorActivity;
 import com.ndnhealthnet.androidudpclient.R;
 
 /**
@@ -62,7 +62,7 @@ public class HeartbeatView extends View {
         if (canvas == null) throw new NullPointerException();
 
         Bitmap bitmap = null;
-        if (RecordHeartbeatActivity.getCurrent() == RecordHeartbeatActivity.TYPE.GREEN) bitmap = greenBitmap;
+        if (HeartbeatSensorActivity.getCurrent() == HeartbeatSensorActivity.TYPE.GREEN) bitmap = greenBitmap;
         else bitmap = redBitmap;
 
         int bitmapX = bitmap.getWidth() / 2;

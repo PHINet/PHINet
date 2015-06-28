@@ -120,9 +120,8 @@ public class PatientActivity extends Activity {
                 // user has already requested data, update PIT entries
 
                 // TODO - rework the way PIT entries are updated
-                //  TODO - (the request interval should not be changed but rather sent time)
 
-                /*for (int i = 0; i < pitEntries.size(); i++) {
+              /*  for (int i = 0; i < pitEntries.size(); i++) {
                     pitEntries.get(i).setTimeString(ConstVar.CURRENT_TIME);
                     DBSingleton.getInstance(getApplicationContext()).getDB().updatePITData(pitEntries.get(i));
                 }*/
@@ -142,8 +141,7 @@ public class PatientActivity extends Activity {
                                 ConstVar.INTEREST_CACHE_DATA);
                         Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-                        new UDPSocket(ConstVar.PHINET_PORT, allFIBEntries.get(i).getIpAddr(), ConstVar.INTEREST_TYPE)
-                                .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+                        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
                         // store received packet in database for further review
                         Utils.storeInterestPacket(getApplicationContext(), interest);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.ndnhealthnet.androidudpclient.Comm.UDPSocket;
 import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.CSEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.FIBEntry;
 import com.ndnhealthnet.androidudpclient.DB.DBDataTypes.PacketDBEntry;
@@ -89,6 +90,36 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
             return defaultValue;
+        }
+    }
+
+    /**
+     * Forwards Interest to several nodes from FIB
+     *
+     * @param interest to be forwarded
+     * @param context used to access DB
+     */
+    public static void forwardInterestPacket(Interest interest, Context context) {
+
+        ArrayList<FIBEntry> fibEntries = DBSingleton.getInstance(context).getDB().getAllFIBData();
+
+        // TODO - improve forwarding strategy
+
+        boolean forwardedToServer = false;
+
+        // only forward to ceil(sqrt(FIB.size()))
+        for (int i = 0; i < Math.ceil(Math.sqrt(fibEntries.size())); i++) {
+
+            forwardedToServer |= fibEntries.get(i).getIpAddr().equals(ConstVar.SERVER_IP);
+
+            new UDPSocket(ConstVar.PHINET_PORT, fibEntries.get(i).getIpAddr())
+                    .execute(interest.wireEncode().getImmutableArray()); // send Interest now
+        }
+
+        if (!forwardedToServer) {
+            // always forward Interest to server
+            new UDPSocket(ConstVar.PHINET_PORT, ConstVar.SERVER_IP)
+                    .execute(interest.wireEncode().getImmutableArray()); // send Interest now
         }
     }
 
@@ -206,9 +237,11 @@ public class Utils {
 
         for (int i = 0; i < myData.size(); i++) {
 
-            // only get data if the sensor name matches && is valid for time interval
+            // only get if the sensorID matches, is valid for time interval,
+                // and not analytic data (only sensor data)
             if (myData.get(i).getSensorID().equals(sensor)
-                    && isValidForTimeInterval(requestInterval, myData.get(i).getTimeString())) {
+                    && isValidForTimeInterval(requestInterval, myData.get(i).getTimeString())
+                    && !Utils.isAnalyticProcessID(myData.get(i).getProcessID())) {
 
                 String [] floatArray = myData.get(i).getDataPayload().trim().split(",");
                 for (int j = 0; j < floatArray.length; j++) {
@@ -564,35 +597,37 @@ public class Utils {
     public static void insertServerFIBEntries(String serverFIBEntries, String timeString,
                                               Context context) {
 
-        String[] individualFIBEntries = serverFIBEntries.split("\\|\\|");
+        if (!serverFIBEntries.isEmpty()) {
+            String[] individualFIBEntries = serverFIBEntries.split("\\|\\|");
 
-        for (int i = 0; i < individualFIBEntries.length; i++) {
-            //Syntax: "userId,ipAddr"
-            String [] individualEntry = individualFIBEntries[i].split(",");
+            for (int i = 0; i < individualFIBEntries.length; i++) {
+                //Syntax: "userId,ipAddr"
+                String [] individualEntry = individualFIBEntries[i].split(",");
 
-            String userID = individualEntry[0].trim();
-            String userIP = individualEntry[1].trim();
+                String userID = individualEntry[0].trim();
+                String userIP = individualEntry[1].trim();
 
-            // assume false until (if and when) user exists in FIB; then look to FIB for result
-            boolean isMyPatient = false;
+                // assume false until (if and when) user exists in FIB; then look to FIB for result
+                boolean isMyPatient = false;
 
-            FIBEntry fibEntry = new FIBEntry(userID, timeString, userIP, isMyPatient);
+                FIBEntry fibEntry = new FIBEntry(userID, timeString, userIP, isMyPatient);
 
-            DatabaseHandler dbHandler = DBSingleton.getInstance(context).getDB();
+                DatabaseHandler dbHandler = DBSingleton.getInstance(context).getDB();
 
-            FIBEntry fibQueryResult = dbHandler.getFIBData(fibEntry.getUserID());
+                FIBEntry fibQueryResult = dbHandler.getFIBData(fibEntry.getUserID());
 
-            if (fibQueryResult == null) {
-                // entry does not exist; add now
+                if (fibQueryResult == null) {
+                    // entry does not exist; add now
 
-                dbHandler.addFIBData(fibEntry);
-            } else {
+                    dbHandler.addFIBData(fibEntry);
+                } else {
 
-                // set isMyPatient to previously known value
-                fibEntry.setIsMyPatient(fibQueryResult.isMyPatient());
+                    // set isMyPatient to previously known value
+                    fibEntry.setIsMyPatient(fibQueryResult.isMyPatient());
 
-                // entry already existed; update now
-                dbHandler.updateFIBData(fibEntry);
+                    // entry already existed; update now
+                    dbHandler.updateFIBData(fibEntry);
+                }
             }
         }
     }

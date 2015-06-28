@@ -13,13 +13,12 @@ import java.util.TimerTask;
  */
 public class UDPSocket extends AsyncTask<byte[], Void, Void> {
 
-    String destAddr, messageType;
+    String destAddr;
     int destPort;
 
-    public UDPSocket(int port, String addr, String type){
+    public UDPSocket(int port, String addr){
         destPort = port;
         destAddr = addr;
-        messageType = type;
     }
 
     @Override
@@ -53,7 +52,7 @@ public class UDPSocket extends AsyncTask<byte[], Void, Void> {
                     try {
                         clientSocket.setSoTimeout(2000); // only listen for 2 seconds
                         clientSocket.receive(receivePacket);
-                        String packetSourceIP = receivePacket.getAddress().getLocalHost().getHostAddress();
+                        String packetSourceIP = receivePacket.getAddress().getHostAddress();
                         int packetPort = receivePacket.getPort();
 
                         UDPListener.handleNDNPacket(receiveData, packetSourceIP, packetPort);
