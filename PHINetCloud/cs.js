@@ -85,7 +85,7 @@ exports.CS = function (tableName) {
 
                     client.query( "UPDATE " + dbName + " SET " + StringConst.KEY_PROCESS_ID + " = \'"
                         + dbDataObject.getProcessID() + "\', " + StringConst.KEY_DATA_CONTENTS + " = \'"
-                        + dbDataObject.getDataFloat() + "\', " + StringConst.KEY_SENSOR_ID + " = \'"
+                        + dbDataObject.getDataPayload() + "\', " + StringConst.KEY_SENSOR_ID + " = \'"
                         + dbDataObject.getSensorID() + "\' WHERE " + StringConst.KEY_USER_ID + " = \'"
                         + dbDataObject.getUserID() + "\' AND " + StringConst.KEY_TIME_STRING + "= \'"
                         + dbDataObject.getTimeString() + "\'",
@@ -142,7 +142,7 @@ exports.CS = function (tableName) {
                                         queriedRow.setSensorID(result.rows[i].sensorid);
                                         queriedRow.setTimeString(result.rows[i].timestring);
                                         queriedRow.setProcessID(result.rows[i].processid);
-                                        queriedRow.setDataFloat(result.rows[i].datacontents);
+                                        queriedRow.setDataPayload(result.rows[i].datacontents);
 
                                         queriedEntries.push(queriedRow);
                                     }
@@ -194,7 +194,7 @@ exports.CS = function (tableName) {
                                     queriedRow.setSensorID(result.rows[0].sensorid);
                                     queriedRow.setTimeString(result.rows[0].timestring);
                                     queriedRow.setProcessID(result.rows[0].processid);
-                                    queriedRow.setDataFloat(result.rows[0].datacontents);
+                                    queriedRow.setDataPayload(result.rows[0].datacontents);
 
                                     getSpecCallback(result.rowCount, queriedRow);
                                 } else {
@@ -228,7 +228,7 @@ exports.CS = function (tableName) {
                        + "," + StringConst.KEY_SENSOR_ID + "," + StringConst.KEY_TIME_STRING + ","
                        + StringConst.KEY_PROCESS_ID + "," + StringConst.KEY_DATA_CONTENTS
                        +") values($1, $2, $3, $4, $5)", [dbDataObject.getUserID(), dbDataObject.getSensorID(),
-                           dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataFloat()],
+                           dbDataObject.getTimeString(),dbDataObject.getProcessID(), dbDataObject.getDataPayload()],
 
                        function(err, result) {
 

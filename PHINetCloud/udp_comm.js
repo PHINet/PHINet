@@ -191,7 +191,7 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
             var processID = nameComponent[5].trim();
 
             // check if packet is an INTEREST for CACHE data
-            if (processID === StringConst.INTEREST_CACHE_DATA) {
+            if (processID === StringConst.DATA_CACHE) {
 
                 handleInterestCacheRequest(userID, sensorID, timeString, processID,
                     packetIP, packetPort);
@@ -328,7 +328,7 @@ exports.UDPComm = function(pitReference, fibReference, csReference, ucReference)
                             handleSynchRequestData(userID, dataContents);
                         } else if (processID === StringConst.CLIENT_DOCTOR_SELECTION) {
 
-                            handleClientDoctorSelection(userID, dataContents);
+                            handleClientDoctorSelection(userID, dataContents, timeString, hostIP);
                         } else {
                             // unknown process id; drop packet
                         }
@@ -533,17 +533,19 @@ function handleSynchRequestData(userID, dataContents) {
 }
 
 /**
- * TODO -
+ * If userID doesn't have doctorName as a doctor, add it now
  *
- * @param userID
- * @param doctorName
+ * @param userID of user requesting new doctor
+ * @param doctorName of new doctor requested by userID
+ * @param timeString associated with packet
+ * @param ipAddr of sender
  */
-function handleClientDoctorSelection(userID, doctorName) {
+function handleClientDoctorSelection(userID, doctorName, timeString, ipAddr) {
 
     USER_CREDENTIALS.getUserByID(doctorName, function(rowCount, queryResult) {
 
-
-        // TODO - delete entry from PIT
+        // data satisfies PIT entry; delete the entry
+        PIT.deletePITData(userID, timeString, ipAddr, function(){});
 
         // check that doctorName is a valid doctor
         if (rowCount === 1 && queryResult
@@ -570,27 +572,22 @@ function handleInterestCacheRequest(userID, sensorID, timeString,
                                        processID, packetIP, packetPort) {
 
     // first, check CONTENT STORE (cache) for requested information
-    CS.getSpecificCSData(userID, timeString, function(rowsTouched, csQueryResults) {
+    CS.getGeneralCSData(userID, function(rowsTouched, csQueryResults) {
 
         // data was in cache; send to requester
         if (csQueryResults) {
 
-            for (var i = 0; i < csQueryResults.length; i++) {
+            // format the data before sending it
+            utils.formatCacheRequest(csQueryResults, function(formattedData) {
 
-                // verify that processID matches
-                if (processID === csQueryResults[i].getProcessID()) {
+                // create and send packet with ndn-js module
+                var packetName = ndnjs_utils.createName(userID ,
+                    StringConst.NULL_FIELD, timeString, StringConst.DATA_CACHE);
 
-                    // create and send packet with ndn-js module
-                    var packetName = ndnjs_utils.createName(csQueryResults[i].getUserID(),
-                        csQueryResults[i].getSensorID(), csQueryResults[i].getTimeString(), StringConst.DATA_CACHE);
+                var data = ndnjs_utils.createDataPacket(formattedData, packetName);
 
-                    var data = ndnjs_utils.createDataPacket(csQueryResults[i].getDataFloat(), packetName);
-
-                    sendMessage(data.wireEncode(), packetIP, packetPort); // reply to interest with DATA from cache
-                }
-                // TODO - remove loop and send as single unit
-            }
-
+                sendMessage(data.wireEncode(), packetIP, packetPort); // reply to interest with DATA from cache
+            })
         }
         // data wasn't in cache; check PIT to see if an interest has already been sent for data
         else {
@@ -811,9 +808,7 @@ function handleResultRequest(userID, timeString, hostIP, hostPort, requestType) 
             if (requestType === StringConst.LOGIN_REQUEST) {
                 // append user type on login
                 packetContent = userType + ";;";
-                console.log("adding now");
             }
-            console.log("packet content: " + packetContent);
 
             if (rowsTouched > 0 && queryResult) {
 
@@ -987,7 +982,7 @@ function getRequestedData(userID, sensorID, timeString, callback) {
                     && utils.isValidForTimeInterval(timeString, queryResults[i].getTimeString())) {
 
                     // match found, place in array to be returned to caller function
-                    matchingData.push(parseInt(queryResults[i].getDataFloat()));
+                    matchingData.push(parseInt(queryResults[i].getDataPayload()));
                 }
             }
 
@@ -1029,13 +1024,15 @@ function handleSynchRequest(sensorID, timeString, hostIP, hostPort) {
 }
 
 /**
- * TODO - 
+ * Invoked when client sends Interest to request the addition of a new
+ * doctor. Here we send an Interest requesting the name of that doctor.
+ *
  * TODO - note user of userID v. sensorID 
  *
- * @param userIDID
- * @param timeString
- * @param hostIP
- * @param hostPort
+ * @param userID of user requesting initiation of doctor-addition process
+ * @param timeString associated with requested
+ * @param hostIP associated with requested
+ * @param hostPort associated with requested
  */
 function handleAddDoctor(userID, timeString, hostIP, hostPort) {
 
@@ -1054,12 +1051,14 @@ function handleAddDoctor(userID, timeString, hostIP, hostPort) {
 }
  
 /**
+ * Satisfies client's Interest packet requesting a list of the client's doctors.
+ *
  * TODO -  && note use of userID v. sensorID
  * 
- * @param userID  
- * @param timeString
- * @param hostIP
- * @param hostPort
+ * @param userID requesting a list of their doctors
+ * @param timeString associated with request
+ * @param hostIP associated with request
+ * @param hostPort associated with request
  */          
 function handleDoctorList(userID, timeString, hostIP, hostPort) {
 
@@ -1091,13 +1090,14 @@ function handleDoctorList(userID, timeString, hostIP, hostPort) {
 }
 
 /**
- * TODO - 
- * TODO - note user of userID v. sensorID 
+ * TODO - do we even need this method?
  *
- * @param userID
- * @param timeString
- * @param hostIP
- * @param hostPort
+ * TODO - note user of userID v. sensorID
+ *
+ * @param userID of user requesting initiation of patient-addition process
+ * @param timeString associated with requested
+ * @param hostIP associated with requested
+ * @param hostPort associated with requested
  */
 function handleAddPatient(userID, timeString, hostIP, hostPort) {
 
@@ -1114,15 +1114,17 @@ function handleAddPatient(userID, timeString, hostIP, hostPort) {
     newPITEntry.pitData(userID, StringConst.NULL_FIELD, StringConst.CLIENT_PATIENT_SELECTION, timeString, hostIP);
     PIT.insertPITData(newPITEntry, function(){});
 }
- 
+
 /**
+ * Satisfies client's Interest packet requesting a list of the client's patients.
+ *
  * TODO -  && note use of userID v. sensorID
- * 
- * @param userID  
- * @param timeString
- * @param hostIP
- * @param hostPort
- */          
+ *
+ * @param userID requesting a list of their patients
+ * @param timeString associated with request
+ * @param hostIP associated with request
+ * @param hostPort associated with request
+ */
 function handlePatientList(userID, timeString, hostIP, hostPort) {
 
     // TODO - look into database for doctor list and return

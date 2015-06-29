@@ -497,6 +497,52 @@ public class Utils {
     }
 
     /**
+     * Used to parse (syntax below) data formatted as shown below
+     *
+     * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+     *
+     * @param userID of sender
+     * @param dataContents currently formatted
+     * @return ArrayList containing parsed data if input valid; otherwise returns empty ArrayList
+     */
+    public static ArrayList<CSEntry> parseFormattedData(String userID, String dataContents) {
+
+        if (!dataContents.isEmpty() && !userID.isEmpty()) {
+            ArrayList<CSEntry> parsedData = new ArrayList<>();
+            String [] splitBySensor = dataContents.split("::"); // '::' separates by sensor
+
+            for (int i = 0; i < splitBySensor.length; i++) {
+                String[] sensor = splitBySensor[i].split("--"); // '--' separates sensor's name from its data
+
+                if (sensor.length > 1) {
+                    String sensorName = sensor[0];
+                    String [] sensorData = sensor[1].split(";;"); // ';;' separates sensor data pieces
+
+                    for (int j = 0; j < sensorData.length; j++) {
+
+                        String [] dataPiece = sensorData[j].split(","); // ',' separates (data,time) tuple
+
+                        CSEntry sensorEntry = new CSEntry();
+                        sensorEntry.setDataPayload(dataPiece[0]);
+                        sensorEntry.setSensorID(sensorName);
+                        sensorEntry.setTimeString(dataPiece[1]);
+                        sensorEntry.setUserID(userID);
+                        sensorEntry.setProcessID(ConstVar.NULL_FIELD);
+
+                        parsedData.add(sensorEntry);
+                    }
+                } else {
+                    // input was bad; do nothing
+                }
+            }
+
+            return parsedData;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
      * Attempts to determine whether userID input is valid
      *
      * Usernames may be between 3-15 characters and contain alpha-numeric characters and underscore.

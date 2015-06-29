@@ -345,10 +345,7 @@ public class SignupActivity extends Activity {
                     CSEntry csEntry = DBSingleton.getInstance(getApplicationContext()).getDB()
                             .getSpecificCSData(ConstVar.SERVER_ID, packetTime, ConstVar.REGISTER_RESULT);
 
-                    System.out.println("cs Entry: " + csEntry);
-
                     if (csEntry != null) {
-                        System.out.println("data payload: " + csEntry.getDataPayload());
 
                         // signup response yields success
                         if (!csEntry.getDataPayload().equals(ConstVar.REGISTER_FAILED)) {

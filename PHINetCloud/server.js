@@ -93,18 +93,23 @@ setInterval(
     }, CLEAN_RATE_DICT_INTERVAL
 ); // invoke every interval
 
-
 /**
- * TODO - doc
+ * Displays any webpage given input params
+ *
+ * @param httpStatusCode associated with page
+ * @param res object used to send page to client
+ * @param path of html file
+ * @param log what to print if load fails
+ * @param ejsParams used to populate page
  */
-function displayPage(statusCode, res, path, log, ejsParams) {
+function displayPage(httpStatusCode, res, path, log, ejsParams) {
 
     fs.readFile(__dirname + path, 'utf-8', function(err, content) {
         if (err) {
             console.log(log + err);
         } else {
 
-          res.status(statusCode).send(ejs.render(content, ejsParams));
+          res.status(httpStatusCode).send(ejs.render(content, ejsParams));
         }
     });
 }
@@ -264,7 +269,7 @@ app.get('/profile', function (req, res) {
                 if (queryResult) {
                     var displayedEmail;
                     if (queryResult.getEmail() === StringConst.NULL_FIELD) {
-                        displayedEmail = "you didn't enter one"
+                        displayedEmail = "none on record"
                     } else {
                         displayedEmail = queryResult.getEmail();
                     }

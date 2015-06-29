@@ -259,8 +259,6 @@ public class UDPListener extends Thread {
         // Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
         String formattedData = Utils.formatSynchData(validData);
 
-        System.out.println("sending data sync: " + formattedData);
-
         Name packetName = JNDNUtils.createName(userID, ConstVar.NULL_FIELD,
                 timeString, ConstVar.SYNCH_DATA_REQUEST);
         Data data = JNDNUtils.createDataPacket(formattedData, packetName);
@@ -270,8 +268,6 @@ public class UDPListener extends Thread {
 
         // place Synch Data Packet into CS
         DBSingleton.getInstance(context).getDB().addCSData(cacheEntry);
-
-        System.out.println("sending to server: " + ipAddr + " " + port);
 
         // reply to interest with DATA from cache
         new UDPSocket(port, ipAddr).execute(data.wireEncode().getImmutableArray());
@@ -324,11 +320,6 @@ public class UDPListener extends Thread {
                 }
             }
 
-            System.out.println("processID: " + processID);
-            System.out.println("sensorID: " + sensorID);
-            System.out.println("found within interval: " + requestFoundWithinInterval);
-           System.out.println("my user id: " + myUserID);
-
             // Data was requested; use ProcessID to direct it elsewhere
             if (requestFoundWithinInterval) {
 
@@ -336,9 +327,6 @@ public class UDPListener extends Thread {
                         || processID.equals(ConstVar.REGISTER_RESULT)
                         || processID.equals(ConstVar.DOCTOR_LIST)
                         || processID.equals(ConstVar.PATIENT_LIST)) && sensorID.equals(myUserID)) {
-
-                    System.out.println("from within if");
-                    System.out.println("data contents: " + dataContents);
 
                     // Data belongs to me, store it now; should be requested within Activity shortly
                     CSEntry dataPacket = new CSEntry(sensorID, processID,
@@ -382,22 +370,37 @@ public class UDPListener extends Thread {
                          String  processID,String  dataPayload,
                          ArrayList<PITEntry> allValidPITEntries) {
 
-        // data was requested; second, update cache with new packet
-        CSEntry data = new CSEntry(sensorID, processID, timeString, userID, dataPayload,
-                ConstVar.DEFAULT_FRESHNESS_PERIOD);
+        ArrayList<CSEntry> dataEntries;
 
-        // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
+        if (processID.equals(ConstVar.DATA_CACHE)) {
+            // data with this processID must first be parsed and stored in the PIT
 
-        // TODO - this update is incorrect; provide a more precise query
-
-        // if data exists in cache, just update
-        if (DBSingleton.getInstance(context).getDB().getGeneralCSData(userID) != null) {
-
-            DBSingleton.getInstance(context).getDB().updateCSData(data);
+            dataEntries = Utils.parseFormattedData(userID, dataPayload);
         } else {
 
-            // data not in cache, add now
-            DBSingleton.getInstance(context).getDB().addCSData(data);
+            // we only have one entry
+            dataEntries = new ArrayList<>();
+            dataEntries.add(new CSEntry(sensorID, processID, timeString, userID, dataPayload,
+                    ConstVar.DEFAULT_FRESHNESS_PERIOD));
+        }
+
+        for (int i = 0; i < dataEntries.size(); i++) {
+            // TODO - rework how update/addition takes place (currently, may not store if 3rd party requested)
+
+            // TODO - this update is incorrect; provide a more precise query
+
+            // if data exists in cache, just update
+            if (DBSingleton.getInstance(context).getDB()
+                    .getSpecificCSData(dataEntries.get(i).getUserID(),
+                            dataEntries.get(i).getTimeString(),
+                            dataEntries.get(i).getProcessID()) != null) {
+
+                DBSingleton.getInstance(context).getDB().updateCSData(dataEntries.get(i));
+            } else {
+
+                // data not in cache, add now
+                DBSingleton.getInstance(context).getDB().addCSData(dataEntries.get(i));
+            }
         }
 
         // now, send packets to each entity that requested the data

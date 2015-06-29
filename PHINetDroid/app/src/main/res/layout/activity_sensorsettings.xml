@@ -180,7 +180,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Note: Not fully implemented.\nHeartbeat is only working sensor."
+        android:text="Note: Not fully implemented yet.\nHeartbeat is only working sensor."
         android:layout_margin="10dp"
         android:textStyle="bold"
         android:textColor="@color/orange"

@@ -17,7 +17,7 @@ exports.DATA = function () {
         processID: null,
         timeString: null,
         userID: null,
-        dataFloat: null,
+        dataPayload: null,
         ipAddr: null,
         // --- member variables that may be manipulated ---
 
@@ -28,9 +28,9 @@ exports.DATA = function () {
          * @param processID associated with CS data
          * @param timeString associated with CS data
          * @param userID associated with CS data
-         * @param dataFloat contents associated with CS data
+         * @param dataPayload contents associated with CS data
          */
-    	csData: function (userID, sensorID, processID, timeString, dataFloat) {
+    	csData: function (userID, sensorID, processID, timeString, dataPayload) {
 
              // if current time requested, provide it
             if (timeString === StringConst.CURRENT_TIME) {
@@ -41,7 +41,7 @@ exports.DATA = function () {
             this.processID = processID;
             this.timeString = timeString;
             this.userID = userID;
-            this.dataFloat = dataFloat;
+            this.dataPayload = dataPayload;
         },
 
         /**
@@ -134,12 +134,12 @@ exports.DATA = function () {
             this.ipAddr = ipAddr;
         },
 
-        getDataFloat: function () {
-            return this.dataFloat;
+        getDataPayload: function () {
+            return this.dataPayload;
         },
 
-        setDataFloat: function (dataFloat) {
-            this.dataFloat = dataFloat;
+        setDataPayload: function (dataPayload) {
+            this.dataPayload = dataPayload;
         }
     }
 };

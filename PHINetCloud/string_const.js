@@ -48,9 +48,6 @@ exports.StringConst = {
     LOGIN_FAILED: "LOGIN_FAILED",
     REGISTER_FAILED: "REGISTER_FAILED",
 
-    // denotes that data from cache is desired
-    INTEREST_CACHE_DATA : "INTEREST_CACHE_DATA",
-
     // used to denote the two types of packets: interest and data
     INTEREST_TYPE : "INTEREST-TYPE",
     DATA_TYPE : "DATA-TLV",
@@ -95,12 +92,12 @@ exports.StringConst = {
     DOCTOR_USER_TYPE : "DOCTOR_USER_TYPE",
     PATIENT_USER_TYPE : "PATIENT_USER_TYPE",
 
-    // TODO - DOC
+    // used to query doctors from server
     ADD_DOCTOR : "ADD_DOCTOR",
     CLIENT_DOCTOR_SELECTION: "CLIENT_DOCTOR_SELECTION",
     DOCTOR_LIST: "DOCTOR_LIST",
 
-    // TODO - DOC
+    // used to query patients from server
     ADD_PATIENT : "ADD_PATIENT",
     CLIENT_PATIENT_SELECTION: "CLIENT_PATIENT_SELECTION",
     PATIENT_LIST: "PATIENT_LIST",

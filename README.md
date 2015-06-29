@@ -22,11 +22,15 @@ All documented and tested contributions that further the aim of this project are
 - REQUIRED: increase code clarity / handle all TODOs
 - REQUIRED: more rigorous testing
 - REQUIRED: add to the "supported senors" list
+- REQUIRED: view doctor profile (contact information, etc)
+- DESIRED: doctor name suggestions when typing 
+- DESIRED: allow more fine tuning in regards to requesting patient data
 
 ###CLIENT
 - REQUIRED: handle case of if user already sent interest and its still in pit (not satisfied)
 - REQUIRED: connect to sensors, send data requests at given intervals, retrieve and store data
 - REQUIRED: keep FIB fresh
+- DESIRED: larger options of analytic/sensor selection within ViewDataActivity.java
 - DESIRED: multi-sensor graph
 - DESIRED: improve sensor axes
 - DESIRED: improve layout

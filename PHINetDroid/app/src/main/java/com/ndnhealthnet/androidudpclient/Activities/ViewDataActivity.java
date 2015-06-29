@@ -8,7 +8,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -81,8 +84,11 @@ public class ViewDataActivity extends Activity {
         // TextView used to notify user whether data for patient exists
         dataStatusText = (TextView) findViewById(R.id.currentDataStatusTextView);
 
-        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
-        ArrayList<String> sensors = new ArrayList<>(); // used to store all sensor names; then displayed to user
+        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB()
+                .getGeneralCSData(entityName);
+
+        // used to store all sensor names; then displayed to user
+        ArrayList<String> sensors = new ArrayList<>();
 
         if (myData != null) {
             // get all sensors in order to allow user to choose
@@ -100,7 +106,8 @@ public class ViewDataActivity extends Activity {
         }
 
         sensorSelectionSpinner = (Spinner) findViewById(R.id.sensorSelectorSpinner);
-        final ArrayAdapter<String> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, sensors);
+        final ArrayAdapter<String> adapter = new ArrayAdapter(this,
+                            android.R.layout.simple_spinner_item, sensors);
 
         sensorSelectionSpinner.setAdapter(adapter);
 
@@ -130,7 +137,8 @@ public class ViewDataActivity extends Activity {
         intervalSelectionBtn = (Button) findViewById(R.id.intervalSelectionBtn);
         intervalSelectionBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                AlertDialog.Builder initialInterval = generateIntervalSelector(ConstVar.INTERVAL_TITLE_START);
+                AlertDialog.Builder initialInterval = generateIntervalSelector(
+                        ConstVar.INTERVAL_TITLE_START);
                 initialInterval.show();
             }
         });
@@ -139,7 +147,8 @@ public class ViewDataActivity extends Activity {
         analyticsBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                ConnectivityManager connManager = (ConnectivityManager) getSystemService(
+                        Context.CONNECTIVITY_SERVICE);
                 NetworkInfo netInfo = connManager.getActiveNetworkInfo();
 
                 // only attempt analytics if connected to Network
@@ -177,7 +186,8 @@ public class ViewDataActivity extends Activity {
         // TODO - create more analytic tasks
 
         final ArrayAdapter<String> adapter = new ArrayAdapter(ViewDataActivity.this,
-                android.R.layout.simple_spinner_item, analyticTasks);
+                R.layout.spinner_item, R.id.textview, analyticTasks);
+
         analyticSelector.setAdapter(adapter);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(ViewDataActivity.this);
@@ -202,16 +212,20 @@ public class ViewDataActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                final String chosenTime = Utils.createTimeStringInterval(dataStatusText.getText().toString());
+                final String chosenTime = Utils.createTimeStringInterval(
+                        dataStatusText.getText().toString());
                 final String processID = selectAnalyticProcessID(mostRecentlySelectedTask);
 
-                CSEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB().getSpecificCSData(entityName, chosenTime, processID);
+                CSEntry queryResult = DBSingleton.getInstance(getApplicationContext()).getDB()
+                        .getSpecificCSData(entityName, chosenTime, processID);
 
-                // first check to see if Analytic request isn't already in ContentStore and that it's still valid
+                // first check if Analytic request isn't already in ContentStore and  still valid
                 if (queryResult != null
-                        && Utils.isValidFreshnessPeriod(queryResult.getFreshnessPeriod(), queryResult.getTimeString())) {
+                        && Utils.isValidFreshnessPeriod(queryResult.getFreshnessPeriod(),
+                        queryResult.getTimeString())) {
 
-                    analyticsResultText.setText(mostRecentlySelectedTask + " is " + queryResult.getDataPayload());
+                    analyticsResultText.setText(mostRecentlySelectedTask + " is " +
+                            queryResult.getDataPayload());
                 } else {
                     // query server for analytic task
                     Name packetName = JNDNUtils.createName(entityName, currentSensorSelected,
@@ -224,7 +238,7 @@ public class ViewDataActivity extends Activity {
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(data);
 
-                    Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
+                    Utils.forwardInterestPacket(interest, getApplicationContext()); // forward now
 
                     // store received packet in database for further review
                     Utils.storeInterestPacket(getApplicationContext(), interest);
@@ -236,7 +250,7 @@ public class ViewDataActivity extends Activity {
                     new Thread(new Runnable() {
                         public void run() {
 
-                            int maxLoopCount = 12; // check for SLEEP_TIME*12 = 3 seconds (somewhat arbitrary)
+                            int maxLoopCount = 12; // SLEEP_TIME*12 = 3 seconds (somewhat arbitrary)
                             int loopCount = 0;
                             CSEntry candidateData = null;
 
@@ -259,22 +273,22 @@ public class ViewDataActivity extends Activity {
 
                             final CSEntry analyticsResultFinal = candidateData;
 
-                            System.out.println("final result found: " + analyticsResultFinal);
-
                             ViewDataActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
 
                                     // delete analytic request Interest from PIT
                                     DBSingleton.getInstance(getApplicationContext()).getDB()
-                                            .deletePITEntry(data.getUserID(), data.getTimeString(), data.getIpAddr());
+                                            .deletePITEntry(data.getUserID(), data.getTimeString(),
+                                                    data.getIpAddr());
 
                                     analyticsBtn.setVisibility(View.VISIBLE); // place button back on view
                                     analyticsWait.setVisibility(View.GONE); // hide; result checked now
 
                                     if (analyticsResultFinal != null) {
 
-                                        analyticsResultText.setText(mostRecentlySelectedTask + " is " +analyticsResultFinal.getDataPayload());
+                                        analyticsResultText.setText(mostRecentlySelectedTask + " is "
+                                                +analyticsResultFinal.getDataPayload());
                                     } else {
                                         // nothing found; display error
 
@@ -348,7 +362,8 @@ public class ViewDataActivity extends Activity {
                                 analyticsResultText.setText("none requested"); // reset text for new data
                                 updateGraph();
                             } else {
-                                Toast toast = Toast.makeText(getApplicationContext(), "Invalid interval: start must be before end.", Toast.LENGTH_LONG);
+                                Toast toast = Toast.makeText(getApplicationContext(),
+                                        "Invalid interval: start must be before end.", Toast.LENGTH_LONG);
                                 toast.show();
 
                                 resetIntervalParams(); // clear so that future updates may occur
@@ -410,7 +425,8 @@ public class ViewDataActivity extends Activity {
         }
 
         // holds data before conversion
-        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB().getGeneralCSData(entityName);
+        ArrayList<CSEntry> myData = DBSingleton.getInstance(getApplicationContext()).getDB()
+                .getGeneralCSData(entityName);
 
         // holds data after conversion
         ArrayList<Float> myFloatData;

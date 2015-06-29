@@ -23,6 +23,7 @@ import com.ndnhealthnet.androidudpclient.Sensor.ImageProcessing;
 import com.ndnhealthnet.androidudpclient.Utility.ConstVar;
 import com.ndnhealthnet.androidudpclient.Utility.Utils;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -59,6 +60,8 @@ public class HeartbeatSensorActivity extends Activity {
     private static final int[] beatsArray = new int[beatsArraySize];
     private static double beats = 0;
     private static long startTime = 0;
+
+    ArrayList<Toast> createdToasts = new ArrayList<>();
 
     Button backBtn, recordBtn;
 
@@ -102,6 +105,8 @@ public class HeartbeatSensorActivity extends Activity {
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "No reading yet. Wait a moment.", Toast.LENGTH_LONG);
                     toast.show();
+
+                    createdToasts.add(toast);
                 } else {
 
                     String myUserID = Utils.getFromPrefs(getApplicationContext(),
@@ -118,9 +123,12 @@ public class HeartbeatSensorActivity extends Activity {
 
                     DBSingleton.getInstance(getApplicationContext()).getDB().addCSData(data);
 
+
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Heart beat successfully recorded.", Toast.LENGTH_SHORT);
                     toast.show();
+
+                    createdToasts.add(toast);
                 }
             }
         });
@@ -155,6 +163,11 @@ public class HeartbeatSensorActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
+
+        // cancel all outstanding toasts
+        for (int i = 0; i < createdToasts.size(); i++) {
+            createdToasts.get(i).cancel();
+        }
 
         wakeLock.release();
 

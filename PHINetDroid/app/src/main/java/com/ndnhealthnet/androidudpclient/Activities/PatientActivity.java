@@ -102,60 +102,23 @@ public class PatientActivity extends Activity {
         // network connection required
         if (netInfo != null) {
 
-            ArrayList<PITEntry> pitEntries = DBSingleton.getInstance(getApplicationContext())
-                    .getDB().getGeneralPITData(patientUserID);
+            // TODO - rework this logic (update PIT, for example)
 
-            // TODO - rework this logic
+            String timeString = generateTimeString();
 
-            // place entry into PIT for self; this is because if a request is
-            // received for same data we request, we won't send another, identical Interest
-            if (pitEntries == null) {
+            PITEntry selfPITEntry = new PITEntry(ConstVar.NULL_FIELD, ConstVar.DATA_CACHE,
+                    timeString, patientUserID, MainActivity.deviceIP);
 
-                PITEntry selfPITEntry = new PITEntry(ConstVar.NULL_FIELD, ConstVar.INTEREST_CACHE_DATA,
-                        patientUserID, generateTimeString(), MainActivity.deviceIP);
+            DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
 
-                DBSingleton.getInstance(getApplicationContext()).getDB().addPITData(selfPITEntry);
+            Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, timeString,
+                    ConstVar.DATA_CACHE);
+            Interest interest = JNDNUtils.createInterestPacket(packetName);
 
-            } else {
-                // user has already requested data, update PIT entries
+            Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
 
-                // TODO - rework the way PIT entries are updated
-
-              /*  for (int i = 0; i < pitEntries.size(); i++) {
-                    pitEntries.get(i).setTimeString(ConstVar.CURRENT_TIME);
-                    DBSingleton.getInstance(getApplicationContext()).getDB().updatePITData(pitEntries.get(i));
-                }*/
-            }
-
-            ArrayList<FIBEntry> allFIBEntries = DBSingleton
-                    .getInstance(getApplicationContext()).getDB().getAllFIBData();
-
-            if (allFIBEntries != null) {
-                int fibRequestsSent = 0;
-
-                for (int i = 0; i < allFIBEntries.size(); i++) {
-                    // send request to everyone in FIB; only send to users with actual ip
-                    if (Utils.isValidIP(allFIBEntries.get(i).getIpAddr())) {
-
-                        Name packetName = JNDNUtils.createName(patientUserID, ConstVar.NULL_FIELD, generateTimeString(),
-                                ConstVar.INTEREST_CACHE_DATA);
-                        Interest interest = JNDNUtils.createInterestPacket(packetName);
-
-                        Utils.forwardInterestPacket(interest, getApplicationContext()); // forward Interest now
-
-                        // store received packet in database for further review
-                        Utils.storeInterestPacket(getApplicationContext(), interest);
-
-                        fibRequestsSent++;
-                    }
-                }
-
-                if (fibRequestsSent == 0) {
-                    Toast toast = Toast.makeText(getApplicationContext(),
-                            "No neighbors with valid IP found. Enter valid then try again.", Toast.LENGTH_LONG);
-                    toast.show();
-                }
-            }
+            // store received packet in database for further review
+            Utils.storeInterestPacket(getApplicationContext(), interest);
         } else {
             // not connected to network
             Toast toast = Toast.makeText(getApplicationContext(),

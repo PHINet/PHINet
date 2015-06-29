@@ -35,7 +35,7 @@ exports.Utils = {
                         var dataPiece = sensorData[j].split(","); // ',' separates (data,time) tuple
 
                         var sensorEntry = DBData.DATA();
-                        sensorEntry.setDataFloat(dataPiece[0]);
+                        sensorEntry.setDataPayload(dataPiece[0]);
                         sensorEntry.setSensorID(sensorName);
                         sensorEntry.setTimeString(dataPiece[1]);
                         sensorEntry.setUserID(userID);
@@ -229,5 +229,64 @@ exports.Utils = {
         // if dataInterval is not before start and not after end, then its with interval
         return (!beforeStartDate && !afterEndDate) || requestIntervals[0] === dataInterval
             || requestIntervals[1] === dataInterval;
+    }, 
+
+    /**
+     * Method is invoked and converts data into a string (syntax below) for easy placement in NDN Data packet.
+     *
+     * Syntax: Sensor1--data1,time1;; ... ;;dataN,timeN:: ... ::SensorN--data1,time1;; ... ;;dataN,timeN
+     *
+     * @param data to be converted
+     * @param formatCallback that passes formatted data back to caller
+     */
+    formatCacheRequest : function(data, formatCallback) {
+
+        try {
+
+            var hashedBySensors = {};
+            var formattedSyncData = "";
+
+            // first separate data based upon sensor
+            for (var i = 0; i < data.length; i++) {
+                // sensor hasn't been stored yet, create array for its data and store now
+                if (!hashedBySensors[data[i].getSensorID()]) {
+
+                    hashedBySensors[data[i].getSensorID()] = [data[i]];
+                }
+                // sensor has been seen, append data to its Array now
+                else {
+
+                    hashedBySensors[data[i].getSensorID()].push(data[i]);
+                }
+            }
+
+            var sensors = Object.keys(hashedBySensors);
+
+            // now format data for each sensor
+            for (var i = 0; i < sensors.length; i++) {
+
+                formattedSyncData += sensors[i] + "--"; // '--' separates sensor's name from its data
+
+                for (var j = 0; j < hashedBySensors[sensors[i]].length; j++) {
+                    var sensorData = hashedBySensors[sensors[i]][j];
+
+                    formattedSyncData += sensorData.getDataPayload() + "," + sensorData.getTimeString();
+                    formattedSyncData += ";;"; // ';;' separates each data piece for sensor
+                }
+
+                // remove last two chars, ';;', because they proceed no data
+                formattedSyncData = formattedSyncData.substr(0, formattedSyncData.length - 2);
+
+                formattedSyncData += "::"; // '::' separates each sensor
+            }
+
+            // remove last two chars, '::', because they proceed no sensor
+            formattedSyncData = formattedSyncData.substr(0, formattedSyncData.length - 2);
+
+            formatCallback(formattedSyncData);
+        } catch (e) {
+            // TODO - handle better
+            console.log("Error: exception in Utils.formatCacheRequest(): " + e);
+        }
     }
 };

@@ -103,10 +103,10 @@ public class DoctorListActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        String doctorName = doctorInput.getText().toString();
+                        String doctorName = doctorInput.getText().toString().trim();
 
                         if (Utils.isValidUserName(doctorName) && !adapter.listData.contains(doctorName)) {
-                            initiateAddDoctorQuery(doctorInput.getText().toString(), userID);
+                            initiateAddDoctorQuery(doctorName, userID);
                         } else if (Utils.isValidUserName(doctorName) && adapter.listData.contains(doctorName)) {
                             Toast toast = Toast.makeText(DoctorListActivity.this,
                                     "Already your doctor", Toast.LENGTH_LONG);

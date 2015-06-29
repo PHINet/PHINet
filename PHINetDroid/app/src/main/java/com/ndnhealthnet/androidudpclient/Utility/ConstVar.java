@@ -48,13 +48,6 @@ public class ConstVar {
     // denotes a user who has no associated IP
     public static final String NULL_IP = "NULL_IP";
 
-    // denotes that data from cache is desired
-    static public final String INTEREST_CACHE_DATA = "INTEREST_CACHE_DATA";
-
-    // used to denote the two types of packets: interest and data
-    static public final String INTEREST_TYPE = "INTEREST-TYPE";
-    static public final String DATA_TYPE = "DATA-TLV";
-
     // notifies current time should be given
     static public final String CURRENT_TIME = "CURRENT_TIME";
 
@@ -86,7 +79,7 @@ public class ConstVar {
     public static final String ENTITY_NAME = "ENTITY_NAME";
 
     // information used to contact the server
-    public static final String SERVER_IP = "10.0.0.3"; // TODO - //"52.26.209.179";
+    public static final String SERVER_IP = "52.26.209.179";
     public static final String SERVER_ID = "CLOUD-SERVER";
 
     // used to query patients from server

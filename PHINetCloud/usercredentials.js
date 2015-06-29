@@ -241,10 +241,11 @@ exports.LoginCredentials = function (tableName) {
         },
 
         /**
-         * TODO - doc
+         * Returns list of user's doctors
          *
-         * @param userID
-         * @param getDrCallback
+         * @param userID requesting doctorList
+         * @param getDrCallback used to pass back the doctorList
+         * @returns {boolean} used during testing to denote valid/invalid input
          */
         getDoctors: function(userID, getDrCallback) {
             try {
@@ -286,10 +287,11 @@ exports.LoginCredentials = function (tableName) {
         },
 
         /**
-         * TODO - doc
+         * Returns list of user's patients
          *
-         * @param userID
-         * @param getPatientsCallback
+         * @param userID requesting patientList
+         * @param getPatientsCallback used to pass back the patientList
+         * @returns {boolean} used during testing to denote valid/invalid input
          */
         getPatients: function(userID, getPatientsCallback) {
             try {
@@ -319,11 +321,12 @@ exports.LoginCredentials = function (tableName) {
         },
 
         /**
-         * TODO - doc
+         * Adds doctor to a given userID's doctorList column
          *
-         * @param userID
-         * @param doctor
-         * @param addDrCallback
+         * @param userID of user requesting new doctor
+         * @param doctor - name of new doctor
+         * @param addDrCallback used to pass back result
+         * @returns {boolean} used during testing to denote valid/invalid input
          */
         addDoctor: function(userID, doctor, addDrCallback) {
             try {
@@ -371,11 +374,12 @@ exports.LoginCredentials = function (tableName) {
         },
 
         /**
-         * TODO - doc
+         * Adds doctor to a given userID's doctorList column
          *
-         * @param userID
-         * @param patient
-         * @param addDrCallback
+         * @param userID of user requesting new doctor
+         * @param patient - name of new doctor
+         * @param addPatientCallback used to pass back result
+         * @returns {boolean} used during testing to denote valid/invalid input
          */
         addPatient: function(userID, patient, addPatientCallback) {
             try {

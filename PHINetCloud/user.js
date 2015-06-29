@@ -77,12 +77,9 @@ exports.User = function () {
         getDoctorList : function() {
             // Syntax for Doctor list is "doctor_1,...,doctor_n"
 
-            console.log("doctor list, get");
             if (!this.doctorList) {
-                console.log('1');
                 return [];
             } else {
-                console.log("2");
                 return this.doctorList.split(",");
             }
         }, 

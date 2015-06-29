@@ -92,16 +92,18 @@ public class SensorListActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
+                        String sensorName = sensorInput.getText().toString().trim();
+
                         SensorDBEntry sensorQuery = DBSingleton.getInstance(getApplicationContext())
-                                .getDB().getSpecificSensorData(sensorInput.getText().toString());
+                                .getDB().getSpecificSensorData(sensorName);
 
                         // verify that name is syntactically correct and unique
-                        if (Utils.isValidSensorName(sensorInput.getText().toString()) && sensorQuery == null) {
+                        if (Utils.isValidSensorName(sensorName) && sensorQuery == null) {
 
                             Intent intent = new Intent(SensorListActivity.this, SensorSettingsActivity.class);
 
                             // through intent, pass sensor information to activity
-                            intent.putExtra(SENSOR_NAME, sensorInput.getText().toString());
+                            intent.putExtra(SENSOR_NAME, sensorName);
                             startActivity(intent);
 
                         } else if (sensorQuery != null) {
