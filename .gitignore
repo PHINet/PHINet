@@ -11,4 +11,7 @@
 .DS_Store
 /build
 
+PHINetCloud/build
+PHINetDroid/build
+
 *connection_string.js
