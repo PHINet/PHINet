@@ -217,11 +217,11 @@ app.get('/logout', function(req, res) {
  */
 app.get('/faq', function (req, res) {
 
-    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress ||
                 req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
     if (!isRateLimited(ip)) {
-        
+
             if (req.cookies.user) {
                 LoginDB.getUserByID(req.cookies.user, function(rowsTouched, queryResult) {
 
@@ -242,7 +242,7 @@ app.get('/faq', function (req, res) {
                 var ejsParams = {user: "", userIsPatient: ""};
                 displayPage(200, res, '/public/templates/faq.html', "Error serving faq.html: ", ejsParams);
             }
-       
+
     } else {
         displayPage(RATE_LIMIT_CODE, res, '/public/templates/rate_limit.html', "Error serving rate_limit.html: ", {});
     }

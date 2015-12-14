@@ -3,6 +3,8 @@
  * File contains constant strings as well as methods for generating DB Schema.
  */
 
+var ConnectionString = require('./connection_string').ConnectionString;
+
 exports.StringConst = {
 
     // the id used by the server
@@ -56,7 +58,7 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: "ASK FOR PERMISSION",
+    DB_CONNECTION_STRING: ConnectionString, // NOTE: this string is intentionally hidden from the public repository
 
     // db variables
     CS_DB : "ContentStore",

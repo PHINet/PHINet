@@ -2,7 +2,6 @@
  * File contains code for miscellaneous functions.
  */
 
-var bcrypt = require('bcrypt');
 var DBData = require('./data'); // used to create objects used by the database
 var StringConst = require('./string_const').StringConst;
 
@@ -146,15 +145,9 @@ exports.Utils = {
 		if (!password || !callback) {
 			throw "!!Error: invalid input to utils.hashPassword()!";
 		} else {
-            bcrypt.genSalt(10, function(err, salt) {
-                if (err)
-                    return callback(err, null);
 
-                bcrypt.hash(password, salt, function(err, hash) {
-                    return callback(err, hash);
-                });
-
-            })
+            callback(null, password);
+           
         }
  	},
 
@@ -170,11 +163,8 @@ exports.Utils = {
 		if (!password || !hashedPassword || !callback) {
 			throw "!!Error: invalid input to utils.comparePassword()!";
 		} else {
-            bcrypt.compare(password, hashedPassword, function(err, isPasswordMatch) {
-                if (err)
-                    return callback(err, false);
-                return callback(null, isPasswordMatch);
-            });
+
+            callback(null, password===hashedPassword);
         }
 	},
 

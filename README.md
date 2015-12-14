@@ -23,6 +23,7 @@ All documented and tested contributions that further the aim of this project are
 - REQUIRED: more rigorous testing
 - REQUIRED: add to the "supported senors" list
 - REQUIRED: view doctor profile (contact information, etc)
+- REQUIRED: crisis management and detection
 - DESIRED: doctor name suggestions when typing 
 - DESIRED: allow more fine tuning in regards to requesting patient data
 

@@ -1,0 +1,14 @@
+.gradle
+.idea
+.ebextensions
+
+*app-release.apk
+
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+
+*connection_string.js

@@ -8,8 +8,8 @@ android {
         applicationId "com.ndnhealthnet.androidudpclient"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 2
-        versionName "0.01"
+        versionCode 7
+        versionName "0.07"
     }
     buildTypes {
         release {

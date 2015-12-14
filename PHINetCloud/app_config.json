@@ -1,4 +1,4 @@
 { 
-  "AWS_REGION": "us-west-2",
-  "NDN_HEALTH_DB": "ndnhealthdb"
+  "AWS_REGION": "us-west-2a",
+  "NDN_HEALTH_DB": "phinetv1"
 }
