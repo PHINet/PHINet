@@ -1,9 +1,20 @@
 {
-  "name": "phinetv1",
+  "name": "phinet",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "npm cache clean; node server.js"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "aws-sdk": "*",
+    "express": "*",
+    "jade": "*",
+    "cookie-parser": "*",
+    "pg": "*",
+    "bcrypt": "*",
+    "gauss": "*",
+    "ejs": "*",
+    "serve-favicon": "*",
+    "body-parser": "*"
   }
-  
 }
