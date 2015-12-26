@@ -58,7 +58,7 @@ exports.StringConst = {
     CURRENT_TIME : "CURRENT_TIME",
 
     // allows node.js postgres module to connect to db
-    DB_CONNECTION_STRING: ConnectionString, // NOTE: this string is intentionally hidden from the public repository
+    DB_CONNECTION_STRING: ConnectionString.CONNECTION_STRING, // NOTE: this string is intentionally hidden from the public repository
 
     // db variables
     CS_DB : "ContentStore",
@@ -151,11 +151,11 @@ exports.StringConst = {
      */
     createLoginDBQuery : function(dbName) {
 
-      // TODO - improve upon this schema; have a single field for doctor may not scale well 
+      // TODO - improve upon this schema; have a single field for doctor may not scale well
 
         return "CREATE TABLE " + dbName + "("
-        + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," + this.KEY_DOCTOR_LIST + " TEXT," + 
-        this.KEY_PATIENT_LIST  + " TEXT ," + this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE 
+        + this.KEY_USER_ID + " TEXT ," + this.KEY_EMAIL + " TEXT," + this.KEY_DOCTOR_LIST + " TEXT," +
+        this.KEY_PATIENT_LIST  + " TEXT ," + this.KEY_PASSWORD + " TEXT ," + this.KEY_ENTITY_TYPE
         + " TEXT, PRIMARY KEY( " + this.KEY_USER_ID + " ))"
     }
 };
