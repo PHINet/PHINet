@@ -12,7 +12,7 @@ This project is described in a paper accepted by the IEEE Mobile Services confer
 
 # Contributing
 
-All documented and tested contributions that further the aim of this project are welcome. Consult the following list for ideas.
+All documented and tested contributions that further the aim of this project are welcome. Consult the below-listed items as well as the [issues section](https://github.com/PHINet/PHINet/issues) for ideas.
 
 ###GENERAL
 - REQUIRED: test multiple clients interacting
