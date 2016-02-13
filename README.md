@@ -4,11 +4,13 @@ PHINet is a testbed for Health-IoT over the Content Centric Network (CCN) known 
 
 This project is described in a paper accepted by the IEEE Mobile Services conference (link will be provided soon).
 
+#### Note that PHINet is offline as of 2/12/16. However, feel free to develop and test changes locally.
+
 # Install
 
 [Our client application is available for android devices.](https://play.google.com/store/apps/details?id=com.ndnhealthnet.androidudpclient)
 
-[Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/)
+[Visit our website for additional information/functionality.](http://phinet.elasticbeanstalk.com/) (currently offline)
 
 # Contributing
 
